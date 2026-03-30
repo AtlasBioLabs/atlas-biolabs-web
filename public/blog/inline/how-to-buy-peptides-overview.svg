@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="860" viewBox="0 0 1400 860" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgInline" x1="80" y1="80" x2="1320" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#11213a" />
+      <stop offset="1" stop-color="#23496f" />
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="860" rx="52" fill="url(#bgInline)" />
+  <circle cx="1180" cy="132" r="150" fill="#1fa1c3" opacity="0.14" />
+  <circle cx="170" cy="720" r="186" fill="#c7ea7c" opacity="0.15" />
+  <g transform="translate(60 78)">
+    <rect width="722" height="666" rx="40" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+    <rect x="30" y="30" width="132" height="32" rx="16" fill="#1fa1c3" opacity="0.92" />
+    <text x="96" y="51" text-anchor="middle" fill="#11213a" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Atlas Insight</text>
+    <text x="30" y="106" fill="#f7fcff" font-size="28" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Commercial buying path</text>
+    <text x="30" y="136" fill="#dce9d8" fill-opacity="0.88" font-size="16" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">How sourcing teams move from shortlist</text><text x="30" y="157" fill="#dce9d8" fill-opacity="0.88" font-size="16" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">to confirmed dispatch</text>
+    <g transform="scale(0.86) translate(8 114)">
+      
+    <g transform="translate(58 226)">
+      <path d="M84 94H618" stroke="rgba(255,255,255,0.16)" stroke-width="6" stroke-linecap="round" />
+      
+            <g transform="translate(44 0)">
+              <circle cx="40" cy="94" r="34" fill="#1fa1c3" />
+              <text x="40" y="104" text-anchor="middle" fill="#11213a" font-size="22" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">1</text>
+              <rect x="-2" y="164" width="180" height="116" rx="26" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+              <text x="22" y="208" fill="#f7fcff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Shortlist</text>
+              <rect x="22" y="228" width="120" height="10" rx="5" fill="rgba(255,255,255,0.3)" />
+              <rect x="22" y="248" width="86" height="10" rx="5" fill="rgba(255,255,255,0.18)" />
+            </g>
+          
+            <g transform="translate(226 0)">
+              <circle cx="40" cy="94" r="34" fill="#c7ea7c" />
+              <text x="40" y="104" text-anchor="middle" fill="#11213a" font-size="22" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">2</text>
+              <rect x="-2" y="164" width="180" height="116" rx="26" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+              <text x="22" y="208" fill="#f7fcff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Verify MOQ</text>
+              <rect x="22" y="228" width="120" height="10" rx="5" fill="rgba(255,255,255,0.3)" />
+              <rect x="22" y="248" width="86" height="10" rx="5" fill="rgba(255,255,255,0.18)" />
+            </g>
+          
+            <g transform="translate(408 0)">
+              <circle cx="40" cy="94" r="34" fill="#1fa1c3" />
+              <text x="40" y="104" text-anchor="middle" fill="#11213a" font-size="22" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">3</text>
+              <rect x="-2" y="164" width="180" height="116" rx="26" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+              <text x="22" y="208" fill="#f7fcff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Check documents</text>
+              <rect x="22" y="228" width="120" height="10" rx="5" fill="rgba(255,255,255,0.3)" />
+              <rect x="22" y="248" width="86" height="10" rx="5" fill="rgba(255,255,255,0.18)" />
+            </g>
+          
+            <g transform="translate(590 0)">
+              <circle cx="40" cy="94" r="34" fill="#c7ea7c" />
+              <text x="40" y="104" text-anchor="middle" fill="#11213a" font-size="22" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">4</text>
+              <rect x="-2" y="164" width="180" height="116" rx="26" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+              <text x="22" y="208" fill="#f7fcff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Plan dispatch</text>
+              <rect x="22" y="228" width="120" height="10" rx="5" fill="rgba(255,255,255,0.3)" />
+              <rect x="22" y="248" width="86" height="10" rx="5" fill="rgba(255,255,255,0.18)" />
+            </g>
+          
+    </g>
+  
+    </g>
+  </g>
+  <g transform="translate(832 98)">
+    <rect width="504" height="626" rx="38" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+    <text x="34" y="54" fill="#c7ea7c" font-size="15" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Buyer Guide</text>
+    <text x="34" y="118" fill="#f7fcff" fill-opacity="1" font-size="38" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">How buyers source</text><text x="34" y="166" fill="#f7fcff" fill-opacity="1" font-size="38" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">peptides</text>
+    <text x="34" y="220" fill="#f7fcff" fill-opacity="0.82" font-size="18" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">The usual path from</text><text x="34" y="246" fill="#f7fcff" fill-opacity="0.82" font-size="18" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">shortlist to shipment.</text>
+    
+    <g transform="translate(34 324)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#f7fcff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">MOQ</text>
+    </g>
+  
+    <g transform="translate(180 324)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#f7fcff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Documents</text>
+    </g>
+  
+    <g transform="translate(326 324)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#f7fcff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Lead time</text>
+    </g>
+  
+    
+    <g transform="translate(0 402)">
+      <circle cx="18" cy="18" r="18" fill="#1fa1c3" opacity="0.95" />
+      <text x="18" y="24" text-anchor="middle" fill="#11213a" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">1</text>
+      <rect x="52" y="0" width="444" height="54" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+      <text x="76" y="23" fill="#f7fcff" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Makes the sourcing path easier to understand</text><text x="76" y="42" fill="#f7fcff" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">at a glance.</text>
+    </g>
+  
+    <g transform="translate(0 474)">
+      <circle cx="18" cy="18" r="18" fill="#c7ea7c" opacity="0.95" />
+      <text x="18" y="24" text-anchor="middle" fill="#11213a" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">2</text>
+      <rect x="52" y="0" width="444" height="54" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+      <text x="76" y="23" fill="#f7fcff" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Surfaces documentation, quantity planning, and</text><text x="76" y="42" fill="#f7fcff" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">supplier responsiveness.</text>
+    </g>
+  
+  </g>
+</svg>

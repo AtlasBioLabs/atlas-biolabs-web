@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="120" y1="80" x2="1510" y2="840" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#112742" />
+      <stop offset="1" stop-color="#21557e" />
+    </linearGradient>
+    <linearGradient id="rightPanel" x1="930" y1="92" x2="1520" y2="786" gradientUnits="userSpaceOnUse">
+      <stop stop-color="rgba(255,255,255,0.11)" />
+      <stop offset="1" stop-color="rgba(255,255,255,0.06)" />
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" rx="56" fill="url(#bg)" />
+  <circle cx="1380" cy="140" r="180" fill="#2db4c8" opacity="0.14" />
+  <circle cx="180" cy="760" r="210" fill="#7fe2df" opacity="0.15" />
+  <path d="M0 716C180 650 354 628 528 640C712 654 864 720 1056 714C1220 710 1402 636 1600 520V900H0V716Z" fill="rgba(255,255,255,0.04)" />
+  <g opacity="0.1">
+    <line x1="74" y1="106" x2="864" y2="106" stroke="white" /><line x1="74" y1="242" x2="864" y2="242" stroke="white" /><line x1="74" y1="378" x2="864" y2="378" stroke="white" /><line x1="74" y1="514" x2="864" y2="514" stroke="white" /><line x1="74" y1="650" x2="864" y2="650" stroke="white" />
+    <line x1="86" y1="86" x2="86" y2="770" stroke="white" /><line x1="218" y1="86" x2="218" y2="770" stroke="white" /><line x1="350" y1="86" x2="350" y2="770" stroke="white" /><line x1="482" y1="86" x2="482" y2="770" stroke="white" /><line x1="614" y1="86" x2="614" y2="770" stroke="white" /><line x1="746" y1="86" x2="746" y2="770" stroke="white" />
+  </g>
+  <g transform="translate(72 84)">
+    <rect width="816" height="734" rx="42" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.16)" />
+    <rect x="34" y="34" width="150" height="34" rx="17" fill="#2db4c8" opacity="0.92" />
+    <text x="109" y="56" text-anchor="middle" fill="#112742" font-size="15" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Atlas Insight</text>
+    <text x="34" y="114" fill="#f4fbff" font-size="30" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Supply route overview</text>
+    
+    <g transform="translate(618 28)">
+      <rect width="164" height="104" rx="28" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)" />
+      <text x="28" y="48" fill="#f4fbff" font-size="38" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">4</text>
+      <text x="28" y="76" fill="#f4fbff" fill-opacity="0.72" font-size="15" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">Logistics stages</text>
+    </g>
+  
+    
+    <g transform="translate(58 226)">
+      <path d="M84 94H618" stroke="rgba(255,255,255,0.16)" stroke-width="6" stroke-linecap="round" />
+      
+            <g transform="translate(44 0)">
+              <circle cx="40" cy="94" r="34" fill="#2db4c8" />
+              <text x="40" y="104" text-anchor="middle" fill="#112742" font-size="22" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">1</text>
+              <rect x="-2" y="164" width="180" height="116" rx="26" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+              <text x="22" y="208" fill="#f4fbff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Production</text>
+              <rect x="22" y="228" width="120" height="10" rx="5" fill="rgba(255,255,255,0.3)" />
+              <rect x="22" y="248" width="86" height="10" rx="5" fill="rgba(255,255,255,0.18)" />
+            </g>
+          
+            <g transform="translate(226 0)">
+              <circle cx="40" cy="94" r="34" fill="#7fe2df" />
+              <text x="40" y="104" text-anchor="middle" fill="#112742" font-size="22" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">2</text>
+              <rect x="-2" y="164" width="180" height="116" rx="26" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+              <text x="22" y="208" fill="#f4fbff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Review</text>
+              <rect x="22" y="228" width="120" height="10" rx="5" fill="rgba(255,255,255,0.3)" />
+              <rect x="22" y="248" width="86" height="10" rx="5" fill="rgba(255,255,255,0.18)" />
+            </g>
+          
+            <g transform="translate(408 0)">
+              <circle cx="40" cy="94" r="34" fill="#2db4c8" />
+              <text x="40" y="104" text-anchor="middle" fill="#112742" font-size="22" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">3</text>
+              <rect x="-2" y="164" width="180" height="116" rx="26" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+              <text x="22" y="208" fill="#f4fbff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Export</text>
+              <rect x="22" y="228" width="120" height="10" rx="5" fill="rgba(255,255,255,0.3)" />
+              <rect x="22" y="248" width="86" height="10" rx="5" fill="rgba(255,255,255,0.18)" />
+            </g>
+          
+            <g transform="translate(590 0)">
+              <circle cx="40" cy="94" r="34" fill="#7fe2df" />
+              <text x="40" y="104" text-anchor="middle" fill="#112742" font-size="22" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">4</text>
+              <rect x="-2" y="164" width="180" height="116" rx="26" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+              <text x="22" y="208" fill="#f4fbff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Receipt</text>
+              <rect x="22" y="228" width="120" height="10" rx="5" fill="rgba(255,255,255,0.3)" />
+              <rect x="22" y="248" width="86" height="10" rx="5" fill="rgba(255,255,255,0.18)" />
+            </g>
+          
+    </g>
+  
+  </g>
+  <g transform="translate(940 92)">
+    <rect width="584" height="716" rx="44" fill="url(#rightPanel)" stroke="rgba(255,255,255,0.16)" />
+    <rect x="42" y="42" width="170" height="38" rx="19" fill="#2db4c8" opacity="0.94" />
+    <text x="127" y="66" text-anchor="middle" fill="#112742" font-size="15" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Supply Chain</text>
+    <text x="42" y="170" fill="#f4fbff" fill-opacity="1" font-size="50" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">How supply moves</text>
+    <text x="42" y="300" fill="#d7eff1" fill-opacity="0.96" font-size="24" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">From production review to</text><text x="42" y="334" fill="#d7eff1" fill-opacity="0.96" font-size="24" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">export, transit, and delivery.</text>
+    <rect x="42" y="372" width="452" height="1" fill="rgba(255,255,255,0.14)" />
+    
+    <g transform="translate(42 418)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#f4fbff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Planning</text>
+    </g>
+  
+    
+    <g transform="translate(188 418)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#f4fbff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Dispatch</text>
+    </g>
+  
+    
+    <g transform="translate(354 418)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#f4fbff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Delivery</text>
+    </g>
+  
+  </g>
+</svg>

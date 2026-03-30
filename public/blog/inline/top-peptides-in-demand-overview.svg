@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="860" viewBox="0 0 1400 860" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgInline" x1="80" y1="80" x2="1320" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#11243f" />
+      <stop offset="1" stop-color="#24507d" />
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="860" rx="52" fill="url(#bgInline)" />
+  <circle cx="1180" cy="132" r="150" fill="#1fa8cb" opacity="0.14" />
+  <circle cx="170" cy="720" r="186" fill="#f8c85a" opacity="0.15" />
+  <g transform="translate(60 78)">
+    <rect width="722" height="666" rx="40" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+    <rect x="30" y="30" width="132" height="32" rx="16" fill="#1fa8cb" opacity="0.92" />
+    <text x="96" y="51" text-anchor="middle" fill="#11243f" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Atlas Insight</text>
+    <text x="30" y="106" fill="#fffaf1" font-size="28" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Demand cluster view</text>
+    <text x="30" y="136" fill="#f6e8c8" fill-opacity="0.88" font-size="16" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">How category interest and product</text><text x="30" y="157" fill="#f6e8c8" fill-opacity="0.88" font-size="16" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">visibility group together</text>
+    <g transform="scale(0.86) translate(8 114)">
+      
+    <g transform="translate(58 202)">
+      
+            <g transform="translate(18 0)">
+              <rect x="26" width="74" height="196" rx="28" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.16)" />
+              <rect x="38" y="18" width="50" height="18" rx="9" fill="#f8c85a" />
+              <rect x="38" y="54" width="50" height="92" rx="24" fill="rgba(255,255,255,0.84)" />
+              <rect x="38" y="160" width="50" height="12" rx="6" fill="rgba(255,255,255,0.22)" />
+              <rect x="-10" y="226" width="146" height="88" rx="24" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.14)" />
+              <text x="18" y="260" fill="#fffaf1" fill-opacity="1" font-size="15" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Signal</text><text x="18" y="278" fill="#fffaf1" fill-opacity="1" font-size="15" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">peptides</text>
+            </g>
+          
+            <g transform="translate(238 0)">
+              <rect x="26" width="74" height="196" rx="28" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.16)" />
+              <rect x="38" y="18" width="50" height="18" rx="9" fill="#1fa8cb" />
+              <rect x="38" y="54" width="50" height="92" rx="24" fill="rgba(255,255,255,0.84)" />
+              <rect x="38" y="160" width="50" height="12" rx="6" fill="rgba(255,255,255,0.22)" />
+              <rect x="-10" y="226" width="146" height="88" rx="24" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.14)" />
+              <text x="18" y="260" fill="#fffaf1" fill-opacity="1" font-size="15" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Carrier</text><text x="18" y="278" fill="#fffaf1" fill-opacity="1" font-size="15" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">peptides</text>
+            </g>
+          
+            <g transform="translate(458 0)">
+              <rect x="26" width="74" height="196" rx="28" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.16)" />
+              <rect x="38" y="18" width="50" height="18" rx="9" fill="#f8c85a" />
+              <rect x="38" y="54" width="50" height="92" rx="24" fill="rgba(255,255,255,0.84)" />
+              <rect x="38" y="160" width="50" height="12" rx="6" fill="rgba(255,255,255,0.22)" />
+              <rect x="-10" y="226" width="146" height="88" rx="24" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.14)" />
+              <text x="18" y="260" fill="#fffaf1" fill-opacity="1" font-size="15" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Research-focused</text><text x="18" y="278" fill="#fffaf1" fill-opacity="1" font-size="15" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">lines</text>
+            </g>
+          
+      <path d="M58 358C144 326 210 322 296 292C382 262 452 234 618 170" fill="none" stroke="#f8c85a" stroke-width="9" stroke-linecap="round" />
+    </g>
+  
+    </g>
+  </g>
+  <g transform="translate(832 98)">
+    <rect width="504" height="626" rx="38" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+    <text x="34" y="54" fill="#f8c85a" font-size="15" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Demand Signals</text>
+    <text x="34" y="118" fill="#fffaf1" fill-opacity="1" font-size="38" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Peptides buyers ask</text><text x="34" y="166" fill="#fffaf1" fill-opacity="1" font-size="38" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">for most</text>
+    <text x="34" y="220" fill="#fffaf1" fill-opacity="0.82" font-size="18" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">The groups getting the</text><text x="34" y="246" fill="#fffaf1" fill-opacity="0.82" font-size="18" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">most attention across the</text><text x="34" y="272" fill="#fffaf1" fill-opacity="0.82" font-size="18" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">market.</text>
+    
+    <g transform="translate(34 324)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#fffaf1" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Signal</text>
+    </g>
+  
+    <g transform="translate(180 324)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#fffaf1" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Carrier</text>
+    </g>
+  
+    <g transform="translate(326 324)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#fffaf1" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Research</text>
+    </g>
+  
+    
+    <g transform="translate(0 402)">
+      <circle cx="18" cy="18" r="18" fill="#1fa8cb" opacity="0.95" />
+      <text x="18" y="24" text-anchor="middle" fill="#11243f" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">1</text>
+      <rect x="52" y="0" width="444" height="54" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+      <text x="76" y="23" fill="#fffaf1" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Uses product-group storytelling instead of</text><text x="76" y="42" fill="#fffaf1" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">another plain trend background.</text>
+    </g>
+  
+    <g transform="translate(0 474)">
+      <circle cx="18" cy="18" r="18" fill="#f8c85a" opacity="0.95" />
+      <text x="18" y="24" text-anchor="middle" fill="#11243f" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">2</text>
+      <rect x="52" y="0" width="444" height="54" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+      <text x="76" y="23" fill="#fffaf1" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Makes the article feel closer to a category</text><text x="76" y="42" fill="#fffaf1" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">briefing for commercial buyers.</text>
+    </g>
+  
+  </g>
+</svg>

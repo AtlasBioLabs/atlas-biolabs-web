@@ -1,0 +1,222 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+
+import { CtaSection } from "@/components/site/cta-section";
+import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
+import { createPageMetadata } from "@/lib/seo";
+import {
+  wholesaleCta,
+  wholesaleHighlights,
+  wholesaleIntro,
+  wholesaleSteps,
+} from "@/lib/site-content";
+
+export const metadata: Metadata = createPageMetadata({
+  title: "Wholesale",
+  path: "/wholesale",
+  description:
+    "Request wholesale and bulk peptide pricing from Atlas BioLabs with MOQ planning, qualified partner sourcing in China, and documentation-backed supply for U.S. and international buyers.",
+  keywords: [
+    "wholesale peptides",
+    "bulk peptide supplier",
+    "peptide recurring supply",
+  ],
+});
+
+export default function WholesalePage() {
+  return (
+    <>
+      <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
+        <div className="site-container grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+              Wholesale
+            </p>
+            <h1 className="mt-3 max-w-4xl text-4xl font-semibold text-[var(--brand-navy)]">
+              {wholesaleIntro.title}
+            </h1>
+            <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">
+              {wholesaleIntro.description}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className="rounded-full border border-border/70 bg-white px-3 py-1.5 text-xs font-medium text-[var(--brand-navy)]">
+                Controlled vial handling
+              </span>
+              <span className="rounded-full border border-border/70 bg-white px-3 py-1.5 text-xs font-medium text-[var(--brand-navy)]">
+                Volume planning with documentation context
+              </span>
+              <span className="rounded-full border border-border/70 bg-white px-3 py-1.5 text-xs font-medium text-[var(--brand-navy)]">
+                U.S. and international bulk support
+              </span>
+            </div>
+          </div>
+
+          <article className="surface-card overflow-hidden">
+            <div className="relative min-h-[360px]">
+              <Image
+                src="/images/lab-hero.jpg"
+                alt="Medical supply professional handling boxed vials in a controlled laboratory environment."
+                fill
+                priority
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 42vw"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#071322]/88 via-[#071322]/35 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-6 text-white">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/72">
+                  Clinical Supply Context
+                </p>
+                <p className="mt-2 max-w-md text-sm leading-relaxed text-white/84">
+                  We handle wholesale supply with clear clinical context around vial handling, laboratory discipline, and buyer communication.
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="section-space pt-10">
+        <div className="site-container grid gap-5 md:grid-cols-3">
+          {wholesaleHighlights.map((highlight) => (
+            <article key={highlight.title} className="surface-card p-6">
+              <h2 className="text-xl font-semibold text-[var(--brand-navy)]">
+                {highlight.title}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {highlight.description}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="section-space pt-0">
+        <div className="site-container">
+          <article className="surface-card overflow-hidden p-6 sm:p-8">
+            <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+              <div>
+                <h2 className="text-xl font-semibold text-[var(--brand-navy)]">
+                  Bulk Quote Workflow
+                </h2>
+                <ol className="mt-5 grid gap-3 md:grid-cols-2">
+                  {wholesaleSteps.map((step, index) => (
+                    <li
+                      key={step}
+                      className="rounded-lg border border-border/70 bg-white px-4 py-3 text-sm text-[var(--brand-navy)]"
+                    >
+                      <span className="mr-2 font-semibold text-[var(--brand-blue)]">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <div className="relative min-h-[280px] overflow-hidden rounded-2xl border border-border/70">
+                <Image
+                  src="/images/wholesale-vials.jpg"
+                  alt="Close-up of gloved hands handling a sealed vial in a laboratory setting."
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 38vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#071322]/82 via-[#071322]/24 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/72">
+                    Controlled Handling
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-white/84">
+                    This reflects the care we bring to vial handling, documentation alignment, and buyer-ready fulfillment.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="section-space pt-0">
+        <div className="site-container grid gap-5 lg:grid-cols-2">
+          <article className="surface-card p-6 sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+              Recurring Programs
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-[var(--brand-navy)]">
+              We stay organized when volume starts to scale
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Once an account moves beyond a one-off order, we focus on cadence, clearer communication, and steadier handoff between sourcing, documentation, and commercial support.
+            </p>
+            <ul className="mt-5 space-y-3">
+              {[
+                "Forecast-led MOQ planning and reorder timing",
+                "Commercial coordination tied to account history",
+                "Documentation support aligned with recurring supply windows",
+                "Direct follow-up when quantity or timing shifts",
+              ].map((item) => (
+                <li
+                  key={item}
+                  className="rounded-lg border border-border/70 bg-muted/30 px-4 py-3 text-sm text-[var(--brand-navy)]"
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </article>
+
+          <article className="surface-card overflow-hidden">
+            <div className="relative min-h-[300px] border-b border-border/70">
+              <Image
+                src="/images/sales-support.jpg"
+                alt="Account support specialist coordinating follow-up in a work setting."
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 38vw"
+              />
+            </div>
+            <div className="p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+                Account Continuity
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                We built our wholesale flow so recurring accounts feel supported, not handed off into silence after the first quote.
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <ResourceLinksPanel
+        eyebrow="Wholesale Resources"
+        title="Review Product, Quality, and Pricing Context Before You Scale"
+        description="These pages help wholesale buyers connect recurring supply planning with product selection, documentation support, and pricing strategy."
+        links={[
+          {
+            title: "Shop Peptides",
+            href: "/shop",
+            description:
+              "Browse wholesale-ready peptide listings with MOQ, pack size, and product-level sourcing context.",
+            eyebrow: "Catalog",
+          },
+          {
+            title: "Quality Assurance",
+            href: "/quality-assurance",
+            description:
+              "See how Atlas Labs handles documentation review, release checks, and batch transparency support.",
+            eyebrow: "Documentation",
+          },
+          {
+            title: "Peptide Pricing Explained",
+            href: "/blog/peptide-pricing-explained",
+            description:
+              "Understand the cost drivers that shape peptide pricing across volume tiers and supply formats.",
+            eyebrow: "Buyer Guide",
+          },
+        ]}
+      />
+
+      <CtaSection content={wholesaleCta} className="pt-10" />
+    </>
+  );
+}

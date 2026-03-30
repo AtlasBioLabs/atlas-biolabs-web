@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="860" viewBox="0 0 1400 860" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgInline" x1="80" y1="80" x2="1320" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#071c31" />
+      <stop offset="1" stop-color="#0f2c4e" />
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="860" rx="52" fill="url(#bgInline)" />
+  <circle cx="1180" cy="132" r="150" fill="#1485b8" opacity="0.14" />
+  <circle cx="170" cy="720" r="186" fill="#89ddd2" opacity="0.15" />
+  <g transform="translate(60 78)">
+    <rect width="722" height="666" rx="40" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+    <rect x="30" y="30" width="132" height="32" rx="16" fill="#1485b8" opacity="0.92" />
+    <text x="96" y="51" text-anchor="middle" fill="#071c31" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Atlas Insight</text>
+    <text x="30" y="106" fill="#f5fbff" font-size="28" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Structure overview</text>
+    <text x="30" y="136" fill="#d8ecf5" fill-opacity="0.88" font-size="16" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">How sequence design connects to category</text><text x="30" y="157" fill="#d8ecf5" fill-opacity="0.88" font-size="16" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">and commercial use</text>
+    <g transform="scale(0.86) translate(8 114)">
+      
+    <g transform="translate(54 188)">
+      <path d="M110 112C184 56 264 48 330 112C398 176 474 180 562 112" fill="none" stroke="#1485b8" stroke-width="10" stroke-linecap="round" />
+      <path d="M122 212C196 154 284 150 350 212C416 274 502 280 584 212" fill="none" stroke="#89ddd2" stroke-width="10" stroke-linecap="round" opacity="0.95" />
+      
+            <g transform="translate(88 112)">
+              <circle cx="0" cy="0" r="24" fill="#89ddd2" />
+              <circle cx="0" cy="0" r="10" fill="#f5fbff" opacity="0.9" />
+              <rect x="-54" y="46" width="108" height="38" rx="14" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+              <text x="0" y="70" text-anchor="middle" fill="#f5fbff" font-size="13" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Amino acids</text>
+            </g>
+          
+            <g transform="translate(242 212)">
+              <circle cx="0" cy="0" r="24" fill="#1485b8" />
+              <circle cx="0" cy="0" r="10" fill="#f5fbff" opacity="0.9" />
+              <rect x="-54" y="46" width="108" height="38" rx="14" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+              <text x="0" y="70" text-anchor="middle" fill="#f5fbff" font-size="13" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Peptide bonds</text>
+            </g>
+          
+            <g transform="translate(396 112)">
+              <circle cx="0" cy="0" r="24" fill="#89ddd2" />
+              <circle cx="0" cy="0" r="10" fill="#f5fbff" opacity="0.9" />
+              <rect x="-54" y="46" width="108" height="38" rx="14" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+              <text x="0" y="70" text-anchor="middle" fill="#f5fbff" font-size="13" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Chain length</text>
+            </g>
+          
+            <g transform="translate(550 212)">
+              <circle cx="0" cy="0" r="24" fill="#1485b8" />
+              <circle cx="0" cy="0" r="10" fill="#f5fbff" opacity="0.9" />
+              <rect x="-54" y="46" width="108" height="38" rx="14" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+              <text x="0" y="70" text-anchor="middle" fill="#f5fbff" font-size="13" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Use profile</text>
+            </g>
+          
+      
+    <g transform="translate(0 292)">
+      <rect width="214" height="112" rx="24" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)" />
+      <rect x="22" y="20" width="94" height="10" rx="5" fill="#89ddd2" opacity="0.92" />
+      <text x="22" y="56" fill="#f5fbff" font-size="20" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Sequence</text>
+      <text x="22" y="82" fill="#f5fbff" fill-opacity="0.72" font-size="14" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Amino acid order defines</text><text x="22" y="102" fill="#f5fbff" fill-opacity="0.72" font-size="14" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">the peptide chain.</text>
+    </g>
+  
+      
+    <g transform="translate(234 292)">
+      <rect width="214" height="112" rx="24" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)" />
+      <rect x="22" y="20" width="94" height="10" rx="5" fill="#89ddd2" opacity="0.92" />
+      <text x="22" y="56" fill="#f5fbff" font-size="20" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Category</text>
+      <text x="22" y="82" fill="#f5fbff" fill-opacity="0.72" font-size="14" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Functional class shapes</text><text x="22" y="102" fill="#f5fbff" fill-opacity="0.72" font-size="14" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">how buyers compare use</text>
+    </g>
+  
+      
+    <g transform="translate(468 292)">
+      <rect width="214" height="112" rx="24" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)" />
+      <rect x="22" y="20" width="94" height="10" rx="5" fill="#89ddd2" opacity="0.92" />
+      <text x="22" y="56" fill="#f5fbff" font-size="20" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Context</text>
+      <text x="22" y="82" fill="#f5fbff" fill-opacity="0.72" font-size="14" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Commercial sourcing adds</text><text x="22" y="102" fill="#f5fbff" fill-opacity="0.72" font-size="14" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">documentation and</text>
+    </g>
+  
+    </g>
+  
+    </g>
+  </g>
+  <g transform="translate(832 98)">
+    <rect width="504" height="626" rx="38" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+    <text x="34" y="54" fill="#89ddd2" font-size="15" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Peptide Basics</text>
+    <text x="34" y="118" fill="#f5fbff" fill-opacity="1" font-size="38" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">What peptides are</text>
+    <text x="34" y="220" fill="#f5fbff" fill-opacity="0.82" font-size="18" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Structure, use, and</text><text x="34" y="246" fill="#f5fbff" fill-opacity="0.82" font-size="18" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">sourcing in one view.</text>
+    
+    <g transform="translate(34 324)">
+      <rect width="136" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="68" y="23" text-anchor="middle" fill="#f5fbff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Chain length</text>
+    </g>
+  
+    <g transform="translate(180 324)">
+      <rect width="128" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="64" y="23" text-anchor="middle" fill="#f5fbff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Use profile</text>
+    </g>
+  
+    <g transform="translate(326 324)">
+      <rect width="184" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="92" y="23" text-anchor="middle" fill="#f5fbff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Regulatory context</text>
+    </g>
+  
+    
+    <g transform="translate(0 402)">
+      <circle cx="18" cy="18" r="18" fill="#1485b8" opacity="0.95" />
+      <text x="18" y="24" text-anchor="middle" fill="#071c31" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">1</text>
+      <rect x="52" y="0" width="444" height="54" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+      <text x="76" y="23" fill="#f5fbff" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Shows the building blocks buyers reference</text><text x="76" y="42" fill="#f5fbff" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">when comparing peptide types.</text>
+    </g>
+  
+    <g transform="translate(0 474)">
+      <circle cx="18" cy="18" r="18" fill="#89ddd2" opacity="0.95" />
+      <text x="18" y="24" text-anchor="middle" fill="#071c31" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">2</text>
+      <rect x="52" y="0" width="444" height="54" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+      <text x="76" y="23" fill="#f5fbff" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Connects structure to product positioning</text><text x="76" y="42" fill="#f5fbff" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">across research and cosmetic supply.</text>
+    </g>
+  
+  </g>
+</svg>

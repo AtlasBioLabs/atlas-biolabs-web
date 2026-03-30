@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="860" viewBox="0 0 1400 860" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgInline" x1="80" y1="80" x2="1320" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#112742" />
+      <stop offset="1" stop-color="#21557e" />
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="860" rx="52" fill="url(#bgInline)" />
+  <circle cx="1180" cy="132" r="150" fill="#2db4c8" opacity="0.14" />
+  <circle cx="170" cy="720" r="186" fill="#7fe2df" opacity="0.15" />
+  <g transform="translate(60 78)">
+    <rect width="722" height="666" rx="40" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+    <rect x="30" y="30" width="132" height="32" rx="16" fill="#2db4c8" opacity="0.92" />
+    <text x="96" y="51" text-anchor="middle" fill="#112742" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Atlas Insight</text>
+    <text x="30" y="106" fill="#f4fbff" font-size="28" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Supply route overview</text>
+    <text x="30" y="136" fill="#d7eff1" fill-opacity="0.88" font-size="16" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">The checkpoints between manufacturing</text><text x="30" y="157" fill="#d7eff1" fill-opacity="0.88" font-size="16" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">and buyer receipt</text>
+    <g transform="scale(0.86) translate(8 114)">
+      
+    <g transform="translate(58 226)">
+      <path d="M84 94H618" stroke="rgba(255,255,255,0.16)" stroke-width="6" stroke-linecap="round" />
+      
+            <g transform="translate(44 0)">
+              <circle cx="40" cy="94" r="34" fill="#2db4c8" />
+              <text x="40" y="104" text-anchor="middle" fill="#112742" font-size="22" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">1</text>
+              <rect x="-2" y="164" width="180" height="116" rx="26" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+              <text x="22" y="208" fill="#f4fbff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Production</text>
+              <rect x="22" y="228" width="120" height="10" rx="5" fill="rgba(255,255,255,0.3)" />
+              <rect x="22" y="248" width="86" height="10" rx="5" fill="rgba(255,255,255,0.18)" />
+            </g>
+          
+            <g transform="translate(226 0)">
+              <circle cx="40" cy="94" r="34" fill="#7fe2df" />
+              <text x="40" y="104" text-anchor="middle" fill="#112742" font-size="22" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">2</text>
+              <rect x="-2" y="164" width="180" height="116" rx="26" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+              <text x="22" y="208" fill="#f4fbff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Review</text>
+              <rect x="22" y="228" width="120" height="10" rx="5" fill="rgba(255,255,255,0.3)" />
+              <rect x="22" y="248" width="86" height="10" rx="5" fill="rgba(255,255,255,0.18)" />
+            </g>
+          
+            <g transform="translate(408 0)">
+              <circle cx="40" cy="94" r="34" fill="#2db4c8" />
+              <text x="40" y="104" text-anchor="middle" fill="#112742" font-size="22" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">3</text>
+              <rect x="-2" y="164" width="180" height="116" rx="26" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+              <text x="22" y="208" fill="#f4fbff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Export</text>
+              <rect x="22" y="228" width="120" height="10" rx="5" fill="rgba(255,255,255,0.3)" />
+              <rect x="22" y="248" width="86" height="10" rx="5" fill="rgba(255,255,255,0.18)" />
+            </g>
+          
+            <g transform="translate(590 0)">
+              <circle cx="40" cy="94" r="34" fill="#7fe2df" />
+              <text x="40" y="104" text-anchor="middle" fill="#112742" font-size="22" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">4</text>
+              <rect x="-2" y="164" width="180" height="116" rx="26" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+              <text x="22" y="208" fill="#f4fbff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Receipt</text>
+              <rect x="22" y="228" width="120" height="10" rx="5" fill="rgba(255,255,255,0.3)" />
+              <rect x="22" y="248" width="86" height="10" rx="5" fill="rgba(255,255,255,0.18)" />
+            </g>
+          
+    </g>
+  
+    </g>
+  </g>
+  <g transform="translate(832 98)">
+    <rect width="504" height="626" rx="38" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+    <text x="34" y="54" fill="#7fe2df" font-size="15" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Supply Chain</text>
+    <text x="34" y="118" fill="#f4fbff" fill-opacity="1" font-size="38" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">How supply moves</text>
+    <text x="34" y="220" fill="#f4fbff" fill-opacity="0.82" font-size="18" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">From production review to</text><text x="34" y="246" fill="#f4fbff" fill-opacity="0.82" font-size="18" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">export, transit, and</text><text x="34" y="272" fill="#f4fbff" fill-opacity="0.82" font-size="18" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">delivery.</text>
+    
+    <g transform="translate(34 324)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#f4fbff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Planning</text>
+    </g>
+  
+    <g transform="translate(180 324)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#f4fbff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Dispatch</text>
+    </g>
+  
+    <g transform="translate(326 324)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#f4fbff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Delivery</text>
+    </g>
+  
+    
+    <g transform="translate(0 402)">
+      <circle cx="18" cy="18" r="18" fill="#2db4c8" opacity="0.95" />
+      <text x="18" y="24" text-anchor="middle" fill="#112742" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">1</text>
+      <rect x="52" y="0" width="444" height="54" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+      <text x="76" y="23" fill="#f4fbff" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Makes the logistics article feel operational</text><text x="76" y="42" fill="#f4fbff" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">and commercially grounded.</text>
+    </g>
+  
+    <g transform="translate(0 474)">
+      <circle cx="18" cy="18" r="18" fill="#7fe2df" opacity="0.95" />
+      <text x="18" y="24" text-anchor="middle" fill="#112742" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">2</text>
+      <rect x="52" y="0" width="444" height="54" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+      <text x="76" y="23" fill="#f4fbff" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Shows how verification and dispatch planning</text><text x="76" y="42" fill="#f4fbff" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">sit inside the supply path.</text>
+    </g>
+  
+  </g>
+</svg>

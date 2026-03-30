@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="860" viewBox="0 0 1400 860" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgInline" x1="80" y1="80" x2="1320" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10203d" />
+      <stop offset="1" stop-color="#27486d" />
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="860" rx="52" fill="url(#bgInline)" />
+  <circle cx="1180" cy="132" r="150" fill="#1fa4c5" opacity="0.14" />
+  <circle cx="170" cy="720" r="186" fill="#a4df7d" opacity="0.15" />
+  <g transform="translate(60 78)">
+    <rect width="722" height="666" rx="40" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+    <rect x="30" y="30" width="132" height="32" rx="16" fill="#1fa4c5" opacity="0.92" />
+    <text x="96" y="51" text-anchor="middle" fill="#10203d" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Atlas Insight</text>
+    <text x="30" y="106" fill="#f8fbf5" font-size="28" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Supplier scorecard</text>
+    <text x="30" y="136" fill="#e5efd9" fill-opacity="0.88" font-size="16" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">The comparison signals buyers review</text><text x="30" y="157" fill="#e5efd9" fill-opacity="0.88" font-size="16" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">before committing to volume</text>
+    <g transform="scale(0.86) translate(8 114)">
+      
+    <g transform="translate(60 196)">
+      <rect width="700" height="386" rx="34" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+      
+            <g transform="translate(28 28)">
+              <rect width="192" height="108" rx="26" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+              <rect x="18" y="18" width="78" height="12" rx="6" fill="#1fa4c5" />
+              <text x="18" y="62" fill="#f8fbf5" font-size="20" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">MOQ fit</text>
+              <rect x="18" y="78" width="110" height="10" rx="5" fill="rgba(255,255,255,0.22)" />
+            </g>
+          
+            <g transform="translate(248 28)">
+              <rect width="192" height="108" rx="26" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+              <rect x="18" y="18" width="78" height="12" rx="6" fill="#a4df7d" />
+              <text x="18" y="62" fill="#f8fbf5" font-size="20" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Documentation</text>
+              <rect x="18" y="78" width="110" height="10" rx="5" fill="rgba(255,255,255,0.22)" />
+            </g>
+          
+            <g transform="translate(468 28)">
+              <rect width="192" height="108" rx="26" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+              <rect x="18" y="18" width="78" height="12" rx="6" fill="#1fa4c5" />
+              <text x="18" y="62" fill="#f8fbf5" font-size="20" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Capacity</text>
+              <rect x="18" y="78" width="110" height="10" rx="5" fill="rgba(255,255,255,0.22)" />
+            </g>
+          
+            <g transform="translate(28 164)">
+              <rect width="192" height="108" rx="26" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+              <rect x="18" y="18" width="78" height="12" rx="6" fill="#a4df7d" />
+              <text x="18" y="62" fill="#f8fbf5" font-size="20" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Lead time</text>
+              <rect x="18" y="78" width="110" height="10" rx="5" fill="rgba(255,255,255,0.22)" />
+            </g>
+          
+            <g transform="translate(248 164)">
+              <rect width="424" height="108" rx="26" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+              <rect x="18" y="18" width="78" height="12" rx="6" fill="#1fa4c5" />
+              <text x="18" y="62" fill="#f8fbf5" font-size="20" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Response speed</text>
+              <rect x="18" y="78" width="340" height="10" rx="5" fill="rgba(255,255,255,0.22)" />
+            </g>
+          
+      <path d="M54 324H646" stroke="rgba(255,255,255,0.14)" stroke-width="3" />
+      <path d="M72 344C150 316 204 316 268 282C326 252 378 238 452 198C508 168 570 136 622 118" fill="none" stroke="#a4df7d" stroke-width="9" stroke-linecap="round" />
+    </g>
+  
+    </g>
+  </g>
+  <g transform="translate(832 98)">
+    <rect width="504" height="626" rx="38" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.14)" />
+    <text x="34" y="54" fill="#a4df7d" font-size="15" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Supplier Guide</text>
+    <text x="34" y="118" fill="#f8fbf5" fill-opacity="1" font-size="38" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">How to compare</text><text x="34" y="166" fill="#f8fbf5" fill-opacity="1" font-size="38" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">suppliers</text>
+    <text x="34" y="220" fill="#f8fbf5" fill-opacity="0.82" font-size="18" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">What matters when you are</text><text x="34" y="246" fill="#f8fbf5" fill-opacity="0.82" font-size="18" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">choosing a peptide</text><text x="34" y="272" fill="#f8fbf5" fill-opacity="0.82" font-size="18" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">supplier.</text>
+    
+    <g transform="translate(34 324)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#f8fbf5" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">MOQ fit</text>
+    </g>
+  
+    <g transform="translate(180 324)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#f8fbf5" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Documents</text>
+    </g>
+  
+    <g transform="translate(326 324)">
+      <rect width="152" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="76" y="23" text-anchor="middle" fill="#f8fbf5" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Response speed</text>
+    </g>
+  
+    
+    <g transform="translate(0 402)">
+      <circle cx="18" cy="18" r="18" fill="#1fa4c5" opacity="0.95" />
+      <text x="18" y="24" text-anchor="middle" fill="#10203d" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">1</text>
+      <rect x="52" y="0" width="444" height="54" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+      <text x="76" y="23" fill="#f8fbf5" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Gives the article a stronger buying-team feel</text><text x="76" y="42" fill="#f8fbf5" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">than a generic abstract graphic.</text>
+    </g>
+  
+    <g transform="translate(0 474)">
+      <circle cx="18" cy="18" r="18" fill="#a4df7d" opacity="0.95" />
+      <text x="18" y="24" text-anchor="middle" fill="#10203d" font-size="14" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">2</text>
+      <rect x="52" y="0" width="444" height="54" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" />
+      <text x="76" y="23" fill="#f8fbf5" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">Reinforces that supplier selection depends on</text><text x="76" y="42" fill="#f8fbf5" fill-opacity="0.86" font-size="16" font-weight="500" font-family="Inter, Arial, Helvetica, sans-serif">operational fit, not price alone.</text>
+    </g>
+  
+  </g>
+</svg>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="120" y1="80" x2="1510" y2="840" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10233f" />
+      <stop offset="1" stop-color="#1b4f77" />
+    </linearGradient>
+    <linearGradient id="rightPanel" x1="930" y1="92" x2="1520" y2="786" gradientUnits="userSpaceOnUse">
+      <stop stop-color="rgba(255,255,255,0.11)" />
+      <stop offset="1" stop-color="rgba(255,255,255,0.06)" />
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" rx="56" fill="url(#bg)" />
+  <circle cx="1380" cy="140" r="180" fill="#1fb2bd" opacity="0.14" />
+  <circle cx="180" cy="760" r="210" fill="#9ae4d5" opacity="0.15" />
+  <path d="M0 716C180 650 354 628 528 640C712 654 864 720 1056 714C1220 710 1402 636 1600 520V900H0V716Z" fill="rgba(255,255,255,0.04)" />
+  <g opacity="0.1">
+    <line x1="74" y1="106" x2="864" y2="106" stroke="white" /><line x1="74" y1="242" x2="864" y2="242" stroke="white" /><line x1="74" y1="378" x2="864" y2="378" stroke="white" /><line x1="74" y1="514" x2="864" y2="514" stroke="white" /><line x1="74" y1="650" x2="864" y2="650" stroke="white" />
+    <line x1="86" y1="86" x2="86" y2="770" stroke="white" /><line x1="218" y1="86" x2="218" y2="770" stroke="white" /><line x1="350" y1="86" x2="350" y2="770" stroke="white" /><line x1="482" y1="86" x2="482" y2="770" stroke="white" /><line x1="614" y1="86" x2="614" y2="770" stroke="white" /><line x1="746" y1="86" x2="746" y2="770" stroke="white" />
+  </g>
+  <g transform="translate(72 84)">
+    <rect width="816" height="734" rx="42" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.16)" />
+    <rect x="34" y="34" width="150" height="34" rx="17" fill="#1fb2bd" opacity="0.92" />
+    <text x="109" y="56" text-anchor="middle" fill="#10233f" font-size="15" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Atlas Insight</text>
+    <text x="34" y="114" fill="#f5fdff" font-size="30" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Documentation review</text>
+    
+    <g transform="translate(618 28)">
+      <rect width="164" height="104" rx="28" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)" />
+      <text x="28" y="48" fill="#f5fdff" font-size="38" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">3</text>
+      <text x="28" y="76" fill="#f5fdff" fill-opacity="0.72" font-size="15" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">Review checkpoints</text>
+    </g>
+  
+    
+    <g transform="translate(60 184)">
+      <g transform="translate(0 10)">
+        <rect width="300" height="420" rx="34" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" />
+        <rect x="38" y="38" width="128" height="16" rx="8" fill="#9ae4d5" />
+        <rect x="38" y="72" width="188" height="10" rx="5" fill="rgba(255,255,255,0.78)" />
+        <rect x="38" y="118" width="220" height="12" rx="6" fill="rgba(255,255,255,0.26)" /><rect x="38" y="174" width="220" height="12" rx="6" fill="rgba(255,255,255,0.26)" /><rect x="38" y="230" width="220" height="12" rx="6" fill="rgba(255,255,255,0.26)" /><rect x="38" y="286" width="220" height="12" rx="6" fill="rgba(255,255,255,0.26)" />
+        <path d="M42 330C96 310 152 318 196 286C232 260 242 226 252 194" fill="none" stroke="#1fb2bd" stroke-width="8" stroke-linecap="round" />
+        <circle cx="234" cy="340" r="44" fill="#9ae4d5" opacity="0.95" />
+        <path d="M216 340l12 12 24-28" fill="none" stroke="#10233f" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+      <g transform="translate(338 0)">
+        
+              <g transform="translate(0 0)">
+                <rect width="384" height="126" rx="30" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+                <circle cx="42" cy="44" r="16" fill="#9ae4d5" />
+                <path d="M34 44l6 6 12-14" fill="none" stroke="#10233f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                <text x="76" y="50" fill="#f5fdff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Identity match</text>
+                <rect x="76" y="72" width="226" height="10" rx="5" fill="rgba(255,255,255,0.24)" />
+                <rect x="76" y="92" width="176" height="10" rx="5" fill="rgba(255,255,255,0.16)" />
+              </g>
+            
+              <g transform="translate(0 154)">
+                <rect width="384" height="126" rx="30" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+                <circle cx="42" cy="44" r="16" fill="#1fb2bd" />
+                <path d="M34 44l6 6 12-14" fill="none" stroke="#10233f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                <text x="76" y="50" fill="#f5fdff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Purity result</text>
+                <rect x="76" y="72" width="226" height="10" rx="5" fill="rgba(255,255,255,0.24)" />
+                <rect x="76" y="92" width="176" height="10" rx="5" fill="rgba(255,255,255,0.16)" />
+              </g>
+            
+              <g transform="translate(0 308)">
+                <rect width="384" height="126" rx="30" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.15)" />
+                <circle cx="42" cy="44" r="16" fill="#9ae4d5" />
+                <path d="M34 44l6 6 12-14" fill="none" stroke="#10233f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                <text x="76" y="50" fill="#f5fdff" font-size="22" font-weight="750" font-family="Inter, Arial, Helvetica, sans-serif">Lot traceability</text>
+                <rect x="76" y="72" width="226" height="10" rx="5" fill="rgba(255,255,255,0.24)" />
+                <rect x="76" y="92" width="176" height="10" rx="5" fill="rgba(255,255,255,0.16)" />
+              </g>
+            
+      </g>
+    </g>
+  
+  </g>
+  <g transform="translate(940 92)">
+    <rect width="584" height="716" rx="44" fill="url(#rightPanel)" stroke="rgba(255,255,255,0.16)" />
+    <rect x="42" y="42" width="170" height="38" rx="19" fill="#1fb2bd" opacity="0.94" />
+    <text x="127" y="66" text-anchor="middle" fill="#10233f" font-size="15" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">Quality Review</text>
+    <text x="42" y="170" fill="#f5fdff" fill-opacity="1" font-size="50" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">How to read quality</text><text x="42" y="228" fill="#f5fdff" fill-opacity="1" font-size="50" font-weight="800" font-family="Inter, Arial, Helvetica, sans-serif">documents</text>
+    <text x="42" y="300" fill="#d7edf2" fill-opacity="0.96" font-size="24" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">COAs, purity data, and lot</text><text x="42" y="334" fill="#d7edf2" fill-opacity="0.96" font-size="24" font-weight="600" font-family="Inter, Arial, Helvetica, sans-serif">checks that actually matter.</text>
+    <rect x="42" y="372" width="452" height="1" fill="rgba(255,255,255,0.14)" />
+    
+    <g transform="translate(42 418)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#f5fdff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">COA</text>
+    </g>
+  
+    
+    <g transform="translate(188 418)">
+      <rect width="120" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="60" y="23" text-anchor="middle" fill="#f5fdff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Purity</text>
+    </g>
+  
+    
+    <g transform="translate(354 418)">
+      <rect width="136" height="36" rx="18" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)" />
+      <text x="68" y="23" text-anchor="middle" fill="#f5fdff" font-size="14" font-weight="700" font-family="Inter, Arial, Helvetica, sans-serif">Traceability</text>
+    </g>
+  
+  </g>
+</svg>
