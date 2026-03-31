@@ -41,7 +41,6 @@ export function Navbar({ itemCount }: NavbarProps) {
             width={32}
             height={32}
             alt="Atlas BioLabs logo"
-            className="rounded-md border border-border bg-white"
           />
           <div className="flex min-w-0 flex-col leading-tight">
             <span className="text-sm font-semibold text-[var(--brand-navy)]">
