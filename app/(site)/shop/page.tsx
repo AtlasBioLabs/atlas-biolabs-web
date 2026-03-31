@@ -60,7 +60,7 @@ const shopSupportLinks = [
       description: post.description,
       eyebrow: "Buyer Guide",
     })),
-];
+].slice(0, 3);
 
 export default function ShopPage() {
   return (

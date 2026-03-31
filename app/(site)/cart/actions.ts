@@ -1,6 +1,5 @@
 'use server'
 
-import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
 import {
@@ -21,11 +20,6 @@ function readInteger(formData: FormData, key: string) {
   return Number.isFinite(parsed) ? parsed : undefined
 }
 
-function revalidateInquiryCartViews() {
-  revalidatePath("/cart")
-  revalidatePath("/", "layout")
-}
-
 export async function addInquiryItemAction(formData: FormData) {
   const slug = readString(formData, "slug")
   const quantity = readInteger(formData, "quantity")
@@ -34,7 +28,6 @@ export async function addInquiryItemAction(formData: FormData) {
     await addProductToInquiryCart(slug, quantity)
   }
 
-  revalidateInquiryCartViews()
   redirect("/cart")
 }
 
@@ -44,7 +37,6 @@ export async function setInquiryQuantityAction(formData: FormData) {
 
   if (slug && typeof quantity === "number") {
     await setInquiryCartQuantity(slug, quantity)
-    revalidateInquiryCartViews()
   }
 }
 
@@ -53,11 +45,9 @@ export async function removeInquiryItemAction(formData: FormData) {
 
   if (slug) {
     await removeInquiryCartItem(slug)
-    revalidateInquiryCartViews()
   }
 }
 
 export async function clearInquiryCartAction() {
   await clearInquiryCart()
-  revalidateInquiryCartViews()
 }
