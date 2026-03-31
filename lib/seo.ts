@@ -54,7 +54,7 @@ export function createPageMetadata({
   path,
   keywords,
   type = "website",
-  image = "/og-default.svg",
+  image = "/favicon.ico",
   imageAlt = `${siteConfig.name} - ${siteConfig.tagline}`,
   publishedTime,
   authors,

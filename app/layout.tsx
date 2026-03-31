@@ -51,8 +51,8 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-default.svg",
-        alt: "Atlas BioLabs peptide supply and sourcing brand preview",
+        url: "/favicon.ico",
+        alt: "Atlas BioLabs favicon brand preview",
       },
     ],
   },
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     title: "Atlas BioLabs - Peptide Supply & Sourcing",
     description:
       "Atlas BioLabs supplies peptides for commercial buyers through global sourcing partners, with documentation support, batch transparency, and structured supply systems.",
-    images: ["/og-default.svg"],
+    images: ["/favicon.ico"],
   },
 };
 

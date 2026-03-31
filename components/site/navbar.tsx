@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDownIcon, MenuIcon, ShoppingBagIcon } from "lucide-react";
@@ -35,9 +36,13 @@ export function Navbar({ itemCount }: NavbarProps) {
     <header className="sticky top-0 z-40 border-b border-border/70 bg-white/94 backdrop-blur-sm">
       <div className="site-container flex h-20 items-center justify-between gap-5">
         <Link href="/" className="inline-flex min-w-0 items-center gap-3">
-          <span className="inline-flex size-8 items-center justify-center rounded-md bg-[var(--brand-navy)] text-xs font-semibold text-white">
-            AB
-          </span>
+          <Image
+            src="/favicon.ico"
+            width={32}
+            height={32}
+            alt="Atlas BioLabs logo"
+            className="rounded-md border border-border bg-white"
+          />
           <div className="flex min-w-0 flex-col leading-tight">
             <span className="text-sm font-semibold text-[var(--brand-navy)]">
               {brand.name}
