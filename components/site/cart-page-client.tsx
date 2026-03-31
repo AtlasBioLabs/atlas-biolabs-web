@@ -362,7 +362,7 @@ export function CartPageClient({ items }: CartPageClientProps) {
                 <Input
                   id="cart-quantity"
                   name="quantity"
-                  defaultValue={quantityPrefill}
+                  value={quantityPrefill}
                   readOnly
                   className="h-10 bg-muted/35"
                   aria-invalid={Boolean(getError("quantity"))}
@@ -380,7 +380,7 @@ export function CartPageClient({ items }: CartPageClientProps) {
               <textarea
                 id="cart-product"
                 name="product"
-                defaultValue={productPrefill}
+                value={productPrefill}
                 readOnly
                 className="min-h-24 w-full rounded-lg border border-input bg-muted/35 px-3 py-2 text-sm text-[var(--brand-navy)] outline-none"
                 aria-invalid={Boolean(getError("product"))}
