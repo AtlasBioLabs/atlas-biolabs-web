@@ -7,7 +7,6 @@ import { JsonLd } from "@/components/site/json-ld";
 import { ProductInlineQuoteForm } from "@/components/site/product-inline-quote-form";
 import { ProductPurchaseActions } from "@/components/site/product-purchase-actions";
 import { Button } from "@/components/ui/button";
-import { getRelevantBlogPostsForProduct } from "@/lib/blog";
 import {
   createPageMetadata,
   getBreadcrumbSchema,
@@ -15,11 +14,7 @@ import {
   getProductSeoCopy,
   mergeKeywords,
 } from "@/lib/seo";
-import {
-  productCategories,
-  products,
-  type Product,
-} from "@/lib/site-content";
+import { productCategories, products, type Product } from "@/lib/site-content";
 
 type ShopDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -55,9 +50,9 @@ export async function generateMetadata({
     product.category;
 
   return createPageMetadata({
-    title: `${product.name} Peptide Supplier`,
+    title: product.name,
     path: `/shop/${product.slug}`,
-    description: `${product.name} is listed in our ${categoryLabel.toLowerCase()} catalog with structured peptide sourcing, MOQ ${product.moq}+ units, ${product.leadTime} lead time guidance, documentation support, and batch transparency for commercial buyers.`,
+    description: `${product.shortDescription} MOQ ${product.moq}+ units, ${product.leadTime} lead time, batch transparency support, and quote-ready commercial supply for U.S. and international buyers.`,
     keywords: mergeKeywords([
       product.name,
       `${categoryLabel} supplier`,
@@ -67,7 +62,7 @@ export async function generateMetadata({
       "peptide product page",
     ]),
     image: product.image,
-    imageAlt: `${product.name} peptide supplier product graphic`,
+    imageAlt: `${product.name} peptide product image`,
   });
 }
 
@@ -91,7 +86,6 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
       (entry) => entry.category === product.category && entry.slug !== product.slug
     )
     .slice(0, 4);
-  const relatedBlogPosts = getRelevantBlogPostsForProduct(product, 3);
 
   const breadcrumbSchema = getBreadcrumbSchema([
     { name: "Home", path: "/" },
@@ -133,7 +127,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
             <div className="relative aspect-square overflow-hidden rounded-2xl border border-border/70 bg-[#f0f5ff]">
               <Image
                 src={product.image}
-                alt={`${product.name} peptide supplier product graphic`}
+                alt={`${product.name} product image`}
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 45vw"
@@ -182,7 +176,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
         <div className="site-container">
           <article className="surface-card p-6 sm:p-8">
             <h2 className="text-2xl font-semibold text-[var(--brand-navy)]">
-              Research-Style Product Profile
+              Product Details
             </h2>
             <div className="mt-4 space-y-4">
               {seoCopy.map((paragraph) => (
@@ -220,10 +214,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
           </article>
 
           <article className="surface-card p-6">
-            <h2 className="text-xl font-semibold text-[var(--brand-navy)]">Key Details</h2>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              {product.mechanismInsight}
-            </p>
+            <h2 className="text-xl font-semibold text-[var(--brand-navy)]">Functional Role</h2>
             <ul className="mt-4 space-y-3">
               {product.functionalRole.map((item) => (
                 <li
@@ -251,7 +242,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
 
           <article className="surface-card p-6">
             <h2 className="text-xl font-semibold text-[var(--brand-navy)]">
-              Applications / Context
+              Common Applications
             </h2>
             <ul className="mt-4 space-y-3">
               {product.commonApplications.map((item) => (
@@ -263,10 +254,6 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              Buyers usually evaluate this peptide within the context of{" "}
-              {product.intendedBuyerType.slice(0, 2).join(" and ").toLowerCase()}.
-            </p>
           </article>
         </div>
       </section>
@@ -290,7 +277,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
           </article>
 
           <article className="surface-card p-6">
-            <h2 className="text-xl font-semibold text-[var(--brand-navy)]">Packaging & MOQ</h2>
+            <h2 className="text-xl font-semibold text-[var(--brand-navy)]">MOQ and Lead Time</h2>
             <ul className="mt-4 space-y-3">
               <li className="rounded-lg border border-border/70 bg-muted/35 px-4 py-3 text-sm text-[var(--brand-navy)]">
                 MOQ: {product.moq} units
@@ -303,9 +290,6 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
               </li>
               <li className="rounded-lg border border-border/70 bg-muted/35 px-4 py-3 text-sm text-[var(--brand-navy)]">
                 {product.priceRange}
-              </li>
-              <li className="rounded-lg border border-border/70 bg-muted/35 px-4 py-3 text-sm text-[var(--brand-navy)]">
-                Pack sizes: {product.packSizes.join(", ")}
               </li>
             </ul>
           </article>
@@ -329,7 +313,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
           </article>
 
           <article className="surface-card p-6">
-            <h2 className="text-xl font-semibold text-[var(--brand-navy)]">Documentation Support</h2>
+            <h2 className="text-xl font-semibold text-[var(--brand-navy)]">Purity / Documentation</h2>
             <ul className="mt-4 space-y-3">
               {product.purityDocumentation.map((item) => (
                 <li
@@ -380,7 +364,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
         <div className="site-container">
           <article className="surface-card p-6">
             <h2 className="text-xl font-semibold text-[var(--brand-navy)]">
-              Supply Notes
+              Sourcing Support
             </h2>
             <ul className="mt-4 grid gap-3 lg:grid-cols-3">
               {product.trustSupport.map((item) => (
@@ -392,39 +376,6 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
                 </li>
               ))}
             </ul>
-          </article>
-        </div>
-      </section>
-
-      <section className="section-space pt-0">
-        <div className="site-container">
-          <article className="surface-card p-6 sm:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-2xl font-semibold text-[var(--brand-navy)]">
-                Related Blog Reading
-              </h2>
-              <Link
-                href="/blog"
-                className="text-sm font-medium text-[var(--brand-blue)] hover:underline"
-              >
-                View all articles
-              </Link>
-            </div>
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {relatedBlogPosts.map((post) => (
-                <article
-                  key={post.slug}
-                  className="rounded-xl border border-border/70 bg-white p-4"
-                >
-                  <h3 className="text-base font-semibold text-[var(--brand-navy)]">
-                    <Link href={`/blog/${post.slug}`} className="hover:underline">
-                      {post.title}
-                    </Link>
-                  </h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{post.description}</p>
-                </article>
-              ))}
-            </div>
           </article>
         </div>
       </section>
