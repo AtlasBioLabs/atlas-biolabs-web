@@ -37,7 +37,7 @@ function getMaskedValue(value: string | undefined) {
 function getConfigStatus() {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const from = process.env.RESEND_FROM_EMAIL?.trim();
-  const to = process.env.FORM_NOTIFICATION_TO?.trim() || "dathuncho12@gmail.com";
+  const to = process.env.FORM_NOTIFICATION_TO?.trim() || "hello@atlasbiolabs.co";
 
   return {
     ready: Boolean(apiKey && from && to),

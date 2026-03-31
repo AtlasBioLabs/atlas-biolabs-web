@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-const DEFAULT_NOTIFICATION_TO = "dathuncho12@gmail.com";
+const DEFAULT_NOTIFICATION_TO = "hello@atlasbiolabs.co";
 
 export type NotificationField = {
   label: string;

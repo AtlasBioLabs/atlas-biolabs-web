@@ -1173,7 +1173,7 @@ export const researchCta: CtaContent = {
 };
 
 export const contactDetails: ContactDetails = {
-  recipientEmail: "bryan.davo35@gmail.com",
+  recipientEmail: "hello@atlasbiolabs.co",
   detailsNotice:
     "We share direct phone and account contact details during active quote and account conversations.",
 };
