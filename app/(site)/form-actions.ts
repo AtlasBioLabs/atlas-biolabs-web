@@ -8,7 +8,11 @@ import {
 } from "@/lib/cart-session";
 import { sendFormNotification } from "@/lib/form-mail";
 import type { FormSubmissionState } from "@/lib/form-state";
-import type { CartInquiryFormData, QuoteRequestFormData } from "@/lib/site-content";
+import {
+  contactDetails,
+  type CartInquiryFormData,
+  type QuoteRequestFormData,
+} from "@/lib/site-content";
 
 type ContactFormField = "name" | "email" | "organization" | "message";
 type CustomRequestField =
@@ -40,6 +44,10 @@ type CustomRequestValues = {
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function getDirectEmailFallbackMessage(requestLabel: string) {
+  return `We could not send your ${requestLabel} right now. Please email ${contactDetails.recipientEmail} directly.`;
+}
 
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -236,9 +244,7 @@ export async function submitContactFormAction(
     );
   } catch (error) {
     console.error("Failed to submit contact form.", error);
-    return createErrorState(
-      "We could not send your message right now. Please try again in a moment."
-    );
+    return createErrorState(getDirectEmailFallbackMessage("message"));
   }
 }
 
@@ -283,9 +289,7 @@ export async function submitCustomRequestFormAction(
     );
   } catch (error) {
     console.error("Failed to submit custom request form.", error);
-    return createErrorState(
-      "We could not send your request right now. Please try again in a moment."
-    );
+    return createErrorState(getDirectEmailFallbackMessage("request"));
   }
 }
 
@@ -333,9 +337,7 @@ export async function submitQuoteRequestFormAction(
     );
   } catch (error) {
     console.error("Failed to submit quote request form.", error);
-    return createErrorState(
-      "We could not send your request right now. Please try again in a moment."
-    );
+    return createErrorState(getDirectEmailFallbackMessage("request"));
   }
 }
 
@@ -412,8 +414,6 @@ export async function submitCartInquiryFormAction(
     );
   } catch (error) {
     console.error("Failed to submit cart inquiry form.", error);
-    return createErrorState(
-      "We could not send your inquiry right now. Please try again in a moment."
-    );
+    return createErrorState(getDirectEmailFallbackMessage("inquiry"));
   }
 }

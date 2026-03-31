@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 
 const DEFAULT_NOTIFICATION_TO = "hello@atlasbiolabs.co";
+const RESEND_TEST_SENDER = "onboarding@resend.dev";
 
 export type NotificationField = {
   label: string;
@@ -44,6 +45,15 @@ function getMailConfig() {
 
   if (!from) {
     throw new Error("Missing RESEND_FROM_EMAIL.");
+  }
+
+  if (
+    from.toLowerCase() === RESEND_TEST_SENDER &&
+    to.toLowerCase() === DEFAULT_NOTIFICATION_TO
+  ) {
+    throw new Error(
+      "Resend test sender cannot deliver to hello@atlasbiolabs.co. Set RESEND_FROM_EMAIL to a verified Atlas BioLabs sender for live form delivery."
+    );
   }
 
   if (!resendClient) {
