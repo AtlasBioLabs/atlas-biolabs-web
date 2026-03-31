@@ -356,6 +356,31 @@ export function CartPageClient({ items }: CartPageClientProps) {
               </div>
 
               <div className="space-y-2">
+                <label htmlFor="cart-payment-method" className="text-sm font-medium text-[var(--brand-navy)]">
+                  Payment Method
+                </label>
+                <select
+                  id="cart-payment-method"
+                  name="paymentMethod"
+                  defaultValue=""
+                  onChange={() => clearError("paymentMethod")}
+                  className="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm text-[var(--brand-navy)] outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40"
+                  aria-invalid={Boolean(getError("paymentMethod"))}
+                >
+                  <option value="" disabled>
+                    Select a payment method
+                  </option>
+                  <option value="Apple Pay">Apple Pay</option>
+                  <option value="Zelle">Zelle</option>
+                  <option value="Crypto">Crypto</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                </select>
+                {getError("paymentMethod") ? (
+                  <p className="text-xs text-destructive">{getError("paymentMethod")}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2">
                 <label htmlFor="cart-quantity" className="text-sm font-medium text-[var(--brand-navy)]">
                   Quantity Needed
                 </label>

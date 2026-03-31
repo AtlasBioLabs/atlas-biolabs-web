@@ -174,6 +174,7 @@ function validateCartInquiryForm(formData: FormData) {
     email: readString(formData, "email"),
     phoneWhatsApp: readString(formData, "phoneWhatsApp"),
     country: readString(formData, "country"),
+    paymentMethod: readString(formData, "paymentMethod"),
     product: readString(formData, "product"),
     quantity: readString(formData, "quantity"),
     message: readString(formData, "message"),
@@ -189,6 +190,9 @@ function validateCartInquiryForm(formData: FormData) {
     fieldErrors.phoneWhatsApp = "Phone or WhatsApp is required.";
   }
   if (!data.country) fieldErrors.country = "Country is required.";
+  if (!data.paymentMethod) {
+    fieldErrors.paymentMethod = "Payment method is required.";
+  }
   if (!data.message) fieldErrors.message = "Message is required.";
 
   return { data, fieldErrors };
@@ -374,6 +378,7 @@ export async function submitCartInquiryFormAction(
         { label: "Email", value: data.email },
         { label: "Phone / WhatsApp", value: data.phoneWhatsApp },
         { label: "Country", value: data.country },
+        { label: "Preferred payment method", value: data.paymentMethod },
         { label: "Total units", value: `${totalUnits} units` },
         {
           label: "Estimated starting subtotal",

@@ -120,6 +120,7 @@ export type CartInquiryFormData = {
   email: string;
   phoneWhatsApp: string;
   country: string;
+  paymentMethod: string;
   product: string;
   quantity: string;
   message: string;
