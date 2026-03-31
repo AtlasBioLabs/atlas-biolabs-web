@@ -21,15 +21,15 @@ export default async function CartPage() {
 
   return (
     <>
-      <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
+      <section className="border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white py-12 sm:py-16">
         <div className="site-container">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
             Inquiry Cart
           </p>
-          <h1 className="mt-3 text-4xl font-semibold text-[var(--brand-navy)]">
+          <h1 className="mt-3 max-w-3xl text-3xl leading-tight font-semibold text-[var(--brand-navy)] sm:text-4xl">
             Review Your Inquiry Cart
           </h1>
-          <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">
+          <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-muted-foreground sm:text-base">
             Add products, set quantities, and submit one inquiry for availability, documentation support options, and commercial quote follow-up.
           </p>
         </div>

@@ -48,8 +48,8 @@ export function CartPageClient({ items }: CartPageClientProps) {
   const productPrefill = useMemo(
     () =>
       items
-        .map((item) => `${item.name} (${item.quantity} units, MOQ ${item.moq})`)
-        .join("; "),
+        .map((item) => `${item.name} - ${item.quantity} units (MOQ ${item.moq})`)
+        .join("\n"),
     [items]
   );
 
@@ -70,9 +70,9 @@ export function CartPageClient({ items }: CartPageClientProps) {
 
   if (state.status === "success") {
     return (
-      <section className="section-space pt-10">
+      <section className="pb-10 pt-8 sm:pb-14 sm:pt-10">
         <div className="site-container">
-          <div className="surface-card mx-auto max-w-2xl space-y-4 p-8 text-center">
+          <div className="surface-card mx-auto max-w-2xl space-y-4 p-6 text-center sm:p-8">
             <h2 className="text-2xl font-semibold text-[var(--brand-navy)]">
               Inquiry Submitted
             </h2>
@@ -88,9 +88,9 @@ export function CartPageClient({ items }: CartPageClientProps) {
 
   if (items.length === 0) {
     return (
-      <section className="section-space pt-10">
+      <section className="pb-10 pt-8 sm:pb-14 sm:pt-10">
         <div className="site-container">
-          <div className="surface-card mx-auto max-w-2xl space-y-4 p-8 text-center">
+          <div className="surface-card mx-auto max-w-2xl space-y-4 p-6 text-center sm:p-8">
             <h2 className="text-2xl font-semibold text-[var(--brand-navy)]">
               Your inquiry cart is empty
             </h2>
@@ -107,40 +107,42 @@ export function CartPageClient({ items }: CartPageClientProps) {
   }
 
   return (
-    <section className="section-space pt-10">
+    <section className="pb-10 pt-8 sm:pb-14 sm:pt-10">
       <div className="site-container">
-        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-          <article className="surface-card p-6 sm:p-7">
-            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border/70 pb-4">
-              <div>
+        <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+          <article className="surface-card overflow-hidden p-5 sm:p-7">
+            <div className="flex flex-col gap-2 border-b border-border/70 pb-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
                   Inquiry Cart
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold text-[var(--brand-navy)]">
+                <h2 className="mt-2 text-xl font-semibold text-[var(--brand-navy)] sm:text-2xl">
                   Selected Peptides
                 </h2>
               </div>
-              <p className="text-sm text-muted-foreground">{totalItems} unit(s)</p>
+              <p className="shrink-0 text-sm text-muted-foreground sm:text-right">
+                {totalItems} unit(s)
+              </p>
             </div>
 
             <div className="mt-5 space-y-4">
               {items.map((item) => (
                 <div
                   key={item.slug}
-                  className="rounded-xl border border-border/70 bg-white p-3"
+                  className="rounded-xl border border-border/70 bg-white p-4"
                 >
-                  <div className="flex gap-3">
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-border/70 bg-muted/30">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-lg border border-border/70 bg-muted/30 sm:h-20 sm:w-20">
                       <Image
                         src={item.image}
                         alt={`${item.name} image`}
                         fill
                         className="object-cover"
-                        sizes="80px"
+                        sizes="(max-width: 640px) 72px, 80px"
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="truncate text-sm font-semibold text-[var(--brand-navy)]">
+                      <h3 className="break-words text-[0.95rem] leading-tight font-semibold text-[var(--brand-navy)] sm:text-base">
                         {item.name}
                       </h3>
                       <p className="mt-1 text-xs text-muted-foreground">
@@ -154,8 +156,8 @@ export function CartPageClient({ items }: CartPageClientProps) {
                       </p>
                     </div>
                   </div>
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center justify-between rounded-lg bg-muted/35 px-2 py-2 sm:justify-start sm:bg-transparent sm:px-0 sm:py-0">
                       <form action={setInquiryQuantityAction}>
                         <input type="hidden" name="slug" value={item.slug} />
                         <input
@@ -175,7 +177,7 @@ export function CartPageClient({ items }: CartPageClientProps) {
                           <span className="sr-only">Decrease quantity</span>
                         </Button>
                       </form>
-                      <span className="min-w-12 text-center text-sm font-medium text-[var(--brand-navy)]">
+                      <span className="min-w-12 px-2 text-center text-sm font-medium text-[var(--brand-navy)]">
                         {item.quantity}
                       </span>
                       <form action={setInquiryQuantityAction}>
@@ -197,13 +199,13 @@ export function CartPageClient({ items }: CartPageClientProps) {
                         </Button>
                       </form>
                     </div>
-                    <form action={removeInquiryItemAction}>
+                    <form action={removeInquiryItemAction} className="w-full sm:w-auto">
                       <input type="hidden" name="slug" value={item.slug} />
                       <Button
                         type="submit"
                         size="sm"
                         variant="ghost"
-                        className="min-h-11 touch-manipulation text-muted-foreground hover:text-destructive"
+                        className="min-h-11 w-full justify-center touch-manipulation text-muted-foreground hover:text-destructive sm:w-auto"
                         aria-label={`Remove ${item.name} from inquiry cart`}
                       >
                         <Trash2Icon className="size-4" />
@@ -216,18 +218,18 @@ export function CartPageClient({ items }: CartPageClientProps) {
             </div>
 
             <div className="mt-5 rounded-xl border border-border/70 bg-muted/35 p-4">
-              <div className="flex items-center justify-between gap-3 text-sm">
+              <div className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                 <span className="text-muted-foreground">Estimated starting subtotal</span>
                 <span className="font-semibold text-[var(--brand-navy)]">
                   ${effectiveSubtotal.toFixed(2)} USD
                 </span>
               </div>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <Button asChild variant="outline">
+              <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
+                <Button asChild variant="outline" className="w-full sm:w-auto">
                   <Link href="/shop">Continue Shopping</Link>
                 </Button>
-                <form action={clearInquiryCartAction}>
-                  <Button type="submit" variant="ghost">
+                <form action={clearInquiryCartAction} className="w-full sm:w-auto">
+                  <Button type="submit" variant="ghost" className="w-full sm:w-auto">
                     Clear Inquiry Cart
                   </Button>
                 </form>
@@ -235,15 +237,15 @@ export function CartPageClient({ items }: CartPageClientProps) {
             </div>
           </article>
 
-          <form action={formAction} className="surface-card space-y-5 p-6 sm:p-7" noValidate>
+          <form action={formAction} className="surface-card space-y-5 p-5 sm:p-7" noValidate>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
                 Inquiry Details
               </p>
-              <h2 className="mt-2 text-2xl font-semibold text-[var(--brand-navy)]">
+              <h2 className="mt-2 text-xl font-semibold text-[var(--brand-navy)] sm:text-2xl">
                 Submit Inquiry to Proceed
               </h2>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
                 Share your details and we will send the next sourcing and quote steps.
               </p>
             </div>
@@ -264,7 +266,7 @@ export function CartPageClient({ items }: CartPageClientProps) {
                 defaultValue=""
                 onInput={() => clearError("fullName")}
                 placeholder="Alex Morgan"
-                className="h-10"
+                className="h-11"
                 autoComplete="name"
                 enterKeyHint="next"
                 aria-invalid={Boolean(getError("fullName"))}
@@ -284,7 +286,7 @@ export function CartPageClient({ items }: CartPageClientProps) {
                 defaultValue=""
                 onInput={() => clearError("companyName")}
                 placeholder="Northline Wellness"
-                className="h-10"
+                className="h-11"
                 autoComplete="organization"
                 enterKeyHint="next"
               />
@@ -302,7 +304,7 @@ export function CartPageClient({ items }: CartPageClientProps) {
                   defaultValue=""
                   onInput={() => clearError("email")}
                   placeholder="alex@brand.com"
-                  className="h-10"
+                  className="h-11"
                   autoComplete="email"
                   inputMode="email"
                   enterKeyHint="next"
@@ -322,7 +324,7 @@ export function CartPageClient({ items }: CartPageClientProps) {
                   defaultValue=""
                   onInput={() => clearError("phoneWhatsApp")}
                   placeholder="+1 555 010 2200"
-                  className="h-10"
+                  className="h-11"
                   autoComplete="tel"
                   inputMode="tel"
                   enterKeyHint="next"
@@ -345,7 +347,7 @@ export function CartPageClient({ items }: CartPageClientProps) {
                   defaultValue=""
                   onInput={() => clearError("country")}
                   placeholder="United States"
-                  className="h-10"
+                  className="h-11"
                   autoComplete="country-name"
                   enterKeyHint="next"
                   aria-invalid={Boolean(getError("country"))}
@@ -364,7 +366,7 @@ export function CartPageClient({ items }: CartPageClientProps) {
                   name="paymentMethod"
                   defaultValue=""
                   onChange={() => clearError("paymentMethod")}
-                  className="h-10 w-full rounded-lg border border-input bg-white px-3 text-sm text-[var(--brand-navy)] outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40"
+                  className="h-11 w-full rounded-lg border border-input bg-white px-3 text-base text-[var(--brand-navy)] outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 md:text-sm"
                   aria-invalid={Boolean(getError("paymentMethod"))}
                 >
                   <option value="" disabled>
@@ -379,23 +381,23 @@ export function CartPageClient({ items }: CartPageClientProps) {
                   <p className="text-xs text-destructive">{getError("paymentMethod")}</p>
                 ) : null}
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <label htmlFor="cart-quantity" className="text-sm font-medium text-[var(--brand-navy)]">
-                  Quantity Needed
-                </label>
-                <Input
-                  id="cart-quantity"
-                  name="quantity"
-                  value={quantityPrefill}
-                  readOnly
-                  className="h-10 bg-muted/35"
-                  aria-invalid={Boolean(getError("quantity"))}
-                />
-                {getError("quantity") ? (
-                  <p className="text-xs text-destructive">{getError("quantity")}</p>
-                ) : null}
-              </div>
+            <div className="space-y-2">
+              <label htmlFor="cart-quantity" className="text-sm font-medium text-[var(--brand-navy)]">
+                Quantity Needed
+              </label>
+              <Input
+                id="cart-quantity"
+                name="quantity"
+                value={quantityPrefill}
+                readOnly
+                className="h-11 bg-muted/35"
+                aria-invalid={Boolean(getError("quantity"))}
+              />
+              {getError("quantity") ? (
+                <p className="text-xs text-destructive">{getError("quantity")}</p>
+              ) : null}
             </div>
 
             <div className="space-y-2">
@@ -407,7 +409,7 @@ export function CartPageClient({ items }: CartPageClientProps) {
                 name="product"
                 value={productPrefill}
                 readOnly
-                className="min-h-24 w-full rounded-lg border border-input bg-muted/35 px-3 py-2 text-sm text-[var(--brand-navy)] outline-none"
+                className="min-h-32 w-full rounded-lg border border-input bg-muted/35 px-3 py-2 text-base leading-6 text-[var(--brand-navy)] outline-none md:text-sm"
                 aria-invalid={Boolean(getError("product"))}
               />
               {getError("product") ? (
@@ -425,7 +427,7 @@ export function CartPageClient({ items }: CartPageClientProps) {
                 defaultValue=""
                 onInput={() => clearError("message")}
                 placeholder="Share timeline, destination country, format preference, or documentation needs."
-                className="min-h-32 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm text-[var(--brand-navy)] outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40"
+                className="min-h-32 w-full rounded-lg border border-input bg-white px-3 py-2 text-base leading-6 text-[var(--brand-navy)] outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 md:text-sm"
                 enterKeyHint="send"
                 aria-invalid={Boolean(getError("message"))}
               />
