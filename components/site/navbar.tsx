@@ -37,7 +37,7 @@ export function Navbar({ itemCount }: NavbarProps) {
       <div className="site-container flex h-20 items-center justify-between gap-5">
         <Link href="/" className="inline-flex min-w-0 items-center gap-3">
           <Image
-            src="public/Atlas Bio Labs Logo.png"
+            src="/atlas-biobabs-logo.svg"
             width={32}
             height={32}
             alt="Atlas BioLabs logo"
