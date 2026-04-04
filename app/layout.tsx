@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import Script from "next/script";
 import { JsonLd } from "@/components/site/json-ld";
 import { siteConfig } from "@/lib/site-config";
 import { getOrganizationSchema, getWebsiteSchema } from "@/lib/seo";
 import "./globals.css";
+
+const googleAnalyticsId = "G-YVZF8QLCVV";
 
 const plexSans = IBM_Plex_Sans({
   variable: "--font-plex-sans",
@@ -80,6 +83,19 @@ export default function RootLayout({
         <JsonLd id="website-schema" data={getWebsiteSchema()} />
         {children}
       </body>
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          window.gtag = gtag;
+          gtag('js', new Date());
+          gtag('config', '${googleAnalyticsId}');
+        `}
+      </Script>
     </html>
   );
 }
