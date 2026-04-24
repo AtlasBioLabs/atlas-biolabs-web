@@ -34,7 +34,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="relative aspect-[4/3] w-full border-b border-border/70 bg-gradient-to-br from-[#f7faff] to-[#edf3ff]">
         <Image
           src={product.image}
-          alt={`Illustrated product listing for ${product.name} peptide`}
+          alt={`Atlas BioLabs product illustration for ${product.name} in ${categoryLabel}`}
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

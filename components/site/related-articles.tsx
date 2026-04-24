@@ -37,7 +37,7 @@ export function RelatedArticles({ posts }: RelatedArticlesProps) {
                 className="rounded-2xl border border-border/70 bg-white p-4"
               >
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--brand-blue)]">
-                  {formatBlogDate(post.date)} · {getBlogReadingTime(post)}
+                  {formatBlogDate(post.date)} | {getBlogReadingTime(post)}
                 </p>
                 <h3 className="mt-2 text-lg font-semibold text-[var(--brand-navy)]">
                   <Link href={`/blog/${post.slug}`} className="hover:text-[var(--brand-blue)]">

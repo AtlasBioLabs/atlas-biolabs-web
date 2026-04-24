@@ -81,6 +81,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.9,
+    images: [absoluteUrl(product.image)],
   }));
 
   const categoryPages: MetadataRoute.Sitemap = productCategories.map((category) => ({
@@ -95,6 +96,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(getBlogPostModifiedDate(post)),
     changeFrequency: "monthly",
     priority: 0.72,
+    images: [absoluteUrl(post.image)],
   }));
 
   return [...staticPages, ...categoryPages, ...productPages, ...blogPages];

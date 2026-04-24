@@ -30,11 +30,12 @@ export const metadata: Metadata = createPageMetadata({
   title: "Home",
   path: "/",
   description:
-    "Atlas BioLabs is a peptide supply and sourcing company supporting U.S. and international buyers with qualified manufacturing partners in China, Atlas Labs documentation review, and quote-based commercial ordering.",
+    "Atlas BioLabs is a peptide supplier and sourcing company supporting peptide sourcing, wholesale peptides, and custom peptide sourcing for U.S. and international buyers through qualified manufacturing partners in China, Atlas Labs documentation review, and quote-based commercial ordering.",
   keywords: [
     "Atlas BioLabs peptides",
     "peptide supplier homepage",
-    "shop peptides online",
+    "wholesale peptides",
+    "custom peptide sourcing",
     "bulk peptide quote",
   ],
 });
@@ -77,7 +78,7 @@ export default function HomePage() {
               Peptide Supplier Overview
             </p>
             <p className="mt-3 max-w-4xl text-sm leading-relaxed text-muted-foreground">
-              Atlas BioLabs operates as a peptide supplier for commercial buyers who need structured peptide sourcing, wholesale peptides, documentation support, and batch transparency before moving into quote discussions.
+              Atlas BioLabs operates as a peptide supplier for commercial buyers who need structured peptide sourcing, wholesale peptides, custom peptide sourcing, documentation support, and batch transparency before moving into quote discussions.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Button asChild size="sm" variant="outline">
@@ -94,6 +95,9 @@ export default function HomePage() {
               </Button>
               <Button asChild size="sm" variant="outline">
                 <Link href="/contact">Contact Sales</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link href="/custom-requests">Custom Peptide Request</Link>
               </Button>
             </div>
           </article>

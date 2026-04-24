@@ -6,16 +6,22 @@ import { JsonLd } from "@/components/site/json-ld";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
 import { getAllBlogPosts } from "@/lib/blog";
 import { createPageMetadata, getBreadcrumbSchema } from "@/lib/seo";
+import {
+  featuredProductSlugs,
+  productCategories,
+  products,
+} from "@/lib/site-content";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Blog",
+  title: "Peptide Supply Blog",
   path: "/blog",
   description:
-    "Read Atlas BioLabs peptide buying guides, category explainers, and sourcing-focused insights for U.S. and international commercial buyers.",
+    "Explore Atlas BioLabs articles on peptide supplier evaluation, peptide sourcing, wholesale peptides, custom peptide sourcing, pricing, documentation, and category planning for commercial buyers.",
   keywords: [
-    "peptide blog",
+    "peptide supply blog",
     "how to buy peptides",
     "peptide supplier guide",
+    "custom peptide sourcing",
     "peptide category articles",
   ],
 });
@@ -23,6 +29,12 @@ export const metadata: Metadata = createPageMetadata({
 export default function BlogPage() {
   const posts = getAllBlogPosts();
   const featuredPosts = posts.slice(0, 3);
+  const featuredProducts = featuredProductSlugs
+    .map((slug) => products.find((product) => product.slug === slug))
+    .filter((product): product is (typeof products)[number] => product !== undefined)
+    .slice(0, 3);
+  const featuredCategories = productCategories.slice(0, 3);
+
   const breadcrumbSchema = getBreadcrumbSchema([
     { name: "Home", path: "/" },
     { name: "Blog", path: "/blog" },
@@ -41,7 +53,7 @@ export default function BlogPage() {
             Peptide Supply Guides and Buyer Insights
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">
-            We publish practical articles on peptide sourcing, peptide supplier evaluation, wholesale peptides, documentation workflows, pricing, and category planning for commercial buyers in the U.S. and international markets.
+            We publish practical articles on peptide sourcing, peptide supplier evaluation, wholesale peptides, documentation workflows, pricing, custom peptide sourcing, and category planning for commercial buyers in the U.S. and international markets.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link
@@ -57,10 +69,16 @@ export default function BlogPage() {
               Browse Categories
             </Link>
             <Link
-              href="/request-quote"
+              href="/wholesale"
               className="rounded-full border border-border/70 bg-white px-3 py-1.5 text-xs font-medium text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
             >
-              Request Quote
+              Wholesale Supply
+            </Link>
+            <Link
+              href="/custom-requests"
+              className="rounded-full border border-border/70 bg-white px-3 py-1.5 text-xs font-medium text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+            >
+              Custom Peptide Request
             </Link>
           </div>
         </div>
@@ -97,6 +115,26 @@ export default function BlogPage() {
           description: post.description,
           eyebrow: post.tags[0],
         }))}
+      />
+
+      <ResourceLinksPanel
+        eyebrow="Explore the Site"
+        title="Move From Articles Into Product and Category Pages"
+        description="The blog is designed to hand readers into product pages, category hubs, and supply pages so each article supports a more useful buyer journey across the commercial catalog."
+        links={[
+          ...featuredCategories.map((category) => ({
+            title: category.label,
+            href: `/categories/${category.id}`,
+            description: `${category.description} peptide listings with product-level sourcing context, documentation support, and related product pages.`,
+            eyebrow: "Category",
+          })),
+          ...featuredProducts.map((product) => ({
+            title: product.name,
+            href: `/shop/${product.slug}`,
+            description: product.shortDescription,
+            eyebrow: "Product",
+          })),
+        ]}
       />
     </>
   );

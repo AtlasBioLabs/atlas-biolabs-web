@@ -3,7 +3,12 @@ import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import Script from "next/script";
 import { JsonLd } from "@/components/site/json-ld";
 import { siteConfig } from "@/lib/site-config";
-import { getOrganizationSchema, getWebsiteSchema } from "@/lib/seo";
+import {
+  getOrganizationSchema,
+  getWebsiteSchema,
+  siteDefaultTitle,
+  siteDescription,
+} from "@/lib/seo";
 import "./globals.css";
 
 const googleAnalyticsId = "G-YVZF8QLCVV";
@@ -25,46 +30,44 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: "Atlas BioLabs - Peptide Supply & Sourcing",
+    default: siteDefaultTitle,
     template: "%s | Atlas BioLabs",
   },
-  description:
-    "Atlas BioLabs supplies peptides for commercial buyers through global sourcing partners, with documentation support, batch transparency, and structured supply systems.",
+  description: siteDescription,
   applicationName: siteConfig.name,
   keywords: [
     "peptides",
     "peptide supplier",
     "peptide sourcing",
     "wholesale peptides",
+    "custom peptide sourcing",
     "cosmetic peptides",
     "research peptides",
     "peptide manufacturers",
-    "buy peptides",
+    "peptide sourcing company",
     "peptide supply USA",
   ],
   alternates: {
-    canonical: siteConfig.url,
+    canonical: "/",
   },
   openGraph: {
-    title: "Atlas BioLabs - Peptide Supply & Sourcing",
-    description:
-      "Atlas BioLabs supplies peptides for commercial buyers through global sourcing partners, with documentation support, batch transparency, and structured supply systems.",
-    url: siteConfig.url,
+    title: siteDefaultTitle,
+    description: siteDescription,
+    url: "/",
     siteName: siteConfig.name,
     type: "website",
     images: [
       {
-        url: "/favicon.ico",
-        alt: "Atlas BioLabs favicon brand preview",
+        url: "/og-default.svg",
+        alt: "Atlas BioLabs peptide supply and sourcing website preview",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Atlas BioLabs - Peptide Supply & Sourcing",
-    description:
-      "Atlas BioLabs supplies peptides for commercial buyers through global sourcing partners, with documentation support, batch transparency, and structured supply systems.",
-    images: ["/favicon.ico"],
+    title: siteDefaultTitle,
+    description: siteDescription,
+    images: ["/og-default.svg"],
   },
 };
 

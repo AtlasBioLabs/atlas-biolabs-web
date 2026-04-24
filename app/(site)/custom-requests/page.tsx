@@ -12,10 +12,10 @@ import {
 } from "@/lib/site-content";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Custom Requests",
+  title: "Custom Peptide Request",
   path: "/custom-requests",
   description:
-    "Submit custom peptide sourcing requests to Atlas BioLabs for sequence feasibility, MOQ planning, Atlas Labs documentation review support, and commercial quote handling.",
+    "Submit a custom peptide request to Atlas BioLabs for sequence feasibility, MOQ planning, Atlas Labs documentation review support, and commercial quote handling.",
   keywords: [
     "custom peptide request",
     "custom sequence peptide supplier",

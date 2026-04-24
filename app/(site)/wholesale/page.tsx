@@ -5,6 +5,9 @@ import { CtaSection } from "@/components/site/cta-section";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
 import { createPageMetadata } from "@/lib/seo";
 import {
+  featuredProductSlugs,
+  productCategories,
+  products,
   wholesaleCta,
   wholesaleHighlights,
   wholesaleIntro,
@@ -12,18 +15,31 @@ import {
 } from "@/lib/site-content";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Wholesale",
+  title: "Wholesale Peptides",
   path: "/wholesale",
   description:
-    "Request wholesale and bulk peptide pricing from Atlas BioLabs with MOQ planning, qualified partner sourcing in China, and documentation-backed supply for U.S. and international buyers.",
+    "Request wholesale peptide and bulk sourcing support from Atlas BioLabs with MOQ planning, category and product pathways, qualified partner sourcing in China, and documentation-backed supply for U.S. and international buyers.",
   keywords: [
     "wholesale peptides",
     "bulk peptide supplier",
+    "bulk peptide sourcing",
     "peptide recurring supply",
   ],
 });
 
 export default function WholesalePage() {
+  const wholesaleLinkedProducts = featuredProductSlugs
+    .map((slug) => products.find((product) => product.slug === slug))
+    .filter((product): product is (typeof products)[number] => product !== undefined)
+    .slice(0, 2);
+  const wholesaleLinkedCategories = productCategories
+    .filter((category) =>
+      ["signal-peptides", "growth-repair-peptides", "metabolic-advanced-peptides"].includes(
+        category.id
+      )
+    )
+    .slice(0, 3);
+
   return (
     <>
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
@@ -190,7 +206,7 @@ export default function WholesalePage() {
       <ResourceLinksPanel
         eyebrow="Wholesale Resources"
         title="Review Product, Quality, and Pricing Context Before You Scale"
-        description="These pages help wholesale buyers connect recurring supply planning with product selection, documentation support, and pricing strategy."
+        description="These pages help wholesale buyers connect recurring supply planning with product selection, category review, documentation support, and pricing strategy."
         links={[
           {
             title: "Shop Peptides",
@@ -199,13 +215,18 @@ export default function WholesalePage() {
               "Browse wholesale-ready peptide listings with MOQ, pack size, and product-level sourcing context.",
             eyebrow: "Catalog",
           },
-          {
-            title: "Quality Assurance",
-            href: "/quality-assurance",
-            description:
-              "See how Atlas Labs handles documentation review, release checks, and batch transparency support.",
-            eyebrow: "Documentation",
-          },
+          ...wholesaleLinkedCategories.map((category) => ({
+            title: category.label,
+            href: `/categories/${category.id}`,
+            description: `${category.description} category pages with product-level supply context and direct links into rankable product pages.`,
+            eyebrow: "Category",
+          })),
+          ...wholesaleLinkedProducts.map((product) => ({
+            title: product.name,
+            href: `/shop/${product.slug}`,
+            description: product.shortDescription,
+            eyebrow: "Product",
+          })),
           {
             title: "Peptide Pricing Explained",
             href: "/blog/peptide-pricing-explained",

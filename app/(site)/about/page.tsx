@@ -21,7 +21,7 @@ import {
 } from "@/lib/site-content";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "About",
+  title: "About Atlas BioLabs",
   path: "/about",
   description:
     "Learn how Atlas BioLabs was founded in 2024 by Dr. Guy Citrin, how our qualified sourcing network in China supports supply, and how Atlas Labs strengthens documentation and batch transparency for U.S. and international buyers.",

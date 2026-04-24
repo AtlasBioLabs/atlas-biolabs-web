@@ -743,19 +743,121 @@ export const featuredProductSlugs = [
   toSlug("CJC-1295 (with DAC)"),
 ];
 
+function normalizeCatalogText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function tokenizeCatalogText(value: string) {
+  return normalizeCatalogText(value)
+    .split(" ")
+    .filter((token) => token.length > 2);
+}
+
+function uniqueCatalogKeywords(values: string[]) {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
+function getProductKeywordPool(product: Product) {
+  const category = productCategories.find((entry) => entry.id === product.category);
+
+  return uniqueCatalogKeywords([
+    product.name,
+    category?.label ?? "",
+    category?.description ?? "",
+    ...product.functionalRole,
+    ...product.commonApplications,
+    ...product.keyCharacteristics,
+    ...product.associatedUses,
+  ]).flatMap((keyword) => {
+    const normalizedKeyword = normalizeCatalogText(keyword);
+
+    return normalizedKeyword.includes(" ")
+      ? [normalizedKeyword]
+      : [normalizedKeyword, ...tokenizeCatalogText(normalizedKeyword)];
+  });
+}
+
+function getProductRelationCorpus(product: Product) {
+  const category = productCategories.find((entry) => entry.id === product.category);
+
+  return normalizeCatalogText(
+    [
+      product.name,
+      category?.label ?? "",
+      category?.description ?? "",
+      product.shortDescription,
+      product.overview,
+      product.mechanismInsight,
+      product.functionalRole.join(" "),
+      product.commonApplications.join(" "),
+      product.keyCharacteristics.join(" "),
+      product.packSizes.join(" "),
+    ].join(" ")
+  );
+}
+
+export function getRelatedProducts(product: Product, limit = 4) {
+  const keywordPool = uniqueCatalogKeywords(getProductKeywordPool(product));
+  const featuredSet = new Set(featuredProductSlugs);
+
+  return products
+    .filter((candidate) => candidate.slug !== product.slug)
+    .map((candidate) => {
+      const corpus = getProductRelationCorpus(candidate);
+      const sameCategory = candidate.category === product.category;
+      const sharedPackSize = candidate.packSizes.some((packSize) =>
+        product.packSizes.includes(packSize)
+      );
+
+      const keywordScore = keywordPool.reduce((score, keyword) => {
+        if (!keyword) {
+          return score;
+        }
+
+        if (corpus.includes(keyword)) {
+          return score + (keyword.includes(" ") ? 6 : 3);
+        }
+
+        return score;
+      }, 0);
+
+      return {
+        product: candidate,
+        score:
+          keywordScore +
+          (sameCategory ? 40 : 0) +
+          (sharedPackSize ? 2 : 0) +
+          (featuredSet.has(candidate.slug) ? 1 : 0),
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        Number(b.product.category === product.category) -
+          Number(a.product.category === product.category) ||
+        a.product.name.localeCompare(b.product.name)
+    )
+    .slice(0, limit)
+    .map((entry) => entry.product);
+}
+
 export const heroContent: HeroContent = {
   eyebrow: "Global peptide manufacturing, U.S.-focused commercial supply",
-  title: "Commercial Peptide Supply for U.S. and International Buyers",
+  title: "Peptide Supplier and Sourcing Partner for Wholesale Peptides",
   description:
-    "We source through qualified manufacturing and sourcing partners in China, then support your team with documentation, batch transparency, and responsive quote handling for U.S. and international supply needs.",
+    "Atlas BioLabs supports peptide sourcing, wholesale peptides, and custom peptide sourcing for U.S. and international buyers through qualified manufacturing and sourcing partners in China, with Atlas Labs documentation review, batch transparency, and responsive quote handling.",
   primaryLabel: "Shop Peptides",
   primaryHref: "/shop",
   secondaryLabel: "Request Quote",
   secondaryHref: "/request-quote",
   highlights: [
-    "We work with qualified partner production in China and keep sourcing support structured from the start.",
-    "We run quality review and documentation checks through Atlas Labs before commercial supply moves forward.",
-    "We respond quickly on quotes for U.S. and international accounts.",
+    "We work with qualified manufacturing and sourcing partners in China and keep commercial peptide sourcing structured from the start.",
+    "We run Atlas Labs quality review and documentation checks before wholesale peptide supply moves forward.",
+    "We respond quickly on quotes for catalog products and custom peptide sourcing requests.",
   ],
 };
 
@@ -847,13 +949,13 @@ export const qualityHighlights: ValuePoint[] = [
 export const shopIntro = {
   title: "Commercial Peptide Catalog",
   description:
-    "Explore 28 commercially supplied peptides we source through qualified partners in China, with Atlas Labs documentation support and fast quote options for U.S. and international accounts.",
+    "Explore 28 commercially supplied peptides sourced through qualified partners in China, with Atlas Labs documentation support, batch transparency, and fast quote options for U.S. and international accounts.",
 };
 
 export const wholesaleIntro = {
-  title: "Wholesale and Bulk Supply",
+  title: "Wholesale Peptide Supply and Bulk Sourcing",
   description:
-    "We support quote-based wholesale sourcing with MOQ handling, volume pricing tiers, and documentation-backed supply planning for U.S. and international accounts.",
+    "We support quote-based wholesale peptide sourcing with MOQ handling, volume pricing tiers, documentation-backed supply planning, and buyer-ready product/category pathways for U.S. and international accounts.",
 };
 
 export const wholesaleSteps = [
@@ -864,9 +966,9 @@ export const wholesaleSteps = [
 ];
 
 export const aboutIntro = {
-  title: "Founded in 2024 to modernize peptide sourcing for serious buyers",
+  title: "A peptide sourcing company built for commercial buyers",
   description:
-    "We built Atlas BioLabs to serve U.S. and international accounts through qualified manufacturing and sourcing partners in China, with Atlas Labs supporting documentation review, batch transparency, and consistent quality standards.",
+    "Atlas BioLabs serves U.S. and international accounts through qualified manufacturing and sourcing partners in China, with Atlas Labs supporting documentation review, batch transparency, and consistent quality standards across commercial supply programs.",
 };
 
 export const aboutValues: ValuePoint[] = [
@@ -991,9 +1093,9 @@ export const aboutCta: CtaContent = {
 };
 
 export const customRequestsIntro = {
-  title: "Custom Peptide Requests",
+  title: "Custom Peptide Request",
   description:
-    "Submit non-catalog peptide sourcing requirements for feasibility, documentation, and commercial quote review.",
+    "Submit non-catalog peptide sourcing requirements for feasibility review, documentation planning, and commercial quote support.",
 };
 
 export const customRequestCapabilities = [

@@ -14,15 +14,16 @@ import {
 } from "@/lib/site-content";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Shop",
+  title: "Shop Peptides",
   path: "/shop",
   description:
-    "Shop Atlas BioLabs peptides by category with qualified partner sourcing in China, Atlas Labs documentation support, and direct inquiry or quote options.",
+    "Shop peptides from Atlas BioLabs by category, product, and commercial supply context with documentation support, batch transparency, and inquiry-led ordering for U.S. and international buyers.",
   keywords: [
     "shop peptides",
-    "buy peptides online",
     "peptide product catalog",
+    "wholesale peptides",
     "peptide MOQ and bulk pricing",
+    "peptide sourcing catalog",
   ],
 });
 
@@ -60,7 +61,7 @@ const shopSupportLinks = [
       description: post.description,
       eyebrow: "Buyer Guide",
     })),
-].slice(0, 3);
+];
 
 export default function ShopPage() {
   return (
@@ -77,7 +78,7 @@ export default function ShopPage() {
             {shopIntro.description}
           </p>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-            Use this catalog to compare peptide supplier options across cosmetic peptides, research peptides, and wholesale peptides with clear MOQ, sourcing, and documentation context on every listing.
+            Use this catalog to compare peptide supplier options across cosmetic peptides, research applications, wholesale peptides, and custom sourcing conversations with clear MOQ, documentation, and batch transparency context on every listing.
           </p>
         </div>
       </section>

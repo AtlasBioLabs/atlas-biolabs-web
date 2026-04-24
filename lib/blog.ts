@@ -5,6 +5,7 @@ import {
   productCategories,
   products,
   type Product,
+  type ProductCategory,
   type ProductCategoryId,
 } from "@/lib/site-content";
 
@@ -64,6 +65,97 @@ function scorePost(post: BlogPost, keywords: string[]) {
     }
 
     if (titleAndTags.includes(keyword)) {
+      return score + (keyword.includes(" ") ? 8 : 4);
+    }
+
+    if (corpus.includes(keyword)) {
+      return score + (keyword.includes(" ") ? 4 : 2);
+    }
+
+    return score;
+  }, 0);
+}
+
+function getProductCorpus(product: Product) {
+  const category = productCategories.find((entry) => entry.id === product.category);
+
+  return normalizeText(
+    [
+      product.name,
+      category?.label ?? "",
+      category?.description ?? "",
+      product.shortDescription,
+      product.overview,
+      product.functionalRole.join(" "),
+      product.commonApplications.join(" "),
+      product.keyCharacteristics.join(" "),
+      product.packSizes.join(" "),
+    ].join(" ")
+  );
+}
+
+function scoreProduct(product: Product, keywords: string[]) {
+  const category = productCategories.find((entry) => entry.id === product.category);
+  const corpus = getProductCorpus(product);
+  const titleAndCategory = normalizeText(
+    [product.name, category?.label ?? "", category?.description ?? ""].join(" ")
+  );
+
+  return uniqueStrings(
+    keywords.flatMap((keyword) => {
+      const normalizedKeyword = normalizeText(keyword);
+
+      return normalizedKeyword.includes(" ")
+        ? [normalizedKeyword]
+        : [normalizedKeyword, ...tokenize(normalizedKeyword)];
+    })
+  ).reduce((score, keyword) => {
+    if (!keyword) {
+      return score;
+    }
+
+    if (titleAndCategory.includes(keyword)) {
+      return score + (keyword.includes(" ") ? 8 : 4);
+    }
+
+    if (corpus.includes(keyword)) {
+      return score + (keyword.includes(" ") ? 4 : 2);
+    }
+
+    return score;
+  }, 0);
+}
+
+function getCategoryCorpus(category: ProductCategory) {
+  const categoryProducts = products
+    .filter((product) => product.category === category.id)
+    .map((product) => product.name);
+
+  return normalizeText(
+    [category.label, category.description, categoryProducts.join(" ")].join(" ")
+  );
+}
+
+function scoreCategory(category: ProductCategory, keywords: string[]) {
+  const corpus = getCategoryCorpus(category);
+  const labelAndDescription = normalizeText(
+    [category.label, category.description].join(" ")
+  );
+
+  return uniqueStrings(
+    keywords.flatMap((keyword) => {
+      const normalizedKeyword = normalizeText(keyword);
+
+      return normalizedKeyword.includes(" ")
+        ? [normalizedKeyword]
+        : [normalizedKeyword, ...tokenize(normalizedKeyword)];
+    })
+  ).reduce((score, keyword) => {
+    if (!keyword) {
+      return score;
+    }
+
+    if (labelAndDescription.includes(keyword)) {
       return score + (keyword.includes(" ") ? 8 : 4);
     }
 
@@ -218,6 +310,92 @@ export function getRelevantBlogPostsForProduct(product: Product, limit = 3) {
     ],
     limit
   );
+}
+
+export function getRelevantProductsForBlogPost(post: BlogPost, limit = 3) {
+  const genericTokens = new Set([
+    "atlas",
+    "biolabs",
+    "guide",
+    "market",
+    "commercial",
+    "buyers",
+    "buyer",
+    "sourcing",
+    "peptide",
+    "peptides",
+    "supply",
+  ]);
+
+  const keywordPool = uniqueStrings([
+    ...post.tags,
+    ...tokenize(post.title).filter((token) => !genericTokens.has(token)),
+    ...tokenize(post.description).filter((token) => !genericTokens.has(token)),
+  ]);
+
+  const rankedProducts = products
+    .map((product) => ({
+      product,
+      score: scoreProduct(product, keywordPool),
+    }))
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.product.name.localeCompare(b.product.name));
+
+  const matches = rankedProducts.slice(0, limit).map((entry) => entry.product);
+
+  if (matches.length >= limit) {
+    return matches;
+  }
+
+  const fallbackProducts = products.filter(
+    (product) => !matches.some((entry) => entry.slug === product.slug)
+  );
+
+  return [...matches, ...fallbackProducts].slice(0, limit);
+}
+
+export function getRelevantCategoriesForBlogPost(post: BlogPost, limit = 2) {
+  const genericTokens = new Set([
+    "atlas",
+    "biolabs",
+    "guide",
+    "market",
+    "commercial",
+    "buyers",
+    "buyer",
+    "sourcing",
+    "peptide",
+    "peptides",
+    "supply",
+  ]);
+
+  const keywordPool = uniqueStrings([
+    ...post.tags,
+    ...tokenize(post.title).filter((token) => !genericTokens.has(token)),
+    ...tokenize(post.description).filter((token) => !genericTokens.has(token)),
+  ]);
+
+  const rankedCategories = productCategories
+    .map((category) => ({
+      category,
+      score: scoreCategory(category, keywordPool),
+    }))
+    .filter((entry) => entry.score > 0)
+    .sort(
+      (a, b) => b.score - a.score || a.category.label.localeCompare(b.category.label)
+    );
+
+  const matches = rankedCategories.slice(0, limit).map((entry) => entry.category);
+
+  if (matches.length >= limit) {
+    return matches;
+  }
+
+  const fallbackCategories = productCategories.filter(
+    (category) => !matches.some((entry) => entry.id === category.id)
+  );
+
+  return [...matches, ...fallbackCategories].slice(0, limit);
 }
 
 export function formatBlogDate(date: string) {

@@ -19,7 +19,14 @@ const baseKeywords = [
   "buy peptides",
   "peptide supply USA",
   "global peptide supply and sourcing",
+  "custom peptide sourcing",
 ];
+
+export const siteDefaultTitle = "Atlas BioLabs | Peptide Supply and Sourcing";
+export const siteDescription =
+  "Atlas BioLabs is a peptide supply and sourcing company serving U.S. and international buyers through qualified manufacturing and sourcing partners in China, supported by documentation, batch transparency, and commercial quote support.";
+export const productManufacturerName =
+  "Qualified manufacturing and sourcing partners in China";
 
 type PageMetadataInput = {
   title: string;
@@ -54,8 +61,8 @@ export function createPageMetadata({
   path,
   keywords,
   type = "website",
-  image = "/favicon.ico",
-  imageAlt = `${siteConfig.name} - ${siteConfig.tagline}`,
+  image = "/og-default.svg",
+  imageAlt = `${siteConfig.name} peptide supply and sourcing website preview`,
   publishedTime,
   authors,
   tags,
@@ -63,17 +70,12 @@ export function createPageMetadata({
 }: PageMetadataInput): Metadata {
   const canonical = absoluteUrl(path);
   const fullTitle =
-    title === "Home"
-      ? "Atlas BioLabs - Peptide Supply & Sourcing"
-      : `${title} | ${siteConfig.name}`;
+    title === "Home" ? siteDefaultTitle : `${title} | ${siteConfig.name}`;
   const allKeywords = mergeKeywords(baseKeywords, keywords);
   const imageUrl = absoluteUrl(image);
 
   return {
-    title:
-      title === "Home"
-        ? { absolute: "Atlas BioLabs - Peptide Supply & Sourcing" }
-        : title,
+    title: title === "Home" ? { absolute: siteDefaultTitle } : title,
     description,
     keywords: allKeywords,
     alternates: {
@@ -115,6 +117,10 @@ export function createPageMetadata({
   };
 }
 
+export function getProductIntro(productName: string) {
+  return `${productName} is a peptide supplied for commercial sourcing, research applications, and formulation development. Atlas BioLabs provides structured sourcing support with documentation, batch transparency, and scalable supply options for ${productName} peptide buyers.`;
+}
+
 export function getOrganizationSchema() {
   return {
     "@context": "https://schema.org",
@@ -136,8 +142,7 @@ export function getOrganizationSchema() {
         availableLanguage: ["English"],
       },
     ],
-    description:
-      "Atlas BioLabs supplies peptides for commercial buyers through global sourcing partners, with documentation support, batch transparency, and structured supply systems.",
+    description: siteDescription,
   };
 }
 
@@ -148,7 +153,7 @@ export function getWebsiteSchema() {
     name: siteConfig.name,
     url: siteConfig.url,
     description:
-      "Atlas BioLabs is a peptide supplier and sourcing platform built for wholesale peptides, documentation-backed procurement, and structured commercial supply.",
+      "Atlas BioLabs is a peptide supplier platform focused on peptide sourcing, wholesale peptides, custom peptide sourcing, and documentation-backed commercial supply.",
     potentialAction: {
       "@type": "SearchAction",
       target: `${siteConfig.url}/shop?query={search_term_string}`,
@@ -176,46 +181,37 @@ export function getBreadcrumbSchema(items: BreadcrumbItem[]) {
 }
 
 export function getProductSchema(product: Product, categoryLabel: string) {
+  const productUrl = absoluteUrl(`/shop/${product.slug}`);
+
   return {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: `${product.summary} Atlas BioLabs supports ${categoryLabel.toLowerCase()} sourcing with documentation review, batch transparency support, and quote-based commercial supply.`,
+    description: getProductIntro(product.name),
     image: [absoluteUrl(product.image)],
+    url: productUrl,
     sku: product.slug,
+    productID: product.slug,
     category: categoryLabel,
     brand: {
       "@type": "Brand",
       name: siteConfig.name,
+    },
+    manufacturer: {
+      "@type": "Organization",
+      name: productManufacturerName,
     },
     offers: {
       "@type": "Offer",
       priceCurrency: "USD",
       price: String(product.priceFrom),
       availability: "https://schema.org/InStock",
-      url: absoluteUrl(`/shop/${product.slug}`),
+      url: productUrl,
       seller: {
         "@type": "Organization",
         name: siteConfig.name,
       },
     },
-    additionalProperty: [
-      {
-        "@type": "PropertyValue",
-        name: "MOQ",
-        value: `${product.moq} units`,
-      },
-      {
-        "@type": "PropertyValue",
-        name: "Lead Time",
-        value: product.leadTime,
-      },
-      {
-        "@type": "PropertyValue",
-        name: "Pack Sizes",
-        value: product.packSizes.join(", "),
-      },
-    ],
   };
 }
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { allBlogPosts } from "contentlayer/generated";
 import { notFound } from "next/navigation";
 
@@ -14,6 +15,8 @@ import {
   getBlogPostModifiedDate,
   getBlogReadingTime,
   getRelatedBlogPosts,
+  getRelevantCategoriesForBlogPost,
+  getRelevantProductsForBlogPost,
 } from "@/lib/blog";
 import { absoluteUrl } from "@/lib/site-config";
 import { createPageMetadata, getBreadcrumbSchema, mergeKeywords } from "@/lib/seo";
@@ -54,7 +57,7 @@ export async function generateMetadata({
       "peptide sourcing article",
     ]),
     image: post.image,
-    imageAlt: `Featured article illustration for ${post.title}`,
+    imageAlt: `Editorial illustration covering ${post.title}`,
     type: "article",
     publishedTime: post.date,
     authors: [post.author],
@@ -72,6 +75,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const headings = getBlogPostHeadings(post);
   const relatedPosts = getRelatedBlogPosts(post, 3);
+  const relatedProducts = getRelevantProductsForBlogPost(post, 3);
+  const relatedCategories = getRelevantCategoriesForBlogPost(post, 3);
   const modifiedDate = getBlogPostModifiedDate(post);
 
   const breadcrumbSchema = getBreadcrumbSchema([
@@ -82,7 +87,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const articleSchema = {
     "@context": "https://schema.org",
-    "@type": "BlogPosting",
+    "@type": "Article",
     headline: post.title,
     description: post.description,
     datePublished: post.date,
@@ -97,16 +102,29 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     },
     image: [absoluteUrl(post.image)],
     mainEntityOfPage: absoluteUrl(`/blog/${post.slug}`),
+    url: absoluteUrl(`/blog/${post.slug}`),
+    articleSection: post.tags[0] ?? "Peptide Supply",
     keywords: post.tags.join(", "),
   };
 
   return (
     <>
       <JsonLd id={`blog-breadcrumb-${post.slug}`} data={breadcrumbSchema} />
-      <JsonLd id={`blog-posting-${post.slug}`} data={articleSchema} />
+      <JsonLd id={`blog-article-${post.slug}`} data={articleSchema} />
 
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container">
+          <nav className="mb-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <Link href="/" className="hover:text-[var(--brand-blue)]">
+              Home
+            </Link>
+            <span>/</span>
+            <Link href="/blog" className="hover:text-[var(--brand-blue)]">
+              Blog
+            </Link>
+            <span>/</span>
+            <span className="text-[var(--brand-navy)]">{post.title}</span>
+          </nav>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
             Atlas BioLabs Blog
           </p>
@@ -138,7 +156,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <div className="relative aspect-[16/8] w-full border-b border-border/70 bg-[#eef4ff]">
               <Image
                 src={post.image}
-                alt={`Featured article illustration for ${post.title}`}
+                alt={`Editorial illustration covering ${post.title}`}
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 76rem"
@@ -150,6 +168,78 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <div className="mt-8">
                 <MdxContent code={post.body.code} />
               </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="section-space pt-0">
+        <div className="site-container grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+          <article className="surface-card p-6 sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-2xl font-semibold text-[var(--brand-navy)]">
+                Related Products
+              </h2>
+              <Link
+                href="/shop"
+                className="text-sm font-medium text-[var(--brand-blue)] hover:underline"
+              >
+                Browse the shop
+              </Link>
+            </div>
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {relatedProducts.map((product) => (
+                <article
+                  key={product.slug}
+                  className="rounded-xl border border-border/70 bg-white p-4"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--brand-blue)]">
+                    Product
+                  </p>
+                  <h3 className="mt-2 text-base font-semibold text-[var(--brand-navy)]">
+                    <Link href={`/shop/${product.slug}`} className="hover:underline">
+                      {product.name}
+                    </Link>
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {product.shortDescription}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </article>
+
+          <article className="surface-card p-6 sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-2xl font-semibold text-[var(--brand-navy)]">
+                Related Categories
+              </h2>
+              <Link
+                href="/categories"
+                className="text-sm font-medium text-[var(--brand-blue)] hover:underline"
+              >
+                View all categories
+              </Link>
+            </div>
+            <div className="mt-5 grid gap-3">
+              {relatedCategories.map((category) => (
+                <article
+                  key={category.id}
+                  className="rounded-xl border border-border/70 bg-white p-4"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--brand-blue)]">
+                    Category
+                  </p>
+                  <h3 className="mt-2 text-base font-semibold text-[var(--brand-navy)]">
+                    <Link href={`/categories/${category.id}`} className="hover:underline">
+                      {category.label}
+                    </Link>
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {category.description} peptide listings with product-level sourcing context and documentation support.
+                  </p>
+                </article>
+              ))}
             </div>
           </article>
         </div>

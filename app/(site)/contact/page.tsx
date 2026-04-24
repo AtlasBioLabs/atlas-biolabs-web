@@ -7,10 +7,10 @@ import { createPageMetadata } from "@/lib/seo";
 import { contactCta, contactDetails } from "@/lib/site-content";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Contact",
+  title: "Contact Atlas BioLabs",
   path: "/contact",
   description:
-    "Contact Atlas BioLabs sales for global peptide sourcing support, MOQ planning, documentation guidance, and wholesale quote requests for U.S. and international buyers.",
+    "Contact Atlas BioLabs for peptide sourcing support, MOQ planning, documentation guidance, and quote request follow-up for U.S. and international commercial buyers.",
   keywords: [
     "contact peptide supplier",
     "request peptide quote",

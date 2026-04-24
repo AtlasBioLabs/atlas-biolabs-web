@@ -12,10 +12,10 @@ type RequestQuotePageProps = {
 };
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Request Quote",
+  title: "Request Peptide Quote",
   path: "/request-quote",
   description:
-    "Submit a peptide quote request with product, quantity, and destination details to receive Atlas BioLabs commercial pricing and documentation support for U.S. and international sourcing.",
+    "Submit a peptide quote request with product, quantity, destination, and documentation needs to receive Atlas BioLabs commercial pricing and sourcing support for U.S. and international accounts.",
   keywords: [
     "request peptide quote",
     "peptide MOQ quote",
