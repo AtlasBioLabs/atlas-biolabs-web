@@ -4,6 +4,7 @@ import Link from "next/link";
 import { allBlogPosts } from "contentlayer/generated";
 import { notFound } from "next/navigation";
 
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { BlogTableOfContents } from "@/components/site/blog-table-of-contents";
 import { JsonLd } from "@/components/site/json-ld";
 import { MdxContent } from "@/components/site/mdx-content";
@@ -18,8 +19,13 @@ import {
   getRelevantCategoriesForBlogPost,
   getRelevantProductsForBlogPost,
 } from "@/lib/blog";
-import { absoluteUrl } from "@/lib/site-config";
-import { createPageMetadata, getBreadcrumbSchema, mergeKeywords } from "@/lib/seo";
+import {
+  createPageMetadata,
+  getArticleSchema,
+  getBlogPostBreadcrumbItems,
+  getBreadcrumbSchema,
+  mergeKeywords,
+} from "@/lib/seo";
 
 type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
@@ -78,34 +84,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const relatedProducts = getRelevantProductsForBlogPost(post, 3);
   const relatedCategories = getRelevantCategoriesForBlogPost(post, 3);
   const modifiedDate = getBlogPostModifiedDate(post);
-
-  const breadcrumbSchema = getBreadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Blog", path: "/blog" },
-    { name: post.title, path: `/blog/${post.slug}` },
-  ]);
-
-  const articleSchema = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.title,
-    description: post.description,
-    datePublished: post.date,
-    dateModified: modifiedDate,
-    author: {
-      "@type": "Person",
-      name: post.author,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "Atlas BioLabs",
-    },
-    image: [absoluteUrl(post.image)],
-    mainEntityOfPage: absoluteUrl(`/blog/${post.slug}`),
-    url: absoluteUrl(`/blog/${post.slug}`),
-    articleSection: post.tags[0] ?? "Peptide Supply",
-    keywords: post.tags.join(", "),
-  };
+  const breadcrumbItems = getBlogPostBreadcrumbItems(post);
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
+  const articleSchema = getArticleSchema(post, modifiedDate);
 
   return (
     <>
@@ -114,17 +95,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container">
-          <nav className="mb-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <Link href="/" className="hover:text-[var(--brand-blue)]">
-              Home
-            </Link>
-            <span>/</span>
-            <Link href="/blog" className="hover:text-[var(--brand-blue)]">
-              Blog
-            </Link>
-            <span>/</span>
-            <span className="text-[var(--brand-navy)]">{post.title}</span>
-          </nav>
+          <Breadcrumbs items={breadcrumbItems} />
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
             Atlas BioLabs Blog
           </p>

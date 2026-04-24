@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { CtaSection } from "@/components/site/cta-section";
+import { JsonLd } from "@/components/site/json-ld";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
-import { createPageMetadata } from "@/lib/seo";
+import {
+  createPageMetadata,
+  getBreadcrumbSchema,
+  getStaticBreadcrumbItems,
+} from "@/lib/seo";
 import {
   featuredProductSlugs,
   productCategories,
@@ -28,6 +34,8 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function WholesalePage() {
+  const breadcrumbItems = getStaticBreadcrumbItems("wholesale");
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
   const wholesaleLinkedProducts = featuredProductSlugs
     .map((slug) => products.find((product) => product.slug === slug))
     .filter((product): product is (typeof products)[number] => product !== undefined)
@@ -42,9 +50,12 @@ export default function WholesalePage() {
 
   return (
     <>
+      <JsonLd id="wholesale-breadcrumb-schema" data={breadcrumbSchema} />
+
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
+            <Breadcrumbs items={breadcrumbItems} />
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
               Wholesale
             </p>

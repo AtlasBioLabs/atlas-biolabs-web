@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { BlogPost } from "contentlayer/generated";
 
 import { absoluteUrl, siteConfig } from "@/lib/site-config";
 import {
@@ -27,6 +28,7 @@ export const siteDescription =
   "Atlas BioLabs is a peptide supply and sourcing company serving U.S. and international buyers through qualified manufacturing and sourcing partners in China, supported by documentation, batch transparency, and commercial quote support.";
 export const productManufacturerName =
   "Qualified manufacturing and sourcing partners in China";
+const organizationLogoPath = "/atlas-biolabs-logo.svg";
 
 type PageMetadataInput = {
   title: string;
@@ -127,6 +129,10 @@ export function getOrganizationSchema() {
     "@type": "Organization",
     name: siteConfig.name,
     url: siteConfig.url,
+    logo: {
+      "@type": "ImageObject",
+      url: absoluteUrl(organizationLogoPath),
+    },
     slogan: siteConfig.tagline,
     foundingDate: "2024",
     email: contactDetails.recipientEmail,
@@ -154,18 +160,97 @@ export function getWebsiteSchema() {
     url: siteConfig.url,
     description:
       "Atlas BioLabs is a peptide supplier platform focused on peptide sourcing, wholesale peptides, custom peptide sourcing, and documentation-backed commercial supply.",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `${siteConfig.url}/shop?query={search_term_string}`,
-      "query-input": "required name=search_term_string",
-    },
   };
 }
 
-type BreadcrumbItem = {
+export type BreadcrumbItem = {
   name: string;
   path: string;
 };
+
+type StaticBreadcrumbKey =
+  | "shop"
+  | "categories"
+  | "blog"
+  | "wholesale"
+  | "about"
+  | "contact"
+  | "customRequests"
+  | "requestQuote"
+  | "qualityAssurance"
+  | "research";
+
+const staticBreadcrumbTrails: Record<StaticBreadcrumbKey, BreadcrumbItem[]> = {
+  shop: [
+    { name: "Home", path: "/" },
+    { name: "Shop", path: "/shop" },
+  ],
+  categories: [
+    { name: "Home", path: "/" },
+    { name: "Shop", path: "/shop" },
+    { name: "Categories", path: "/categories" },
+  ],
+  blog: [
+    { name: "Home", path: "/" },
+    { name: "Blog", path: "/blog" },
+  ],
+  wholesale: [
+    { name: "Home", path: "/" },
+    { name: "Wholesale", path: "/wholesale" },
+  ],
+  about: [
+    { name: "Home", path: "/" },
+    { name: "About", path: "/about" },
+  ],
+  contact: [
+    { name: "Home", path: "/" },
+    { name: "Contact", path: "/contact" },
+  ],
+  customRequests: [
+    { name: "Home", path: "/" },
+    { name: "Custom Peptide Request", path: "/custom-requests" },
+  ],
+  requestQuote: [
+    { name: "Home", path: "/" },
+    { name: "Request Quote", path: "/request-quote" },
+  ],
+  qualityAssurance: [
+    { name: "Home", path: "/" },
+    { name: "About", path: "/about" },
+    { name: "Quality Assurance", path: "/quality-assurance" },
+  ],
+  research: [
+    { name: "Home", path: "/" },
+    { name: "About", path: "/about" },
+    { name: "Research", path: "/research" },
+  ],
+};
+
+export function getStaticBreadcrumbItems(key: StaticBreadcrumbKey) {
+  return staticBreadcrumbTrails[key];
+}
+
+export function getCategoryBreadcrumbItems(category: ProductCategory) {
+  return [
+    ...staticBreadcrumbTrails.shop,
+    { name: category.label, path: `/categories/${category.id}` },
+  ];
+}
+
+export function getProductBreadcrumbItems(product: Product, categoryLabel: string) {
+  return [
+    ...staticBreadcrumbTrails.shop,
+    { name: categoryLabel, path: `/categories/${product.category}` },
+    { name: product.name, path: `/shop/${product.slug}` },
+  ];
+}
+
+export function getBlogPostBreadcrumbItems(post: Pick<BlogPost, "slug" | "title">) {
+  return [
+    ...staticBreadcrumbTrails.blog,
+    { name: post.title, path: `/blog/${post.slug}` },
+  ];
+}
 
 export function getBreadcrumbSchema(items: BreadcrumbItem[]) {
   return {
@@ -177,6 +262,45 @@ export function getBreadcrumbSchema(items: BreadcrumbItem[]) {
       name: item.name,
       item: absoluteUrl(item.path),
     })),
+  };
+}
+
+export function getArticleSchema(
+  post: Pick<BlogPost, "author" | "date" | "description" | "image" | "slug" | "tags" | "title">,
+  modifiedDate: string
+) {
+  const articleAuthor =
+    post.author.toLowerCase().includes("atlas biolabs")
+      ? {
+          "@type": "Organization",
+          name: post.author,
+        }
+      : {
+          "@type": "Person",
+          name: post.author,
+        };
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.description,
+    datePublished: post.date,
+    dateModified: modifiedDate,
+    author: articleAuthor,
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      logo: {
+        "@type": "ImageObject",
+        url: absoluteUrl(organizationLogoPath),
+      },
+    },
+    image: [absoluteUrl(post.image)],
+    mainEntityOfPage: absoluteUrl(`/blog/${post.slug}`),
+    url: absoluteUrl(`/blog/${post.slug}`),
+    articleSection: post.tags[0] ?? "Peptide Supply",
+    keywords: post.tags.join(", "),
   };
 }
 

@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { ContactForm } from "@/components/site/contact-form";
 import { CtaSection } from "@/components/site/cta-section";
+import { JsonLd } from "@/components/site/json-ld";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
-import { createPageMetadata } from "@/lib/seo";
+import {
+  createPageMetadata,
+  getBreadcrumbSchema,
+  getStaticBreadcrumbItems,
+} from "@/lib/seo";
 import { contactCta, contactDetails } from "@/lib/site-content";
 
 export const metadata: Metadata = createPageMetadata({
@@ -19,10 +25,16 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function ContactPage() {
+  const breadcrumbItems = getStaticBreadcrumbItems("contact");
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
+
   return (
     <>
+      <JsonLd id="contact-breadcrumb-schema" data={breadcrumbSchema} />
+
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container">
+          <Breadcrumbs items={breadcrumbItems} />
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
             Contact
           </p>
@@ -74,6 +86,20 @@ export default function ContactPage() {
             description:
               "Learn how we support recurring supply, planning windows, and bulk peptide programs.",
             eyebrow: "Supply",
+          },
+          {
+            title: "Browse Categories",
+            href: "/categories",
+            description:
+              "Review peptide classes before narrowing down the specific products you want to discuss.",
+            eyebrow: "Categories",
+          },
+          {
+            title: "Peptide Supply Blog",
+            href: "/blog",
+            description:
+              "Read sourcing, pricing, and documentation guides before or after you submit your contact request.",
+            eyebrow: "Blog",
           },
           {
             title: "Quality Assurance",

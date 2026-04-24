@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { JsonLd } from "@/components/site/json-ld";
 import { ProductInlineQuoteForm } from "@/components/site/product-inline-quote-form";
 import { ProductPurchaseActions } from "@/components/site/product-purchase-actions";
@@ -11,6 +12,7 @@ import { getRelevantBlogPostsForProduct } from "@/lib/blog";
 import {
   createPageMetadata,
   getBreadcrumbSchema,
+  getProductBreadcrumbItems,
   getProductIntro,
   getProductSchema,
   mergeKeywords,
@@ -96,14 +98,8 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
   const productIntro = getProductIntro(product.name);
   const relatedProducts = getRelatedProducts(product, 4);
   const relatedArticles = getRelevantBlogPostsForProduct(product, 3);
-
-  const breadcrumbSchema = getBreadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Shop", path: "/shop" },
-    { name: categoryLabel, path: categoryHref },
-    { name: product.name, path: `/shop/${product.slug}` },
-  ]);
-
+  const breadcrumbItems = getProductBreadcrumbItems(product, categoryLabel);
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
   const productSchema = getProductSchema(product, categoryLabel);
 
   return (
@@ -113,21 +109,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
 
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f7faff] to-white">
         <div className="site-container">
-          <nav className="mb-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <Link href="/" className="hover:text-[var(--brand-blue)]">
-              Home
-            </Link>
-            <span>/</span>
-            <Link href="/shop" className="hover:text-[var(--brand-blue)]">
-              Shop
-            </Link>
-            <span>/</span>
-            <Link href={categoryHref} className="hover:text-[var(--brand-blue)]">
-              {categoryLabel}
-            </Link>
-            <span>/</span>
-            <span className="text-[var(--brand-navy)]">{product.name}</span>
-          </nav>
+          <Breadcrumbs items={breadcrumbItems} />
 
           <Button asChild variant="ghost" className="mb-6 px-0 text-sm">
             <Link href="/shop">Back to Shop</Link>

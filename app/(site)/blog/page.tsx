@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { BlogCard } from "@/components/site/blog-card";
 import { JsonLd } from "@/components/site/json-ld";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
 import { getAllBlogPosts } from "@/lib/blog";
-import { createPageMetadata, getBreadcrumbSchema } from "@/lib/seo";
+import {
+  createPageMetadata,
+  getBreadcrumbSchema,
+  getStaticBreadcrumbItems,
+} from "@/lib/seo";
 import {
   featuredProductSlugs,
   productCategories,
@@ -35,10 +40,8 @@ export default function BlogPage() {
     .slice(0, 3);
   const featuredCategories = productCategories.slice(0, 3);
 
-  const breadcrumbSchema = getBreadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Blog", path: "/blog" },
-  ]);
+  const breadcrumbItems = getStaticBreadcrumbItems("blog");
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
 
   return (
     <>
@@ -46,6 +49,7 @@ export default function BlogPage() {
 
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container">
+          <Breadcrumbs items={breadcrumbItems} />
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
             Blog
           </p>

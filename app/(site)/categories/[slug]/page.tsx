@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { JsonLd } from "@/components/site/json-ld";
 import { ProductCard } from "@/components/site/product-card";
 import { getRelevantBlogPostsForCategory } from "@/lib/blog";
 import {
+  getCategoryBreadcrumbItems,
   createPageMetadata,
   getBreadcrumbSchema,
   getCategorySeoCopy,
@@ -15,7 +17,6 @@ import {
   productCategories,
   products,
 } from "@/lib/site-content";
-import { absoluteUrl } from "@/lib/site-config";
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>;
@@ -73,44 +74,16 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   );
   const categorySeoCopy = getCategorySeoCopy(category, categoryProducts);
   const relatedBlogPosts = getRelevantBlogPostsForCategory(category.id, 4);
-
-  const breadcrumbSchema = getBreadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Categories", path: "/categories" },
-    { name: category.label, path: `/categories/${category.id}` },
-  ]);
-
-  const collectionSchema = {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    name: `${category.label} | Atlas BioLabs`,
-    url: absoluteUrl(`/categories/${category.id}`),
-    description: `${category.label} peptide category with product-level MOQ visibility, documentation support, and quote-ready commercial sourcing information.`,
-    mainEntity: categoryProducts.map((product) => ({
-      "@type": "Product",
-      name: product.name,
-      url: absoluteUrl(`/shop/${product.slug}`),
-    })),
-  };
+  const breadcrumbItems = getCategoryBreadcrumbItems(category);
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
 
   return (
     <>
       <JsonLd id={`category-breadcrumb-${category.id}`} data={breadcrumbSchema} />
-      <JsonLd id={`category-schema-${category.id}`} data={collectionSchema} />
 
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container">
-          <nav className="mb-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <Link href="/" className="hover:text-[var(--brand-blue)]">
-              Home
-            </Link>
-            <span>/</span>
-            <Link href="/categories" className="hover:text-[var(--brand-blue)]">
-              Categories
-            </Link>
-            <span>/</span>
-            <span className="text-[var(--brand-navy)]">{category.label}</span>
-          </nav>
+          <Breadcrumbs items={breadcrumbItems} />
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
             Category
           </p>

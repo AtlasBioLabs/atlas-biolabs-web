@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { CtaSection } from "@/components/site/cta-section";
+import { JsonLd } from "@/components/site/json-ld";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
 import { ShopCatalogClient } from "@/components/site/shop-catalog-client";
 import { getAllBlogPosts } from "@/lib/blog";
-import { createPageMetadata } from "@/lib/seo";
+import {
+  createPageMetadata,
+  getBreadcrumbSchema,
+  getStaticBreadcrumbItems,
+} from "@/lib/seo";
 import {
   productCategories,
   products,
@@ -64,10 +70,16 @@ const shopSupportLinks = [
 ];
 
 export default function ShopPage() {
+  const breadcrumbItems = getStaticBreadcrumbItems("shop");
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
+
   return (
     <>
+      <JsonLd id="shop-breadcrumb-schema" data={breadcrumbSchema} />
+
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container">
+          <Breadcrumbs items={breadcrumbItems} />
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
             Shop
           </p>

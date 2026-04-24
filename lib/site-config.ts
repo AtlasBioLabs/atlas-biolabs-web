@@ -11,5 +11,11 @@ export const siteConfig = {
 };
 
 export function absoluteUrl(path: string) {
-  return new URL(path, siteConfig.url).toString();
+  const url = new URL(path, siteConfig.url);
+
+  if (url.pathname === "/" && !url.search && !url.hash) {
+    return url.origin;
+  }
+
+  return url.toString();
 }

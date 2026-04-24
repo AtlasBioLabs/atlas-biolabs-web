@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { CtaSection } from "@/components/site/cta-section";
 import { CustomRequestForm } from "@/components/site/custom-request-form";
+import { JsonLd } from "@/components/site/json-ld";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
-import { createPageMetadata } from "@/lib/seo";
+import {
+  createPageMetadata,
+  getBreadcrumbSchema,
+  getStaticBreadcrumbItems,
+} from "@/lib/seo";
 import {
   contactDetails,
   customCta,
@@ -24,10 +30,16 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function CustomRequestsPage() {
+  const breadcrumbItems = getStaticBreadcrumbItems("customRequests");
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
+
   return (
     <>
+      <JsonLd id="custom-requests-breadcrumb-schema" data={breadcrumbSchema} />
+
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container">
+          <Breadcrumbs items={breadcrumbItems} />
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
             Custom Requests
           </p>
@@ -92,11 +104,25 @@ export default function CustomRequestsPage() {
             eyebrow: "Supply",
           },
           {
+            title: "Browse Categories",
+            href: "/categories",
+            description:
+              "Check peptide categories before deciding whether a custom request is needed or a catalog item already fits.",
+            eyebrow: "Categories",
+          },
+          {
             title: "Atlas Labs Research",
             href: "/research",
             description:
               "Understand how Atlas Labs supports classification, documentation review, and commercial handoff.",
             eyebrow: "Research",
+          },
+          {
+            title: "Peptide Supply Blog",
+            href: "/blog",
+            description:
+              "Use the buyer guides to refine sourcing, documentation, and product-selection requirements before submitting.",
+            eyebrow: "Blog",
           },
         ]}
       />

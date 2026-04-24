@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { CompanyProofPanel } from "@/components/site/company-proof-panel";
 import { CtaSection } from "@/components/site/cta-section";
+import { JsonLd } from "@/components/site/json-ld";
 import { OperationsEvidenceGrid } from "@/components/site/operations-evidence-grid";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
 import {
@@ -10,7 +12,11 @@ import {
   operationsEvidenceItems,
   proofSystemNote,
 } from "@/lib/site-proof";
-import { createPageMetadata } from "@/lib/seo";
+import {
+  createPageMetadata,
+  getBreadcrumbSchema,
+  getStaticBreadcrumbItems,
+} from "@/lib/seo";
 import {
   aboutCta,
   aboutIntro,
@@ -36,10 +42,16 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function AboutPage() {
+  const breadcrumbItems = getStaticBreadcrumbItems("about");
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
+
   return (
     <>
+      <JsonLd id="about-breadcrumb-schema" data={breadcrumbSchema} />
+
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container">
+          <Breadcrumbs items={breadcrumbItems} />
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
             About Atlas BioLabs
           </p>
@@ -212,6 +224,20 @@ export default function AboutPage() {
             description:
               "Review how we support recurring peptide supply, volume planning, and bulk quote workflows.",
             eyebrow: "Supply",
+          },
+          {
+            title: "Browse Categories",
+            href: "/categories",
+            description:
+              "Move from company background into peptide category pages with direct links to individual products.",
+            eyebrow: "Categories",
+          },
+          {
+            title: "Peptide Supply Blog",
+            href: "/blog",
+            description:
+              "Read the buyer guides that explain pricing, documentation, sourcing, and commercial peptide planning.",
+            eyebrow: "Blog",
           },
           {
             title: "Quality Assurance",

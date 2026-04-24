@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { CtaSection } from "@/components/site/cta-section";
 import { DocumentationPreview } from "@/components/site/documentation-preview";
+import { JsonLd } from "@/components/site/json-ld";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
 import { qualityDocumentPreviews } from "@/lib/site-proof";
-import { createPageMetadata } from "@/lib/seo";
+import {
+  createPageMetadata,
+  getBreadcrumbSchema,
+  getStaticBreadcrumbItems,
+} from "@/lib/seo";
 import {
   qualityBlocks,
   qualityCta,
@@ -26,11 +32,17 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function QualityAssurancePage() {
+  const breadcrumbItems = getStaticBreadcrumbItems("qualityAssurance");
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
+
   return (
     <>
+      <JsonLd id="quality-breadcrumb-schema" data={breadcrumbSchema} />
+
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container grid gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-center">
           <div>
+            <Breadcrumbs items={breadcrumbItems} />
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
               Quality Assurance
             </p>
@@ -174,6 +186,13 @@ export default function QualityAssurancePage() {
             description:
               "Compare product pages with documentation support notes, MOQ visibility, and sourcing context.",
             eyebrow: "Catalog",
+          },
+          {
+            title: "Browse Categories",
+            href: "/categories",
+            description:
+              "Move from documentation review into category pages with direct links to related product listings.",
+            eyebrow: "Categories",
           },
           {
             title: "Peptide Quality, Purity, and COA Explained",

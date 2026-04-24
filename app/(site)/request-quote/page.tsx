@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 
+import { Breadcrumbs } from "@/components/site/breadcrumbs";
+import { JsonLd } from "@/components/site/json-ld";
 import { QuoteRequestForm } from "@/components/site/quote-request-form";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
-import { createPageMetadata } from "@/lib/seo";
+import {
+  createPageMetadata,
+  getBreadcrumbSchema,
+  getStaticBreadcrumbItems,
+} from "@/lib/seo";
 
 type RequestQuotePageProps = {
   searchParams: Promise<{
@@ -37,11 +43,16 @@ export default async function RequestQuotePage({
   const params = await searchParams;
   const product = getFirstValue(params.product);
   const qty = getFirstValue(params.qty);
+  const breadcrumbItems = getStaticBreadcrumbItems("requestQuote");
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
 
   return (
     <>
+      <JsonLd id="request-quote-breadcrumb-schema" data={breadcrumbSchema} />
+
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container">
+          <Breadcrumbs items={breadcrumbItems} />
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
             Request Quote
           </p>
@@ -88,6 +99,13 @@ export default async function RequestQuotePage({
             description:
               "See how Atlas Labs handles documentation checks, release review, and batch transparency support.",
             eyebrow: "Documentation",
+          },
+          {
+            title: "Peptide Supply Blog",
+            href: "/blog",
+            description:
+              "Review sourcing, pricing, and supplier-evaluation guides before you finalize your quote request.",
+            eyebrow: "Blog",
           },
         ]}
       />
