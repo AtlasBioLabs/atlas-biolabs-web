@@ -78,7 +78,7 @@ export default function ShopPage() {
             {shopIntro.description}
           </p>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-            Use this catalog to compare peptide supplier options across cosmetic peptides, research applications, wholesale peptides, and custom sourcing conversations with clear MOQ, documentation, and batch transparency context on every listing.
+            Use this catalog to compare peptide supplier options across cosmetic peptides, research applications, wholesale peptides, and custom sourcing conversations with clear MOQ, documentation, batch transparency, and technical positioning context on every listing.
           </p>
         </div>
       </section>

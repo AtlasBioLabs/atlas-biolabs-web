@@ -206,10 +206,13 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
                 category so buyers can compare product role, supply format, and documentation requirements in one place.
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
+                Across technical literature, formulation-development planning, and category-level sourcing reviews, {product.name} is commonly evaluated in contexts such as {toSentenceList(product.commonApplications)}. We surface that context here so buyers can understand how the peptide is usually positioned before they move into sampling, formulation review, or quote discussions.
+              </p>
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 {product.mechanismInsight}
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Teams reviewing this SKU often compare {toSentenceList(product.functionalRole)} alongside factors such as {toSentenceList(product.keyCharacteristics)} when building formulation-development, sourcing, and repeat-order shortlists.
+                Teams reviewing this SKU often compare {toSentenceList(product.functionalRole)} alongside factors such as {toSentenceList(product.keyCharacteristics)} when building formulation-development, sourcing, validation, and repeat-order shortlists.
               </p>
             </div>
           </article>
@@ -284,31 +287,67 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
             </h2>
             <div className="mt-4 space-y-4">
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Atlas BioLabs presents {product.name} for commercial sourcing, research applications, and formulation development. This page is written to support neutral buyer evaluation for {toSentenceList(product.commonApplications)} using commercial, sourcing-focused language only.
+                Atlas BioLabs presents {product.name} for commercial sourcing, research applications, and formulation development. This page is written to help buyers map the peptide to common research, formulation, and evaluation contexts such as {toSentenceList(product.commonApplications)} while keeping the content commercially focused and documentation-aligned.
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                In practical sourcing terms, {product.name} is usually reviewed by {toSentenceList(product.intendedBuyerType)} who need visibility into category fit, reorder planning, and documentation readiness before moving into quote discussions.
+                In practical sourcing terms, {product.name} is usually reviewed by {toSentenceList(product.intendedBuyerType)} who need visibility into category fit, technical positioning, reorder planning, and documentation readiness before moving into quote discussions.
               </p>
             </div>
           </article>
 
           <article className="surface-card p-6">
             <h2 className="text-xl font-semibold text-[var(--brand-navy)]">
-              Commercial Comparison Points
+              Research and Formulation Context
             </h2>
-            <ul className="mt-4 space-y-3">
-              {product.functionalRole
-                .concat(product.keyCharacteristics)
-                .slice(0, 6)
-                .map((item) => (
-                  <li
-                    key={item}
-                    className="rounded-lg border border-border/70 bg-white px-4 py-3 text-sm text-[var(--brand-navy)]"
-                  >
-                    {item}
-                  </li>
-                ))}
-            </ul>
+            <div className="mt-4 space-y-5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--brand-blue)]">
+                  Common Contexts
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {product.commonApplications.slice(0, 3).map((item) => (
+                    <li
+                      key={item}
+                      className="rounded-lg border border-border/70 bg-white px-4 py-3 text-sm text-[var(--brand-navy)]"
+                    >
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--brand-blue)]">
+                  Functional Positioning
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {product.functionalRole.slice(0, 3).map((item) => (
+                    <li
+                      key={item}
+                      className="rounded-lg border border-border/70 bg-muted/35 px-4 py-3 text-sm text-[var(--brand-navy)]"
+                    >
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--brand-blue)]">
+                  Key Comparison Points
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {product.keyCharacteristics.slice(0, 3).map((item) => (
+                    <li
+                      key={item}
+                      className="rounded-lg border border-border/70 bg-white px-4 py-3 text-sm text-[var(--brand-navy)]"
+                    >
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </article>
         </div>
       </section>
@@ -354,7 +393,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
               Packaging and Supply Options
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              {product.name} is supplied in inquiry-led formats so buyers can align pack size, volume plan, destination market, and documentation needs before commercial supply moves forward. Atlas BioLabs uses this structure to reflect how real quote-led sourcing works for commercial accounts.
+              {product.name} is supplied in inquiry-led formats so buyers can align pack size, volume plan, destination market, and documentation needs before commercial supply moves forward. Atlas BioLabs uses this structure to reflect how quote-led sourcing works for teams running pilot evaluation, formulation-development, or recurring supply programs.
             </p>
             <ul className="mt-4 space-y-3">
               {product.packSizes.map((item) => (

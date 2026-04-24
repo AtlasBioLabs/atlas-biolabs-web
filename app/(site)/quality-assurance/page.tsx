@@ -57,7 +57,7 @@ export default function QualityAssurancePage() {
             <div className="relative min-h-[360px]">
               <Image
                 src="/images/quality-medical.jpg"
-                alt="Laboratory technician using a pipette with test tubes and sample materials on a controlled bench."
+                alt="Laboratory analyst using a pipette with sample tubes during batch review preparation."
                 fill
                 priority
                 className="object-cover"
@@ -66,10 +66,10 @@ export default function QualityAssurancePage() {
               <div className="absolute inset-0 bg-gradient-to-t from-[#071322]/88 via-[#071322]/28 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-6 text-white">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/72">
-                  Batch Review Context
+                  Analytical Batch Review
                 </p>
                 <p className="mt-2 max-w-md text-sm leading-relaxed text-white/84">
-                  We approach quality work through sample handling, laboratory procedure, and documentation review.
+                  We approach quality work through sample handling, analytical procedure, record checks, and documentation review.
                 </p>
               </div>
             </div>
@@ -128,7 +128,7 @@ export default function QualityAssurancePage() {
               <div className="relative min-h-[280px] overflow-hidden rounded-2xl border border-border/70">
                 <Image
                   src="/images/wholesale-vials.jpg"
-                  alt="Gloved laboratory hands examining a sample vial during review."
+                  alt="Gloved laboratory hands examining a sealed vial during documentation-linked batch review."
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 38vw"
@@ -139,7 +139,7 @@ export default function QualityAssurancePage() {
                     Sample Handling Snapshot
                   </p>
                   <p className="mt-2 text-sm leading-relaxed text-white/84">
-                    Sample handling is part of how we keep quality review tied to daily laboratory work.
+                    Sample handling is part of how we keep quality review tied to daily laboratory work, analytical discipline, and release control.
                   </p>
                 </div>
               </div>

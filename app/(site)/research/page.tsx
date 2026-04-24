@@ -65,7 +65,7 @@ export default function ResearchPage() {
             <div className="relative min-h-[360px]">
               <Image
                 src="/images/research-microscope.jpg"
-                alt="Laboratory researcher in safety glasses examining samples through a microscope."
+                alt="Laboratory researcher in safety glasses examining peptide samples through a microscope."
                 fill
                 priority
                 className="object-cover"
@@ -77,7 +77,7 @@ export default function ResearchPage() {
                   Analytical Review
                 </p>
                 <p className="mt-2 max-w-md text-sm leading-relaxed text-white/84">
-                  We approach research through microscopy, laboratory observation, and analytical review.
+                  We approach research through microscopy, sample-prep discipline, laboratory observation, and analytical review.
                 </p>
               </div>
             </div>
@@ -131,7 +131,7 @@ export default function ResearchPage() {
             <div className="relative min-h-[300px] border-b border-border/70">
               <Image
                 src="/images/quality-medical.jpg"
-                alt="Laboratory sample materials and test tubes arranged on a controlled analysis bench."
+                alt="Laboratory sample materials and test tubes arranged on an analytical peptide review bench."
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 35vw"
@@ -142,7 +142,7 @@ export default function ResearchPage() {
                 Analytical Bench Context
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                Bench-level sample work reflects the way we handle classification, record checks, and documentation accuracy.
+                Bench-level sample work reflects the way we handle classification, record checks, documentation accuracy, and technical note review.
               </p>
             </div>
           </article>

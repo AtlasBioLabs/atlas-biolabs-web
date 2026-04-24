@@ -71,7 +71,7 @@ export default function WholesalePage() {
             <div className="relative min-h-[360px]">
               <Image
                 src="/images/lab-hero.jpg"
-                alt="Supply operations specialist handling packaged inventory in a controlled laboratory environment."
+                alt="Supply operations specialist handling packaged inventory in a laboratory-informed commercial environment."
                 fill
                 priority
                 className="object-cover"
@@ -80,10 +80,10 @@ export default function WholesalePage() {
               <div className="absolute inset-0 bg-gradient-to-t from-[#071322]/88 via-[#071322]/35 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-6 text-white">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/72">
-                  Supply Handling Context
+                  Laboratory-Informed Supply Context
                 </p>
                 <p className="mt-2 max-w-md text-sm leading-relaxed text-white/84">
-                  We handle wholesale supply with clear operational context around vial handling, laboratory discipline, and buyer communication.
+                  We handle wholesale supply with clear operational context around vial handling, batch records, laboratory discipline, and buyer communication.
                 </p>
               </div>
             </div>
@@ -162,13 +162,13 @@ export default function WholesalePage() {
               We stay organized when volume starts to scale
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Once an account moves beyond a one-off order, we focus on cadence, clearer communication, and steadier handoff between sourcing, documentation, and commercial support.
+              Once an account moves beyond a one-off order, we focus on cadence, clearer communication, and steadier handoff between sourcing, documentation, technical review, and commercial support.
             </p>
             <ul className="mt-5 space-y-3">
               {[
-                "Forecast-led MOQ planning and reorder timing",
+                "Forecast-led MOQ planning for pilot, validation, and recurring supply windows",
                 "Commercial coordination tied to account history",
-                "Documentation support aligned with recurring supply windows",
+                "Documentation support aligned with recurring supply windows and batch continuity",
                 "Direct follow-up when quantity or timing shifts",
               ].map((item) => (
                 <li
@@ -185,7 +185,7 @@ export default function WholesalePage() {
             <div className="relative min-h-[300px] border-b border-border/70">
               <Image
                 src="/images/sales-support.jpg"
-                alt="Account support specialist coordinating follow-up in a work setting."
+                alt="Account support specialist coordinating follow-up for laboratory-informed peptide supply programs."
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 38vw"

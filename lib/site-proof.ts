@@ -86,16 +86,16 @@ export const operationsEvidenceItems: OperationsEvidenceItem[] = [
     status: "Laboratory",
     image: "/images/quality-medical.jpg",
     description:
-      "Our quality and research work centers on real bench work, sample handling, and controlled laboratory procedure.",
+      "Our quality and research work centers on real bench work, sample handling, analytical discipline, and controlled laboratory procedure.",
     detail:
-      "That laboratory discipline carries through our quality, documentation, and release workflow.",
+      "That laboratory discipline carries through our quality, documentation, technical review, and release workflow.",
   },
   {
     title: "Microscopy and Analysis",
     status: "Laboratory",
     image: "/images/research-microscope.jpg",
     description:
-      "Microscopy and analytical review reflect the way Atlas Labs approaches incoming material.",
+      "Microscopy and analytical review reflect the way Atlas Labs approaches incoming material, classification, and technical file review.",
     detail:
       "That scientific approach guides classification, documentation checks, and review consistency.",
   },

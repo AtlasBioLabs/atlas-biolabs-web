@@ -846,18 +846,18 @@ export function getRelatedProducts(product: Product, limit = 4) {
 }
 
 export const heroContent: HeroContent = {
-  eyebrow: "Global peptide manufacturing, U.S.-focused commercial supply",
+  eyebrow: "Global peptide sourcing, laboratory review, U.S.-focused commercial supply",
   title: "Peptide Supplier and Sourcing Partner for Wholesale Peptides",
   description:
-    "Atlas BioLabs supports peptide sourcing, wholesale peptides, and custom peptide sourcing for U.S. and international buyers through qualified manufacturing and sourcing partners in China, with Atlas Labs documentation review, batch transparency, and responsive quote handling.",
+    "Atlas BioLabs supports peptide sourcing, wholesale peptides, and custom peptide sourcing for U.S. and international buyers through qualified manufacturing and sourcing partners in China, with Atlas Labs documentation review, batch transparency, technical product context, and responsive quote handling.",
   primaryLabel: "Shop Peptides",
   primaryHref: "/shop",
   secondaryLabel: "Request Quote",
   secondaryHref: "/request-quote",
   highlights: [
-    "We work with qualified manufacturing and sourcing partners in China and keep commercial peptide sourcing structured from the start.",
+    "We work with qualified manufacturing and sourcing partners in China and keep commercial peptide sourcing structured from the first technical review.",
     "We run Atlas Labs quality review and documentation checks before wholesale peptide supply moves forward.",
-    "We respond quickly on quotes for catalog products and custom peptide sourcing requests.",
+    "We respond quickly on quotes for catalog products and custom peptide sourcing requests while keeping pack size, lot context, and documentation expectations visible.",
   ],
 };
 
@@ -914,17 +914,17 @@ export const wholesaleHighlights: ValuePoint[] = [
   {
     title: "MOQ and Volume Planning",
     description:
-      "We support everything from entry MOQ orders to recurring bulk programs with clear commercial terms.",
+      "We support everything from entry MOQ orders to recurring bulk programs with clear commercial terms, technical context, and volume-planning visibility.",
   },
   {
     title: "Sourcing and Dispatch Alignment",
     description:
-      "We align sourcing, pack size options, and dispatch planning with your buying cycle.",
+      "We align sourcing, pack size options, batch handling notes, and dispatch planning with your buying cycle.",
   },
   {
     title: "U.S. and International Buyer Support",
     description:
-      "We stay close to domestic and international accounts managing repeat purchase windows.",
+      "We stay close to domestic and international accounts managing repeat purchase windows, evaluation batches, and recurring procurement schedules.",
   },
 ];
 
@@ -932,30 +932,30 @@ export const qualityHighlights: ValuePoint[] = [
   {
     title: "Our Atlas Labs Review Layer",
     description:
-      "We use Atlas Labs to review incoming product records and documentation before commercial supply begins.",
+      "We use Atlas Labs to review incoming product records, analytical context, and documentation before commercial supply begins.",
   },
   {
     title: "Documentation on Request",
     description:
-      "We share COA and release-related records on request when your team needs documentation support.",
+      "We share COA and release-related records on request when your team needs documentation support or technical file review.",
   },
   {
     title: "Batch Transparency",
     description:
-      "We keep lot and batch context organized so recurring procurement stays easier to track.",
+      "We keep lot and batch context organized so recurring procurement and repeat validation stay easier to track.",
   },
 ];
 
 export const shopIntro = {
   title: "Commercial Peptide Catalog",
   description:
-    "Explore 28 commercially supplied peptides sourced through qualified partners in China, with Atlas Labs documentation support, batch transparency, and fast quote options for U.S. and international accounts.",
+    "Explore 28 commercially supplied peptides sourced through qualified partners in China, with Atlas Labs documentation support, batch transparency, category-level technical context, and fast quote options for U.S. and international accounts.",
 };
 
 export const wholesaleIntro = {
   title: "Wholesale Peptide Supply and Bulk Sourcing",
   description:
-    "We support quote-based wholesale peptide sourcing with MOQ handling, volume pricing tiers, documentation-backed supply planning, and buyer-ready product/category pathways for U.S. and international accounts.",
+    "We support quote-based wholesale peptide sourcing with MOQ handling, volume pricing tiers, documentation-backed supply planning, lot-aware packaging guidance, and buyer-ready product and category pathways for U.S. and international accounts.",
 };
 
 export const wholesaleSteps = [
@@ -1119,14 +1119,14 @@ export const customCta: CtaContent = {
 export const qualityIntro = {
   title: "Quality Assurance",
   description:
-    "Through Atlas Labs, we review quality and documentation so batch transparency stays clear before commercial supply begins.",
+    "Through Atlas Labs, we review incoming lots, analytical records, and documentation so batch transparency stays clear before commercial supply begins.",
 };
 
 export const qualityBlocks: InfoBlock[] = [
   {
     title: "Incoming Product Review",
     description:
-      "Incoming lots are reviewed against agreed product and documentation standards before commercial release.",
+      "Incoming lots are reviewed against agreed product, analytical, and documentation standards before commercial release.",
     points: [
       "Incoming lot review framework",
       "Identity and purity checkpoint verification",
@@ -1136,7 +1136,7 @@ export const qualityBlocks: InfoBlock[] = [
   {
     title: "Documentation Checks",
     description:
-      "We coordinate documentation checks through Atlas Labs so procurement workflows and internal records stay consistent.",
+      "We coordinate documentation checks through Atlas Labs so procurement workflows, technical files, and internal records stay consistent.",
     points: [
       "COA available on request",
       "Batch and lot traceability references",
@@ -1146,7 +1146,7 @@ export const qualityBlocks: InfoBlock[] = [
   {
     title: "Quality-Focused Standards",
     description:
-      "Consistent review and documentation routines support repeat commercial buying confidence.",
+      "Consistent review, analytical screening, and documentation routines support repeat commercial buying confidence.",
     points: [
       "Standardized quality review checkpoints",
       "Documentation continuity across reorder cycles",
@@ -1176,24 +1176,24 @@ export const qualityCta: CtaContent = {
 export const researchIntro = {
   title: "Atlas Labs Peptide Analysis and Documentation Laboratory",
   description:
-    "Atlas Labs is our laboratory and documentation review team. We analyze peptides sourced from qualified partners in China, classify incoming lots by product group, and validate documentation accuracy before commercial supply begins.",
+    "Atlas Labs is our laboratory and documentation review team. We analyze peptides sourced from qualified partners in China, classify incoming lots by product group, review analytical context, and validate documentation accuracy before commercial supply begins.",
 };
 
 export const researchFocus: ValuePoint[] = [
   {
     title: "Incoming Lot Analysis",
     description:
-      "Each incoming lot is screened against identity, purity, and batch-data checkpoints before supply decisions are made.",
+      "Each incoming lot is screened against identity, purity, batch-data, and technical-context checkpoints before supply decisions are made.",
   },
   {
     title: "Peptide Classification",
     description:
-      "We classify reviewed materials into commercial peptide categories so product mapping and sourcing clarity stay consistent.",
+      "We classify reviewed materials into commercial peptide categories so product mapping, scientific positioning, and sourcing clarity stay consistent.",
   },
   {
     title: "Documentation Accuracy Control",
     description:
-      "We review COA, chromatogram references, and lot records for consistency before they move into account workflows.",
+      "We review COA, chromatogram references, lot records, and supporting technical notes for consistency before they move into account workflows.",
   },
 ];
 
