@@ -35,7 +35,7 @@ export const companyProofFacts: ProofFact[] = [
   {
     label: "Founder",
     value: founderProfile.name,
-    detail: "Dedicates his time and expertise to helping men and women improve their general health and quality of life",
+    detail: "Leads Atlas BioLabs with a focus on disciplined sourcing, documentation review, and practical commercial execution.",
   },
   {
     label: "Team",
@@ -68,9 +68,9 @@ export const operationsEvidenceItems: OperationsEvidenceItem[] = [
     status: "Leadership",
     image: "/images/guy-citrin-founder-portrait.png",
     description:
-      "Driven and warmhearted naturopathic doctor Guy Citrin, ND, dedicates his time and expertise to helping men and women improve their general health and quality of life.",
+      "Founder Dr. Guy Citrin leads Atlas BioLabs with a practical focus on sourcing discipline, documentation review, and clear commercial execution.",
     detail:
-      "Naturopathic doctor Guy Citrin, ND",
+      "Founder and commercial leadership oversight",
   },
   {
     title: "Operating Team",

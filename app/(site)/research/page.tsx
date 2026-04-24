@@ -131,7 +131,7 @@ export default function ResearchPage() {
             <div className="relative min-h-[300px] border-b border-border/70">
               <Image
                 src="/images/quality-medical.jpg"
-                alt="Laboratory sample materials and test tubes on a clinical bench during analysis."
+                alt="Laboratory sample materials and test tubes arranged on a controlled analysis bench."
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 35vw"

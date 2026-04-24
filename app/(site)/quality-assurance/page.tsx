@@ -57,7 +57,7 @@ export default function QualityAssurancePage() {
             <div className="relative min-h-[360px]">
               <Image
                 src="/images/quality-medical.jpg"
-                alt="Laboratory technician using a pipette with test tubes and sample materials on a clinical bench."
+                alt="Laboratory technician using a pipette with test tubes and sample materials on a controlled bench."
                 fill
                 priority
                 className="object-cover"

@@ -5,13 +5,18 @@ import Link from "next/link";
 import { CompanyProofPanel } from "@/components/site/company-proof-panel";
 import { CtaSection } from "@/components/site/cta-section";
 import { HeroSection } from "@/components/site/hero-section";
+import { JsonLd } from "@/components/site/json-ld";
 import { ProductCard } from "@/components/site/product-card";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
 import { TrustStrip } from "@/components/site/trust-strip";
 import { Button } from "@/components/ui/button";
 import { getAllBlogPosts } from "@/lib/blog";
 import { companyProofFacts, proofSystemNote } from "@/lib/site-proof";
-import { createPageMetadata } from "@/lib/seo";
+import {
+  createPageMetadata,
+  getOrganizationSchema,
+  getWebsiteSchema,
+} from "@/lib/seo";
 import {
   featuredProductSlugs,
   heroContent,
@@ -61,6 +66,8 @@ const homeBlogLinks = homeFeaturedPosts.map((post) => ({
 export default function HomePage() {
   return (
     <>
+      <JsonLd id="organization-schema" data={getOrganizationSchema()} />
+      <JsonLd id="website-schema" data={getWebsiteSchema()} />
       <HeroSection content={heroContent} />
       <TrustStrip metrics={trustMetrics} />
       <CompanyProofPanel

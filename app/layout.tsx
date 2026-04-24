@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import Script from "next/script";
-import { JsonLd } from "@/components/site/json-ld";
 import { siteConfig } from "@/lib/site-config";
-import {
-  getOrganizationSchema,
-  getWebsiteSchema,
-  siteDefaultTitle,
-  siteDescription,
-} from "@/lib/seo";
+import { siteDefaultTitle, siteDescription } from "@/lib/seo";
 import "./globals.css";
 
 const googleAnalyticsId = "G-YVZF8QLCVV";
@@ -81,11 +75,7 @@ export default function RootLayout({
       lang="en"
       className={`${plexSans.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <JsonLd id="organization-schema" data={getOrganizationSchema()} />
-        <JsonLd id="website-schema" data={getWebsiteSchema()} />
-        {children}
-      </body>
+      <body className="min-h-full flex flex-col">{children}</body>
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
         strategy="afterInteractive"

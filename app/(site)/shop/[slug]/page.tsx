@@ -284,7 +284,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
             </h2>
             <div className="mt-4 space-y-4">
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Atlas BioLabs presents {product.name} for commercial sourcing, research applications, and formulation development. This page is written to support neutral buyer evaluation for {toSentenceList(product.commonApplications)} without making medical, treatment, cure, or human-use claims.
+                Atlas BioLabs presents {product.name} for commercial sourcing, research applications, and formulation development. This page is written to support neutral buyer evaluation for {toSentenceList(product.commonApplications)} using commercial, sourcing-focused language only.
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 In practical sourcing terms, {product.name} is usually reviewed by {toSentenceList(product.intendedBuyerType)} who need visibility into category fit, reorder planning, and documentation readiness before moving into quote discussions.

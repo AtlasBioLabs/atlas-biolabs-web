@@ -71,7 +71,7 @@ export default function WholesalePage() {
             <div className="relative min-h-[360px]">
               <Image
                 src="/images/lab-hero.jpg"
-                alt="Medical supply professional handling boxed vials in a controlled laboratory environment."
+                alt="Supply operations specialist handling packaged inventory in a controlled laboratory environment."
                 fill
                 priority
                 className="object-cover"
@@ -80,10 +80,10 @@ export default function WholesalePage() {
               <div className="absolute inset-0 bg-gradient-to-t from-[#071322]/88 via-[#071322]/35 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-6 text-white">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/72">
-                  Clinical Supply Context
+                  Supply Handling Context
                 </p>
                 <p className="mt-2 max-w-md text-sm leading-relaxed text-white/84">
-                  We handle wholesale supply with clear clinical context around vial handling, laboratory discipline, and buyer communication.
+                  We handle wholesale supply with clear operational context around vial handling, laboratory discipline, and buyer communication.
                 </p>
               </div>
             </div>
