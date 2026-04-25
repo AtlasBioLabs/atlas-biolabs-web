@@ -62,6 +62,20 @@ const shopSupportLinks = [
       "Compare current-demand peptides, blend-format listings, and newer advanced SKUs with status visibility and commercial sourcing context.",
     eyebrow: "Category",
   },
+  {
+    title: "Retatrutide",
+    href: "/shop/retatrutide",
+    description:
+      "Review an emerging advanced peptide listing with visible pricing entry, MOQ, documentation support, and related article links.",
+    eyebrow: "Product",
+  },
+  {
+    title: "KLOW / Glow Blend",
+    href: "/shop/klow-glow-blend",
+    description:
+      "Explore the blend-format listing with status visibility, pack-size guidance, and inquiry-led commercial sourcing context.",
+    eyebrow: "Product",
+  },
   ...getAllBlogPosts()
     .filter((post) =>
       ["peptide-supplier-guide", "peptide-pricing-explained", "how-to-buy-peptides"].includes(

@@ -39,7 +39,10 @@ export default function WholesalePage() {
   const wholesaleLinkedProducts = featuredProductSlugs
     .map((slug) => products.find((product) => product.slug === slug))
     .filter((product): product is (typeof products)[number] => product !== undefined)
-    .slice(0, 2);
+    .filter((product) =>
+      ["retatrutide", "klow-glow-blend", "tesamorelin"].includes(product.slug)
+    )
+    .slice(0, 3);
   const wholesaleLinkedCategories = productCategories
     .filter((category) =>
       [

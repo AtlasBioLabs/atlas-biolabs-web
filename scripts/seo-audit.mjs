@@ -34,6 +34,13 @@ const auditedRoutes = [
     expectBreadcrumb: true,
   },
   {
+    label: "Trending Category",
+    path: "/categories/trending-emerging-peptides",
+    expectedCanonical: `${canonicalOrigin}/categories/trending-emerging-peptides`,
+    expectedTypes: ["BreadcrumbList"],
+    expectBreadcrumb: true,
+  },
+  {
     label: "Product",
     path: "/shop/bpc-157",
     expectedCanonical: `${canonicalOrigin}/shop/bpc-157`,
@@ -41,6 +48,26 @@ const auditedRoutes = [
     expectBreadcrumb: true,
     expectVisiblePrice: true,
     productSchemaChecks: true,
+  },
+  {
+    label: "Emerging Product",
+    path: "/shop/retatrutide",
+    expectedCanonical: `${canonicalOrigin}/shop/retatrutide`,
+    expectedTypes: ["Product", "BreadcrumbList"],
+    expectBreadcrumb: true,
+    expectVisiblePrice: true,
+    productSchemaChecks: true,
+    expectedStatusText: "Emerging",
+  },
+  {
+    label: "Blend Product",
+    path: "/shop/klow-glow-blend",
+    expectedCanonical: `${canonicalOrigin}/shop/klow-glow-blend`,
+    expectedTypes: ["Product", "BreadcrumbList"],
+    expectBreadcrumb: true,
+    expectVisiblePrice: true,
+    productSchemaChecks: true,
+    expectedStatusText: "Blend",
   },
   {
     label: "Blog Index",
@@ -214,6 +241,10 @@ async function run() {
         );
       }
 
+      if (route.expectedStatusText) {
+        assert(text.includes(route.expectedStatusText), `${route.label}: missing status badge text`);
+      }
+
       if (route.productSchemaChecks) {
         const productBlock = getTopLevelBlockByType(jsonLdBlocks, "Product");
         assert(productBlock, `${route.label}: Product JSON-LD block not found`);
@@ -250,11 +281,23 @@ async function run() {
     const sitemap = await fetchText("/sitemap.xml");
     assert(sitemap.response.ok, "sitemap.xml: expected 200");
     assert(sitemap.text.includes(`${canonicalOrigin}/shop/bpc-157`), "sitemap.xml: missing product canonical");
+    assert(
+      sitemap.text.includes(`${canonicalOrigin}/shop/retatrutide`),
+      "sitemap.xml: missing emerging product canonical"
+    );
+    assert(
+      sitemap.text.includes(`${canonicalOrigin}/shop/klow-glow-blend`),
+      "sitemap.xml: missing blend product canonical"
+    );
     assert(sitemap.text.includes(`${canonicalOrigin}/categories/signal-peptides`), "sitemap.xml: missing category canonical");
+    assert(
+      sitemap.text.includes(`${canonicalOrigin}/categories/trending-emerging-peptides`),
+      "sitemap.xml: missing trending category canonical"
+    );
     assert(sitemap.text.includes(`${canonicalOrigin}/blog/peptide-supplier-guide`), "sitemap.xml: missing blog canonical");
 
     const productMatches = sitemap.text.match(/<loc>https:\/\/atlasbiolabs\.co\/shop\/[^<]+<\/loc>/g) ?? [];
-    assert(productMatches.length === 28, `sitemap.xml: expected 28 product URLs, found ${productMatches.length}`);
+    assert(productMatches.length === 41, `sitemap.xml: expected 41 product URLs, found ${productMatches.length}`);
 
     console.log("# SEO Audit");
     console.log("");
@@ -264,7 +307,7 @@ async function run() {
       console.log(`- PASS ${result.route} -> ${result.types.join(", ")}`);
     }
     console.log(`- PASS /robots.txt -> sitemap and crawl rules present`);
-    console.log(`- PASS /sitemap.xml -> canonical URLs present, 28 product URLs detected`);
+    console.log(`- PASS /sitemap.xml -> canonical URLs present, 41 product URLs detected`);
   } finally {
     if (!server.killed) {
       server.kill("SIGTERM");

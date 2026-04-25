@@ -154,7 +154,10 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
                 {productIntro}
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Atlas BioLabs places this SKU inside the {categoryLabel.toLowerCase()} catalog with visible price entry, MOQ, lead time, pack size, and documentation context so commercial buyers can move from product review into quote follow-up with less friction.
+                We present {product.name} with clear pricing, MOQ, lead time,
+                pack-size options, and documentation support so buyers can
+                quickly understand the commercial fit and move forward with a
+                quote request confidently.
               </p>
               <div className="rounded-xl border border-border/70 bg-white p-4">
                 <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
