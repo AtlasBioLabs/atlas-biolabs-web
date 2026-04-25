@@ -12,7 +12,8 @@ export type ProductCategoryId =
   | "enzyme-inhibitor-peptides"
   | "antimicrobial-peptides"
   | "growth-repair-peptides"
-  | "metabolic-advanced-peptides";
+  | "metabolic-advanced-peptides"
+  | "trending-emerging-peptides";
 
 export type ProductCategory = {
   id: ProductCategoryId;
@@ -20,10 +21,13 @@ export type ProductCategory = {
   description: string;
 };
 
+export type ProductStatus = "Standard" | "Established" | "Emerging" | "Blend";
+
 export type Product = {
   slug: string;
   name: string;
   category: ProductCategoryId;
+  status: ProductStatus;
   image: string;
   shortDescription: string;
   summary: string;
@@ -177,6 +181,11 @@ export const productCategories: ProductCategory[] = [
     id: "metabolic-advanced-peptides",
     label: "Metabolic Peptides",
     description: "Performance / trending",
+  },
+  {
+    id: "trending-emerging-peptides",
+    label: "Trending & Emerging Peptides",
+    description: "Current demand / emerging blends",
   },
 ];
 
@@ -379,11 +388,39 @@ const categoryTemplates: Record<ProductCategoryId, CategoryTemplate> = {
       "Documentation support for onboarding and repeat orders",
     ],
   },
+  "trending-emerging-peptides": {
+    purityDocumentation: [
+      "Typical release profile: >=99% by HPLC with identity verification and trending-SKU lot traceability.",
+      "COA support is available on request for approved buyers reviewing emerging-category programs.",
+      "Batch-level records are organized to support catalog expansion and repeat-order review.",
+    ],
+    contentBenefits: [
+      "Supports fast-moving catalog additions and emerging peptide program planning.",
+      "Useful for commercial teams balancing current demand, research-aware positioning, and differentiated peptide assortments.",
+      "Built for buyers tracking new product conversations without losing documentation or batch context.",
+    ],
+    storageHandling: [
+      "Store sealed material under refrigerated conditions with moisture and light protection.",
+      "Use lot-separated handling logs for trending SKUs with repeat-order planning.",
+      "Follow release notes for pack-specific handling across vials, blends, and bulk formats.",
+    ],
+    intendedBuyerType: [
+      "Trend-responsive peptide catalog operators",
+      "Commercial buyers building emerging peptide assortments",
+      "Wholesale teams evaluating newer SKUs with documentation support requirements",
+    ],
+    trustSupport: [
+      "Atlas Labs review support for new-category onboarding",
+      "MOQ and lead-time clarity for current-demand SKUs",
+      "Batch transparency support for emerging-category repeat orders",
+    ],
+  },
 };
 
 type ProductSeed = {
   name: string;
   category: ProductCategoryId;
+  status?: ProductStatus;
   useHint: string;
   packSizes: string[];
   moq: number;
@@ -673,12 +710,156 @@ const productSeeds: ProductSeed[] = [
   {
     name: "Tirzepatide (demo/trending)",
     category: "metabolic-advanced-peptides",
+    status: "Emerging",
     useHint: "advanced-category demand forecasting and portfolio expansion",
     packSizes: ["2 mg vial", "5 mg vial", "10 mg vial", "Bulk by quote"],
     moq: 10,
     priceFrom: 162,
     priceRange: "USD 162-1,100 by volume and lead time commitment",
     leadTime: "6-9 business days",
+  },
+  {
+    name: "KLOW / Glow Blend",
+    category: "trending-emerging-peptides",
+    status: "Blend",
+    useHint: "blend-led cosmetic and current-demand catalog development",
+    packSizes: ["10 mg blend vial", "20 mg blend vial", "Bulk blend API by quote"],
+    moq: 10,
+    priceFrom: 124,
+    priceRange: "USD 124-860 by blend format and volume tier",
+    leadTime: "5-8 business days",
+  },
+  {
+    name: "Retatrutide",
+    category: "trending-emerging-peptides",
+    status: "Emerging",
+    useHint: "next-wave metabolic and receptor-signaling catalog expansion",
+    packSizes: ["2 mg vial", "5 mg vial", "10 mg vial", "Bulk API by quote"],
+    moq: 10,
+    priceFrom: 176,
+    priceRange: "USD 176-1,180 by format and quantity plan",
+    leadTime: "6-9 business days",
+  },
+  {
+    name: "Cagrilintide",
+    category: "trending-emerging-peptides",
+    status: "Established",
+    useHint: "advanced appetite-signaling product planning and quote workflows",
+    packSizes: ["2 mg vial", "5 mg vial", "10 mg vial", "Bulk API by quote"],
+    moq: 10,
+    priceFrom: 146,
+    priceRange: "USD 146-990 by order tier and packaging plan",
+    leadTime: "5-8 business days",
+  },
+  {
+    name: "CagriSema",
+    category: "trending-emerging-peptides",
+    status: "Emerging",
+    useHint: "dual-pathway blend positioning for current-demand catalog strategy",
+    packSizes: ["2 mg/2 mg dual vial", "5 mg/5 mg dual vial", "Bulk blend by quote"],
+    moq: 10,
+    priceFrom: 189,
+    priceRange: "USD 189-1,260 by combined format and supply schedule",
+    leadTime: "6-10 business days",
+  },
+  {
+    name: "Amycretin (Zenagamtide)",
+    category: "trending-emerging-peptides",
+    status: "Emerging",
+    useHint: "multi-pathway innovation tracking and emerging portfolio planning",
+    packSizes: ["2 mg vial", "5 mg vial", "10 mg vial", "Bulk API by quote"],
+    moq: 10,
+    priceFrom: 194,
+    priceRange: "USD 194-1,320 by quantity tier and lead time",
+    leadTime: "6-10 business days",
+  },
+  {
+    name: "Survodutide",
+    category: "trending-emerging-peptides",
+    status: "Emerging",
+    useHint: "current-demand glucagon and incretin discussion programs",
+    packSizes: ["5 mg vial", "10 mg vial", "20 mg vial", "Bulk API by quote"],
+    moq: 10,
+    priceFrom: 182,
+    priceRange: "USD 182-1,240 by pack size and account volume",
+    leadTime: "6-10 business days",
+  },
+  {
+    name: "Mazdutide",
+    category: "trending-emerging-peptides",
+    status: "Emerging",
+    useHint: "commercial monitoring of dual-pathway peptide demand shifts",
+    packSizes: ["5 mg vial", "10 mg vial", "20 mg vial", "Bulk API by quote"],
+    moq: 10,
+    priceFrom: 164,
+    priceRange: "USD 164-1,090 by order size and dispatch timing",
+    leadTime: "6-9 business days",
+  },
+  {
+    name: "Ecnoglutide",
+    category: "trending-emerging-peptides",
+    status: "Emerging",
+    useHint: "advanced GLP-1 analog sourcing programs and new-category review",
+    packSizes: ["5 mg vial", "10 mg vial", "20 mg vial", "Bulk API by quote"],
+    moq: 10,
+    priceFrom: 158,
+    priceRange: "USD 158-1,060 by format and procurement cadence",
+    leadTime: "5-9 business days",
+  },
+  {
+    name: "MOTS-c",
+    category: "trending-emerging-peptides",
+    status: "Established",
+    useHint: "mitochondrial-signaling catalog depth and specialized sourcing review",
+    packSizes: ["5 mg vial", "10 mg vial", "50 mg bulk", "Bulk API by quote"],
+    moq: 10,
+    priceFrom: 96,
+    priceRange: "USD 96-690 by format and volume tier",
+    leadTime: "5-8 business days",
+  },
+  {
+    name: "Epitalon",
+    category: "trending-emerging-peptides",
+    status: "Established",
+    useHint: "longevity-adjacent peptide research assortment planning",
+    packSizes: ["10 mg vial", "50 mg pack", "100 mg bulk", "Bulk API by quote"],
+    moq: 10,
+    priceFrom: 88,
+    priceRange: "USD 88-640 by packaging structure and order scale",
+    leadTime: "5-8 business days",
+  },
+  {
+    name: "Semax",
+    category: "trending-emerging-peptides",
+    status: "Established",
+    useHint: "neuro-signaling and nootropic-adjacent catalog expansion",
+    packSizes: ["10 mg vial", "30 mg pack", "100 mg bulk", "Bulk API by quote"],
+    moq: 10,
+    priceFrom: 79,
+    priceRange: "USD 79-560 by pack size and reorder plan",
+    leadTime: "4-7 business days",
+  },
+  {
+    name: "Tesamorelin",
+    category: "trending-emerging-peptides",
+    status: "Established",
+    useHint: "growth-hormone-axis sourcing programs and structured quote review",
+    packSizes: ["2 mg vial", "5 mg vial", "10 mg vial", "Bulk API by quote"],
+    moq: 10,
+    priceFrom: 118,
+    priceRange: "USD 118-810 by format and supply tier",
+    leadTime: "5-8 business days",
+  },
+  {
+    name: "Bremelanotide (PT-141)",
+    category: "trending-emerging-peptides",
+    status: "Established",
+    useHint: "melanocortin-category product planning and specialty demand review",
+    packSizes: ["10 mg vial", "20 mg vial", "Bulk API by quote"],
+    moq: 10,
+    priceFrom: 98,
+    priceRange: "USD 98-710 by pack size and commercial volume",
+    leadTime: "5-8 business days",
   },
 ];
 
@@ -697,6 +878,7 @@ export const products: Product[] = productSeeds.map((seed) => {
     slug,
     name: seed.name,
     category: seed.category,
+    status: seed.status ?? "Standard",
     image: `/products/${slug}.svg`,
     shortDescription: scienceCopy.overview,
     summary: scienceCopy.overview,
@@ -741,6 +923,8 @@ export const featuredProductSlugs = [
   toSlug("Oligopeptide-68"),
   toSlug("BPC-157"),
   toSlug("CJC-1295 (with DAC)"),
+  toSlug("Retatrutide"),
+  toSlug("KLOW / Glow Blend"),
 ];
 
 function normalizeCatalogText(value: string) {
@@ -869,8 +1053,8 @@ export const proofChips = [
 ];
 
 export const trustMetrics: TrustMetric[] = [
-  { label: "Catalog SKUs", value: "28" },
-  { label: "Categories", value: "7" },
+  { label: "Catalog SKUs", value: String(products.length) },
+  { label: "Categories", value: String(productCategories.length) },
   { label: "Global Buyer Reach", value: "U.S. + International" },
   { label: "Quote Speed", value: "< 1 business day" },
 ];
@@ -949,7 +1133,7 @@ export const qualityHighlights: ValuePoint[] = [
 export const shopIntro = {
   title: "Commercial Peptide Catalog",
   description:
-    "Explore 28 commercially supplied peptides sourced through qualified partners in China, with Atlas Labs documentation support, batch transparency, category-level technical context, and fast quote options for U.S. and international accounts engaging with peptide research, formulation, and health-adjacent product discussions.",
+    `Explore ${products.length} commercially supplied peptides sourced through qualified partners in China, with Atlas Labs documentation support, batch transparency, category-level technical context, and fast quote options for U.S. and international accounts engaging with peptide research, formulation, and health-adjacent product discussions.`,
 };
 
 export const wholesaleIntro = {

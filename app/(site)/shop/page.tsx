@@ -55,6 +55,13 @@ const shopSupportLinks = [
       "Review advanced peptide listings for trend-driven demand and structured quote planning.",
     eyebrow: "Category",
   },
+  {
+    title: "Trending & Emerging Peptides",
+    href: "/categories/trending-emerging-peptides",
+    description:
+      "Compare current-demand peptides, blend-format listings, and newer advanced SKUs with status visibility and commercial sourcing context.",
+    eyebrow: "Category",
+  },
   ...getAllBlogPosts()
     .filter((post) =>
       ["peptide-supplier-guide", "peptide-pricing-explained", "how-to-buy-peptides"].includes(

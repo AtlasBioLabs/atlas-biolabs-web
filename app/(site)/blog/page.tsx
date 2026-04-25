@@ -38,7 +38,14 @@ export default function BlogPage() {
     .map((slug) => products.find((product) => product.slug === slug))
     .filter((product): product is (typeof products)[number] => product !== undefined)
     .slice(0, 3);
-  const featuredCategories = productCategories.slice(0, 3);
+  const featuredCategories = productCategories.filter((category) =>
+    [
+      "trending-emerging-peptides",
+      "metabolic-advanced-peptides",
+      "signal-peptides",
+      "growth-repair-peptides",
+    ].includes(category.id)
+  );
 
   const breadcrumbItems = getStaticBreadcrumbItems("blog");
   const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);

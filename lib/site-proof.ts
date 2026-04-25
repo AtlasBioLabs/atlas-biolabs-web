@@ -1,4 +1,10 @@
-import { aboutTeam, contactDetails, founderProfile } from "@/lib/site-content";
+import {
+  aboutTeam,
+  contactDetails,
+  founderProfile,
+  productCategories,
+  products,
+} from "@/lib/site-content";
 
 export type ProofFact = {
   label: string;
@@ -49,7 +55,7 @@ export const companyProofFacts: ProofFact[] = [
   },
   {
     label: "Catalog",
-    value: "28 SKUs / 7 categories",
+    value: `${products.length} SKUs / ${productCategories.length} categories`,
     detail: "We keep our product depth, categories, and inquiry options easy to review.",
   },
   {

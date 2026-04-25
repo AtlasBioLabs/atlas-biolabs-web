@@ -101,6 +101,12 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
   const breadcrumbItems = getProductBreadcrumbItems(product, categoryLabel);
   const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
   const productSchema = getProductSchema(product, categoryLabel);
+  const statusClasses = {
+    Standard: "border-border/70 bg-white text-[var(--brand-navy)]",
+    Established: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    Emerging: "border-amber-200 bg-amber-50 text-amber-700",
+    Blend: "border-[var(--brand-blue)]/20 bg-[var(--brand-blue)]/10 text-[var(--brand-blue)]",
+  } as const;
 
   return (
     <>
@@ -128,12 +134,19 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
             </div>
 
             <div className="space-y-5">
-              <Link
-                href={categoryHref}
-                className="inline-flex text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)] hover:underline"
-              >
-                {categoryLabel}
-              </Link>
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href={categoryHref}
+                  className="inline-flex text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)] hover:underline"
+                >
+                  {categoryLabel}
+                </Link>
+                <span
+                  className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${statusClasses[product.status]}`}
+                >
+                  {product.status}
+                </span>
+              </div>
               <h1 className="text-4xl leading-tight font-semibold text-[var(--brand-navy)]">
                 {product.name}
               </h1>
@@ -219,6 +232,10 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
                   label: "Category",
                   value: categoryLabel,
                   href: categoryHref,
+                },
+                {
+                  label: "Status",
+                  value: product.status,
                 },
                 {
                   label: "Available Pack Sizes",

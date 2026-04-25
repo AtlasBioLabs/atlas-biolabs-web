@@ -595,4 +595,277 @@ export const productScienceCopyByName: Record<string, ProductScienceCopy> = {
       "Advanced-format supply option",
     ],
   },
+  "KLOW / Glow Blend": {
+    overview:
+      "KLOW / Glow Blend is a multi-component peptide blend positioned for current-demand cosmetic and formulation conversations where glow-oriented systems, blend compatibility, and commercial sourcing flexibility are central.",
+    functionalRole: [
+      "Peptide blend",
+      "Cosmetic system component",
+      "Current-demand catalog differentiator",
+    ],
+    mechanismInsight:
+      "This blend is discussed in formulation settings that combine multiple peptide cues into one system, making it relevant for buyers comparing compatibility, concept positioning, and blend-led product development rather than single-sequence procurement alone.",
+    commonApplications: [
+      "Blend-led cosmetic formulation programs",
+      "Current-demand peptide catalog expansion",
+      "Commercial evaluation of multi-peptide systems",
+    ],
+    keyCharacteristics: [
+      "Blend-format supply profile",
+      "Useful for differentiation-focused product lines",
+      "Aligned with inquiry-led formulation review workflows",
+    ],
+  },
+  Retatrutide: {
+    overview:
+      "Retatrutide is an advanced multi-pathway peptide analog widely discussed in current metabolic research and next-wave commercial sourcing conversations.",
+    functionalRole: [
+      "Multi-receptor peptide analog",
+      "Advanced metabolic research tool",
+      "Emerging catalog anchor SKU",
+    ],
+    mechanismInsight:
+      "It is investigated in research programs focused on coordinated GLP-1, GIP, and glucagon-receptor signaling, which is why buyers often review it as part of broader metabolic peptide portfolio strategy and advanced receptor-literature tracking.",
+    commonApplications: [
+      "Metabolic pathway research",
+      "Advanced receptor-signaling studies",
+      "Emerging peptide catalog development",
+    ],
+    keyCharacteristics: [
+      "Triple-pathway signaling interest",
+      "High visibility in emerging peptide discussions",
+      "Typically reviewed through quote-led commercial workflows",
+    ],
+  },
+  Cagrilintide: {
+    overview:
+      "Cagrilintide is an amylin-pathway peptide analog referenced in advanced appetite-signaling and metabolic research discussions where structured commercial sourcing is needed.",
+    functionalRole: [
+      "Amylin analog",
+      "Appetite-signaling research model",
+      "Advanced catalog program SKU",
+    ],
+    mechanismInsight:
+      "This peptide is studied in relation to amylin-receptor signaling and adjunct metabolic research frameworks, making it a useful reference point for buyers reviewing newer appetite-pathway sequences with established commercial interest.",
+    commonApplications: [
+      "Metabolic signaling studies",
+      "Advanced peptide sourcing programs",
+      "Appetite-pathway literature review",
+    ],
+    keyCharacteristics: [
+      "Well-recognized advanced peptide format",
+      "Common in current metabolic sourcing discussions",
+      "Suitable for batch-reviewed commercial planning",
+    ],
+  },
+  CagriSema: {
+    overview:
+      "CagriSema is a combination-format peptide program discussed in current commercial and research-aware sourcing conversations where dual-pathway metabolic positioning matters.",
+    functionalRole: [
+      "Combination peptide program",
+      "Dual-pathway catalog concept",
+      "Emerging commercial blend reference",
+    ],
+    mechanismInsight:
+      "It is investigated as a combined signaling approach pairing amylin-pathway and GLP-1-pathway activity, which is why it appears in newer catalog conversations focused on blend structure, dual-pathway positioning, and advanced buyer demand.",
+    commonApplications: [
+      "Combination peptide sourcing review",
+      "Dual-pathway formulation planning",
+      "Emerging metabolic catalog expansion",
+    ],
+    keyCharacteristics: [
+      "Combination-format commercial interest",
+      "Relevant to blended pathway discussions",
+      "Typically sourced through quote-first review",
+    ],
+  },
+  "Amycretin (Zenagamtide)": {
+    overview:
+      "Amycretin (Zenagamtide) is an emerging multi-pathway peptide analog discussed in advanced metabolic and endocrine research contexts with growing commercial interest.",
+    functionalRole: [
+      "Multi-pathway peptide analog",
+      "Advanced endocrine research sequence",
+      "Emerging-category sourcing target",
+    ],
+    mechanismInsight:
+      "This sequence is referenced in research exploring combined incretin and amylin-related signaling behavior, giving it relevance for buyers tracking newer peptide discoveries and next-stage catalog positioning.",
+    commonApplications: [
+      "Endocrine signaling research",
+      "Emerging metabolic literature review",
+      "Innovation-led peptide catalog planning",
+    ],
+    keyCharacteristics: [
+      "Newer research-visible sequence",
+      "Strong fit for emerging peptide assortments",
+      "Used in academically aware sourcing discussions",
+    ],
+  },
+  Survodutide: {
+    overview:
+      "Survodutide is an emerging dual-pathway peptide analog discussed in current glucagon and incretin research programs as well as fast-moving commercial sourcing conversations.",
+    functionalRole: [
+      "Dual agonist analog",
+      "Glucagon-incretin research model",
+      "Emerging-category commercial SKU",
+    ],
+    mechanismInsight:
+      "It is studied for coordinated signaling across glucagon- and GLP-1-related pathways, which positions it inside advanced receptor conversations and newer metabolic product-roadmap reviews.",
+    commonApplications: [
+      "Dual-pathway receptor studies",
+      "Advanced metabolic research",
+      "Current-demand peptide sourcing review",
+    ],
+    keyCharacteristics: [
+      "Strong research visibility in emerging metabolic topics",
+      "Dual-pathway signaling context",
+      "Useful for forward-looking catalog planning",
+    ],
+  },
+  Mazdutide: {
+    overview:
+      "Mazdutide is a current-interest peptide analog used in research-aware discussions around dual-pathway metabolic signaling and evolving catalog demand.",
+    functionalRole: [
+      "Dual agonist peptide analog",
+      "Metabolic signaling research tool",
+      "Emerging assortment candidate",
+    ],
+    mechanismInsight:
+      "This peptide is investigated in programs examining combined incretin and glucagon-linked pathway behavior, making it relevant to buyers watching newer commercial movement across advanced metabolic sequences.",
+    commonApplications: [
+      "Metabolic research programs",
+      "Advanced receptor-pathway review",
+      "Emerging peptide portfolio planning",
+    ],
+    keyCharacteristics: [
+      "Aligned with evolving market-interest topics",
+      "Dual-pathway signaling profile",
+      "Structured fit for commercial sourcing review",
+    ],
+  },
+  Ecnoglutide: {
+    overview:
+      "Ecnoglutide is an advanced GLP-1 analog discussed in current metabolic research and commercial sourcing conversations where newer sequence adoption is under review.",
+    functionalRole: [
+      "GLP-1 analog",
+      "Advanced metabolic peptide",
+      "Emerging commercial reference SKU",
+    ],
+    mechanismInsight:
+      "It is studied in GLP-1 receptor-signaling programs that focus on analog design, endocrine communication, and newer-sequence differentiation, which makes it relevant for current catalog comparisons.",
+    commonApplications: [
+      "GLP-1 pathway research",
+      "Analog-design literature review",
+      "Current-demand catalog evaluation",
+    ],
+    keyCharacteristics: [
+      "Analog format with research visibility",
+      "Relevant to new-sequence benchmarking",
+      "Commercially suitable for quote-led review",
+    ],
+  },
+  "MOTS-c": {
+    overview:
+      "MOTS-c is a mitochondrial-derived peptide studied in advanced cellular-energy and metabolic signaling research, with established interest across specialized commercial catalogs.",
+    functionalRole: [
+      "Mitochondrial-derived peptide",
+      "Cellular-energy research tool",
+      "Specialty advanced-category SKU",
+    ],
+    mechanismInsight:
+      "This peptide is investigated in literature centered on mitochondrial communication, energy-sensing pathways, and cell-response signaling, which is why it appears in specialized research-aware sourcing discussions.",
+    commonApplications: [
+      "Mitochondrial signaling research",
+      "Cellular-energy pathway studies",
+      "Specialty peptide catalog development",
+    ],
+    keyCharacteristics: [
+      "Recognized mitochondrial-derived sequence",
+      "Useful for specialized advanced assortments",
+      "Often reviewed by technically oriented buyers",
+    ],
+  },
+  Epitalon: {
+    overview:
+      "Epitalon is a short synthetic peptide widely referenced in longevity-adjacent and cell-regulation research discussions, with established interest among specialized peptide buyers.",
+    functionalRole: [
+      "Short synthetic peptide",
+      "Cell-regulation research model",
+      "Established specialty catalog product",
+    ],
+    mechanismInsight:
+      "It is discussed in research contexts involving cell-cycle, signaling-regulation, and longevity-adjacent literature, giving it a stable place inside specialty peptide catalog planning.",
+    commonApplications: [
+      "Cell-regulation studies",
+      "Longevity-adjacent peptide research",
+      "Specialty catalog sourcing programs",
+    ],
+    keyCharacteristics: [
+      "Compact and recognizable sequence",
+      "Common in specialty research discussions",
+      "Suitable for vial and bulk commercial formats",
+    ],
+  },
+  Semax: {
+    overview:
+      "Semax is a neuro-signaling peptide widely referenced in laboratory and specialty catalog contexts where peptide discussion extends into cognition-related and signaling-focused literature.",
+    functionalRole: [
+      "Neuro-signaling peptide",
+      "Specialty research sequence",
+      "Established niche catalog SKU",
+    ],
+    mechanismInsight:
+      "This peptide is studied in discussions around neurochemical signaling and peptide-mediated communication pathways, making it relevant for buyers building broader specialty and current-interest product assortments.",
+    commonApplications: [
+      "Neuro-signaling research",
+      "Specialty peptide procurement",
+      "Advanced catalog development",
+    ],
+    keyCharacteristics: [
+      "Recognizable specialty-sequence profile",
+      "Strong fit for niche advanced catalogs",
+      "Often sourced through recurring specialty demand",
+    ],
+  },
+  Tesamorelin: {
+    overview:
+      "Tesamorelin is a growth-hormone-axis peptide analog with established visibility in endocrine research discussions and structured commercial sourcing programs.",
+    functionalRole: [
+      "GHRH analog",
+      "Endocrine signaling research peptide",
+      "Established advanced product listing",
+    ],
+    mechanismInsight:
+      "It is investigated in growth-hormone-axis and endocrine signaling contexts, which gives buyers a clearer framework for comparing it with other advanced-category peptides that sit close to current health and formulation conversations.",
+    commonApplications: [
+      "Endocrine pathway research",
+      "Growth-hormone-axis studies",
+      "Advanced-category commercial sourcing",
+    ],
+    keyCharacteristics: [
+      "Recognized analog format",
+      "Common in established endocrine peptide discussions",
+      "Suitable for inquiry-led commercial supply",
+    ],
+  },
+  "Bremelanotide (PT-141)": {
+    overview:
+      "Bremelanotide (PT-141) is a melanocortin-linked peptide analog widely discussed in specialty peptide literature and established commercial catalog conversations.",
+    functionalRole: [
+      "Melanocortin analog",
+      "Specialty receptor-signaling peptide",
+      "Established current-interest SKU",
+    ],
+    mechanismInsight:
+      "This peptide is studied in relation to melanocortin-receptor signaling and downstream communication pathways, making it relevant for buyers comparing specialty sequences with durable market recognition.",
+    commonApplications: [
+      "Specialty receptor-signaling research",
+      "Current-interest peptide catalog planning",
+      "Commercial sourcing for established advanced SKUs",
+    ],
+    keyCharacteristics: [
+      "Well-recognized specialty analog",
+      "Common in advanced peptide discussions",
+      "Suitable for structured commercial procurement",
+    ],
+  },
 };

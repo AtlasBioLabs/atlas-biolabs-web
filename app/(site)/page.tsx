@@ -50,7 +50,7 @@ const featuredProducts = featuredProductSlugs
   .filter((product): product is (typeof products)[number] => product !== undefined);
 
 const homeFeaturedPosts = getAllBlogPosts().slice(0, 3);
-const categoryLinkCards = productCategories.slice(0, 6).map((category) => ({
+const categoryLinkCards = productCategories.map((category) => ({
   title: category.label,
   href: `/categories/${category.id}`,
   description: `${category.description} peptide listings with product-level MOQ visibility, documentation support, and direct quote paths.`,

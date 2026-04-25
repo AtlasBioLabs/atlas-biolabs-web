@@ -42,11 +42,16 @@ export default function WholesalePage() {
     .slice(0, 2);
   const wholesaleLinkedCategories = productCategories
     .filter((category) =>
-      ["signal-peptides", "growth-repair-peptides", "metabolic-advanced-peptides"].includes(
+      [
+        "signal-peptides",
+        "growth-repair-peptides",
+        "metabolic-advanced-peptides",
+        "trending-emerging-peptides",
+      ].includes(
         category.id
       )
     )
-    .slice(0, 3);
+    .slice(0, 4);
 
   return (
     <>

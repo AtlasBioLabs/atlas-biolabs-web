@@ -399,6 +399,12 @@ const categoryFocus: Record<
     buyerIntent:
       "buyers benchmarking metabolic peptide suppliers for speed, documentation, scale, and stronger research-aware commercial framing",
   },
+  "trending-emerging-peptides": {
+    useCase: "current-demand peptide discovery, blend-led formulation planning, and emerging advanced-category sourcing programs",
+    demandNote: "catalog operators and wholesale teams tracking newer peptide discussions, specialty blends, and commercially relevant research-aware sequences",
+    buyerIntent:
+      "buyers sourcing trending and emerging peptides with status visibility, documentation support, and direct links into rankable current-interest product pages",
+  },
 };
 
 export function getCategorySeoCopy(

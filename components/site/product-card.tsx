@@ -14,6 +14,7 @@ type ProductCardProps = {
     | "slug"
     | "name"
     | "category"
+    | "status"
     | "image"
     | "shortDescription"
     | "packSizes"
@@ -26,6 +27,12 @@ export function ProductCard({ product }: ProductCardProps) {
   const categoryLabel =
     productCategories.find((category) => category.id === product.category)?.label ??
     product.category;
+  const statusClasses = {
+    Standard: "border-border/70 bg-white text-[var(--brand-navy)]",
+    Established: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    Emerging: "border-amber-200 bg-amber-50 text-amber-700",
+    Blend: "border-[var(--brand-blue)]/20 bg-[var(--brand-blue)]/10 text-[var(--brand-blue)]",
+  } as const;
 
   const quoteHref = "/request-quote";
 
@@ -42,12 +49,19 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        <Link
-          href={`/categories/${product.category}`}
-          className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--brand-blue)] hover:underline"
-        >
-          {categoryLabel}
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={`/categories/${product.category}`}
+            className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--brand-blue)] hover:underline"
+          >
+            {categoryLabel}
+          </Link>
+          <span
+            className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${statusClasses[product.status]}`}
+          >
+            {product.status}
+          </span>
+        </div>
         <h3 className="mt-2 text-xl font-semibold text-[var(--brand-navy)]">
           <Link href={`/shop/${product.slug}`} className="hover:text-[var(--brand-blue)]">
             {product.name}
