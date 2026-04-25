@@ -58,7 +58,7 @@ export function BlogCard({ post }: BlogCardProps) {
 
         <div className="mt-auto pt-6">
           <Button asChild variant="outline">
-            <Link href={`/blog/${post.slug}`}>Read more</Link>
+            <Link href={`/blog/${post.slug}`}>Read article</Link>
           </Button>
         </div>
       </div>

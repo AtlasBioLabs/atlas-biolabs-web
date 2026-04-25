@@ -949,13 +949,13 @@ export const qualityHighlights: ValuePoint[] = [
 export const shopIntro = {
   title: "Commercial Peptide Catalog",
   description:
-    "Explore 28 commercially supplied peptides sourced through qualified partners in China, with Atlas Labs documentation support, batch transparency, category-level technical context, and fast quote options for U.S. and international accounts.",
+    "Explore 28 commercially supplied peptides sourced through qualified partners in China, with Atlas Labs documentation support, batch transparency, category-level technical context, and fast quote options for U.S. and international accounts engaging with peptide research, formulation, and health-adjacent product discussions.",
 };
 
 export const wholesaleIntro = {
   title: "Wholesale Peptide Supply and Bulk Sourcing",
   description:
-    "We support quote-based wholesale peptide sourcing with MOQ handling, volume pricing tiers, documentation-backed supply planning, lot-aware packaging guidance, and buyer-ready product and category pathways for U.S. and international accounts.",
+    "We support quote-based wholesale peptide sourcing with MOQ handling, volume pricing tiers, documentation-backed supply planning, lot-aware packaging guidance, and buyer-ready product and category pathways for U.S. and international accounts working across peptide research, formulation, and health-adjacent commercial categories.",
 };
 
 export const wholesaleSteps = [
@@ -1119,7 +1119,7 @@ export const customCta: CtaContent = {
 export const qualityIntro = {
   title: "Quality Assurance",
   description:
-    "Through Atlas Labs, we review incoming lots, analytical records, and documentation so batch transparency stays clear before commercial supply begins.",
+    "Through Atlas Labs, we review incoming lots, analytical records, and documentation so batch transparency stays clear before commercial supply begins, especially for buyers who need academically credible product files and more serious peptide research support.",
 };
 
 export const qualityBlocks: InfoBlock[] = [
@@ -1176,7 +1176,7 @@ export const qualityCta: CtaContent = {
 export const researchIntro = {
   title: "Atlas Labs Peptide Analysis and Documentation Laboratory",
   description:
-    "Atlas Labs is our laboratory and documentation review team. We analyze peptides sourced from qualified partners in China, classify incoming lots by product group, review analytical context, and validate documentation accuracy before commercial supply begins.",
+    "Atlas Labs is our laboratory and documentation review team. We analyze peptides sourced from qualified partners in China, classify incoming lots by product group, review analytical context, and validate documentation accuracy before commercial supply begins so buyers can navigate peptide research, formulation planning, and health-adjacent product discussions with stronger technical grounding.",
 };
 
 export const researchFocus: ValuePoint[] = [

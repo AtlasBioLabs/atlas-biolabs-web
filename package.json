@@ -9,6 +9,7 @@
     "build": "contentlayer2 build && next build --webpack",
     "start": "next start",
     "lint": "contentlayer2 build && eslint",
+    "seo:audit": "node scripts/seo-audit.mjs",
     "validate:blog": "node scripts/validate-blog.js",
     "generate:blog-images": "node scripts/generate-blog-images.js"
   },

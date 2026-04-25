@@ -84,7 +84,7 @@ export const operationsEvidenceItems: OperationsEvidenceItem[] = [
   {
     title: "Laboratory Handling",
     status: "Laboratory",
-    image: "/images/quality-medical.jpg",
+    image: "/images/quality-batch-review.jpg",
     description:
       "Our quality and research work centers on real bench work, sample handling, analytical discipline, and controlled laboratory procedure.",
     detail:

@@ -347,8 +347,8 @@ export function getProductSeoCopy(product: Product, categoryLabel: string) {
   const characteristics = product.keyCharacteristics.join("; ");
 
   return [
-    `${product.overview} Within our ${categoryLabel.toLowerCase()} catalog, we position ${product.name} around the functional roles of ${functionalRole} so commercial buyers can compare the peptide against similar sourcing options.`,
-    `${product.mechanismInsight} In formulation and laboratory sourcing workflows, it is commonly referenced for ${applications}, which helps buyers align product context before requesting pricing or documentation.`,
+    `${product.overview} Within our ${categoryLabel.toLowerCase()} catalog, we position ${product.name} around the functional roles of ${functionalRole} so commercial buyers can compare the peptide against adjacent sourcing options used in formulation, laboratory review, and health-adjacent product-development conversations.`,
+    `${product.mechanismInsight} In research-aware formulation and laboratory sourcing workflows, ${product.name} is commonly discussed for ${applications}, which helps buyers frame the peptide inside realistic signaling, cosmetic, repair-focused, metabolic, or technical-evaluation contexts before requesting pricing or documentation.`,
     `Key characteristics include ${characteristics}. We supply ${product.name} in pack sizes such as ${packSizes}, with MOQ ${product.moq} units, ${product.leadTime} lead times, Atlas Labs quality review, and documentation support. ${documentation}`,
   ];
 }
@@ -358,44 +358,46 @@ const categoryFocus: Record<
   { useCase: string; demandNote: string; buyerIntent: string }
 > = {
   "signal-peptides": {
-    useCase: "anti-aging and collagen-focused cosmetic lines",
-    demandNote: "private-label skin care and premium formulation pipelines",
-    buyerIntent: "buyers looking to source signal peptides in repeatable commercial volume",
+    useCase: "skin-signaling, barrier-support, and collagen-oriented formulation programs",
+    demandNote: "private-label skin care systems and premium formulation pipelines with strong research language",
+    buyerIntent:
+      "buyers looking to source signal peptides in repeatable commercial volume for cosmetic and formulation-led portfolios",
   },
   "carrier-peptides": {
-    useCase: "repair-oriented and mineral-delivery concept portfolios",
-    demandNote: "OEM and ODM formulation teams scaling specialized ingredient systems",
-    buyerIntent: "buyers comparing carrier peptide suppliers for consistency and lot support",
+    useCase: "repair-oriented, mineral-delivery, and cosmetic support systems",
+    demandNote: "OEM and ODM formulation teams scaling specialized ingredient systems with clearer technical positioning",
+    buyerIntent:
+      "buyers comparing carrier peptide suppliers for consistency, lot support, and stronger research-facing product narratives",
   },
   "neurotransmitter-peptides": {
-    useCase: "wrinkle-focused and expression-focused product positioning",
-    demandNote: "high-velocity anti-aging SKU assortments in beauty channels",
+    useCase: "expression-line, smoothing, and advanced cosmetic positioning",
+    demandNote: "high-velocity anti-aging assortments and formulation concepts in beauty channels",
     buyerIntent:
-      "teams selecting neurotransmitter peptide products with practical MOQ and lead time visibility",
+      "teams selecting neurotransmitter peptide products with practical MOQ visibility and academically credible formulation context",
   },
   "enzyme-inhibitor-peptides": {
-    useCase: "tone-control and anti-aging control concept development",
-    demandNote: "category expansions that require precise product and documentation matching",
+    useCase: "tone-control, complexion-focused, and anti-aging concept development",
+    demandNote: "category expansions that require precise product positioning and documentation matching",
     buyerIntent:
-      "buyers sourcing enzyme inhibitor peptides with scalable wholesale support",
+      "buyers sourcing enzyme inhibitor peptides with scalable wholesale support and clearer commercial-research positioning",
   },
   "antimicrobial-peptides": {
-    useCase: "specialty skin-protection and advanced formulation planning",
-    demandNote: "innovation-led product teams balancing niche demand with reliable dispatch",
+    useCase: "specialty skin-protection, surface-defense, and advanced formulation planning",
+    demandNote: "innovation-led product teams balancing niche demand with reliable dispatch and stronger scientific storytelling",
     buyerIntent:
-      "commercial operators evaluating antimicrobial peptide options for recurring procurement",
+      "commercial operators evaluating antimicrobial peptide options for recurring procurement and health-adjacent catalog development",
   },
   "growth-repair-peptides": {
-    useCase: "regeneration-focused catalog planning and repeat-order programs",
-    demandNote: "buyers managing mixed demand across B2B and direct retail channels",
+    useCase: "repair-focused, regeneration-oriented, and recovery-adjacent product planning",
+    demandNote: "buyers managing mixed demand across B2B and direct retail channels with formulation-led growth categories",
     buyerIntent:
-      "teams sourcing growth peptides with MOQ clarity and responsive quote support",
+      "teams sourcing growth peptides with MOQ clarity, responsive quote support, and realistic research-aware positioning",
   },
   "metabolic-advanced-peptides": {
-    useCase: "advanced and trend-responsive peptide portfolio strategy",
-    demandNote: "operators adapting inventory around fast-moving high-demand SKUs",
+    useCase: "advanced metabolic, performance-discussion, and trend-responsive peptide portfolio strategy",
+    demandNote: "operators adapting inventory around fast-moving high-demand SKUs that sit close to current health and peptide-research conversations",
     buyerIntent:
-      "buyers benchmarking metabolic peptide suppliers for speed, documentation, and scale",
+      "buyers benchmarking metabolic peptide suppliers for speed, documentation, scale, and stronger research-aware commercial framing",
   },
 };
 
@@ -416,9 +418,9 @@ export function getCategorySeoCopy(
     );
 
   return [
-    `${category.label} are part of our commercial peptide supplier catalog for ${focus.useCase}. We built this category page to help buyers compare wholesale peptides, review category-specific sourcing context, and move directly into detailed product pages without losing track of commercial buying priorities. Products in this group include ${examples}, which gives procurement teams a clean starting point for comparing format, MOQ, and documentation expectations.`,
+    `${category.label} are part of our commercial peptide supplier catalog for ${focus.useCase}. We built this category page to help buyers compare wholesale peptides, review category-specific sourcing context, and move directly into detailed product pages without losing track of commercial buying priorities. Products in this group include ${examples}, which gives procurement teams a clean starting point for comparing format, MOQ, documentation expectations, and the kinds of health-adjacent or formulation-led conversations these peptides typically sit inside.`,
     `${category.label} demand often spans pilot orders, recurring replenishment, and multi-SKU wholesale planning. That is why we keep pricing entry points, MOQ visibility, and lead-time guidance in a consistent format across every listing in this category. MOQ coverage in this group ranges from ${moqRange.min} to ${moqRange.max} units depending on the SKU, and we support those programs through global sourcing with qualified manufacturing partners in China and Atlas Labs documentation review.`,
-    `Buyers evaluating ${category.label.toLowerCase()} are usually balancing formulation fit, documentation readiness, and supply continuity at the same time. This category is designed for ${focus.demandNote}, so you can compare products with enough context to shortlist viable options before sending a quote request. We also connect this category page to quality assurance resources, research support, and related blog guidance so teams can understand sourcing considerations before commercial discussions begin.`,
-    `If your team is ${focus.buyerIntent}, this page should function as more than a directory. It should help you move from category research into purchase planning with clearer expectations around pack sizes, commercial response time, and batch transparency support. Use the product listings below to compare candidates, then contact us with your target pack size, destination market, and delivery window so we can align supply notes and documentation around your program.`,
+    `Buyers evaluating ${category.label.toLowerCase()} are usually balancing formulation fit, documentation readiness, scientific positioning, and supply continuity at the same time. This category is designed for ${focus.demandNote}, so you can compare products with enough context to shortlist viable options before sending a quote request. We also connect this category page to quality assurance resources, research support, and related blog guidance so teams can understand sourcing considerations before commercial discussions begin.`,
+    `If your team is ${focus.buyerIntent}, this page should function as more than a directory. It should help you move from category research into purchase planning with clearer expectations around pack sizes, commercial response time, batch transparency support, and the broader peptide-research language surrounding the category. Use the product listings below to compare candidates, then contact us with your target pack size, destination market, and delivery window so we can align supply notes and documentation around your program.`,
   ];
 }

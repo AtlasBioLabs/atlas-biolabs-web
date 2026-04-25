@@ -14,7 +14,7 @@ type ProductPurchaseActionsProps = {
 };
 
 export function ProductPurchaseActions({ product }: ProductPurchaseActionsProps) {
-  const quoteHref = `/request-quote?product=${encodeURIComponent(product.name)}&qty=${encodeURIComponent(`${product.moq} units`)}`;
+  const quoteHref = "/request-quote";
 
   return (
     <div className="flex flex-wrap gap-3">

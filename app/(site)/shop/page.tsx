@@ -90,7 +90,11 @@ export default function ShopPage() {
             {shopIntro.description}
           </p>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-            Use this catalog to compare peptide supplier options across cosmetic peptides, research applications, wholesale peptides, and custom sourcing conversations with clear MOQ, documentation, batch transparency, and technical positioning context on every listing.
+            Use this catalog to compare peptide supplier options across cosmetic
+            peptides, research applications, wholesale peptides, and custom
+            sourcing conversations with visible pricing entry points, MOQ,
+            documentation support, batch transparency, and technical
+            positioning context on every listing.
           </p>
         </div>
       </section>
@@ -98,7 +102,7 @@ export default function ShopPage() {
       <ResourceLinksPanel
         eyebrow="Shop Guides"
         title="Use Category Pages and Buying Guides Alongside the Catalog"
-        description="These direct links make the shop useful even before you start filtering, helping buyers move from category discovery into pricing, documentation, and quote planning."
+        description="These direct links make the catalog more useful before filtering starts, helping buyers move from category discovery into pricing, documentation review, and quote planning with stronger commercial context."
         links={shopSupportLinks}
       />
 

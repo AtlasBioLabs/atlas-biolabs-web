@@ -141,7 +141,7 @@ export default function ResearchPage() {
           <article className="surface-card overflow-hidden">
             <div className="relative min-h-[300px] border-b border-border/70">
               <Image
-                src="/images/quality-medical.jpg"
+                src="/images/quality-batch-review.jpg"
                 alt="Laboratory sample materials and test tubes arranged on an analytical peptide review bench."
                 fill
                 className="object-cover"

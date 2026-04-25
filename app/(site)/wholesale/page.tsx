@@ -94,7 +94,9 @@ export default function WholesalePage() {
                   Laboratory-Informed Supply Context
                 </p>
                 <p className="mt-2 max-w-md text-sm leading-relaxed text-white/84">
-                  We handle wholesale supply with clear operational context around vial handling, batch records, laboratory discipline, and buyer communication.
+                  We handle wholesale supply with clear operational context
+                  around vial handling, batch records, laboratory discipline,
+                  and buyer communication built for repeat commercial accounts.
                 </p>
               </div>
             </div>
@@ -173,7 +175,10 @@ export default function WholesalePage() {
               We stay organized when volume starts to scale
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Once an account moves beyond a one-off order, we focus on cadence, clearer communication, and steadier handoff between sourcing, documentation, technical review, and commercial support.
+              Once an account moves beyond a one-off order, we focus on cadence,
+              clearer communication, and steadier handoff between sourcing,
+              documentation, technical review, and commercial support so repeat
+              programs feel managed instead of improvised.
             </p>
             <ul className="mt-5 space-y-3">
               {[

@@ -91,7 +91,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             {category.label}
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">
-            {category.description} with product pages optimized for commercial comparison, inquiry, and quote conversion.
+            {category.description} with product pages built for commercial
+            comparison, price visibility, documentation review, and faster
+            movement into inquiry or quote conversion.
           </p>
         </div>
       </section>
@@ -128,7 +130,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               >
                 Request Quote
               </Link>
-              .
+              . Buyers using this page for shortlist work can move directly from
+              category review into product-level pricing references, MOQ
+              alignment, and article-based buying guidance.
             </p>
           </article>
         </div>

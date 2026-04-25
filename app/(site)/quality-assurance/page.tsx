@@ -68,7 +68,7 @@ export default function QualityAssurancePage() {
           <article className="surface-card overflow-hidden">
             <div className="relative min-h-[360px]">
               <Image
-                src="/images/quality-medical.jpg"
+                src="/images/quality-batch-review.jpg"
                 alt="Laboratory analyst using a pipette with sample tubes during batch review preparation."
                 fill
                 priority

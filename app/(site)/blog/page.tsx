@@ -57,7 +57,7 @@ export default function BlogPage() {
             Peptide Supply Guides and Buyer Insights
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">
-            We publish practical articles on peptide sourcing, peptide supplier evaluation, wholesale peptides, documentation workflows, pricing, custom peptide sourcing, and category planning for commercial buyers in the U.S. and international markets.
+            We publish practical articles on peptide sourcing, peptide supplier evaluation, wholesale peptides, documentation workflows, pricing, custom peptide sourcing, and category planning for commercial buyers who want stronger context around peptide research, formulation strategy, and health-adjacent market conversations in the U.S. and international markets.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link
@@ -112,7 +112,7 @@ export default function BlogPage() {
       <ResourceLinksPanel
         eyebrow="Featured Topics"
         title="Start With the Peptide Guides Buyers Read Most"
-        description="These articles connect peptide basics, supplier evaluation, pricing, and sourcing workflows so buyers can move from research into structured procurement planning."
+        description="These articles connect peptide basics, supplier evaluation, pricing, research-aware positioning, and sourcing workflows so buyers can move from early reading into more structured procurement planning."
         links={featuredPosts.map((post) => ({
           title: post.title,
           href: `/blog/${post.slug}`,
@@ -124,7 +124,7 @@ export default function BlogPage() {
       <ResourceLinksPanel
         eyebrow="Explore the Site"
         title="Move From Articles Into Product and Category Pages"
-        description="The blog is designed to hand readers into product pages, category hubs, and supply pages so each article supports a more useful buyer journey across the commercial catalog."
+        description="The blog is designed to hand readers into product pages, category hubs, and supply pages so each article supports a more useful buyer journey across the commercial catalog and the broader research-aware peptide discussion."
         links={[
           ...featuredCategories.map((category) => ({
             title: category.label,

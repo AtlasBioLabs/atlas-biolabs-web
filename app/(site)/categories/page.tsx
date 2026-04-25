@@ -57,7 +57,9 @@ export default function CategoryIndexPage() {
             Shop Peptides by Category
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">
-            Compare peptide groups, review sourcing context, and move quickly into product listings with documentation and quote support options.
+            Compare peptide groups, review commercial sourcing context, and move
+            directly into product listings with documentation support, batch
+            transparency language, and quote-ready next steps.
           </p>
         </div>
       </section>
@@ -80,7 +82,7 @@ export default function CategoryIndexPage() {
                   href={`/categories/${category.id}`}
                   className="mt-5 inline-flex text-sm font-medium text-[var(--brand-blue)] hover:underline"
                 >
-                  Explore Category
+                  View {category.label}
                 </Link>
               </article>
             );

@@ -77,7 +77,7 @@ export async function generateMetadata({
       "commercial peptide supply",
     ]),
     image: product.image,
-    imageAlt: `Atlas BioLabs product image for ${product.name}`,
+    imageAlt: `${product.name} peptide product image from Atlas BioLabs`,
   });
 }
 
@@ -94,7 +94,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
     productCategories[0];
   const categoryLabel = category.label;
   const categoryHref = `/categories/${product.category}`;
-  const quoteHref = `/request-quote?product=${encodeURIComponent(product.name)}&qty=${encodeURIComponent(`${product.moq} units`)}`;
+  const quoteHref = "/request-quote";
   const productIntro = getProductIntro(product.name);
   const relatedProducts = getRelatedProducts(product, 4);
   const relatedArticles = getRelevantBlogPostsForProduct(product, 3);
@@ -119,7 +119,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
             <div className="relative aspect-square overflow-hidden rounded-2xl border border-border/70 bg-[#f0f5ff]">
               <Image
                 src={product.image}
-                alt={`Atlas BioLabs product image for ${product.name}`}
+                alt={`${product.name} peptide product image from Atlas BioLabs`}
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 45vw"
@@ -141,7 +141,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
                 {productIntro}
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Atlas BioLabs places this SKU inside the {categoryLabel.toLowerCase()} catalog with visible MOQ, lead time, pack size, and documentation context so commercial buyers can move from product review into quote follow-up with less friction.
+                Atlas BioLabs places this SKU inside the {categoryLabel.toLowerCase()} catalog with visible price entry, MOQ, lead time, pack size, and documentation context so commercial buyers can move from product review into quote follow-up with less friction.
               </p>
               <div className="rounded-xl border border-border/70 bg-white p-4">
                 <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
@@ -185,16 +185,18 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
                 >
                   {categoryLabel}
                 </Link>{" "}
-                category so buyers can compare product role, supply format, and documentation requirements in one place.
+                category so buyers can compare product role, supply format,
+                pricing entry points, and documentation requirements in one
+                place.
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Across technical literature, formulation-development planning, and category-level sourcing reviews, {product.name} is commonly evaluated in contexts such as {toSentenceList(product.commonApplications)}. We surface that context here so buyers can understand how the peptide is usually positioned before they move into sampling, formulation review, or quote discussions.
+                Across technical literature, peptide research discussions, formulation-development planning, and category-level sourcing reviews, {product.name} is commonly evaluated in contexts such as {toSentenceList(product.commonApplications)}. We surface that context here so buyers can understand how the peptide is usually positioned inside health-adjacent, cosmetic, signaling, metabolic, or repair-focused discussions before they move into sampling, formulation review, or quote discussions.
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {product.mechanismInsight}
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Teams reviewing this SKU often compare {toSentenceList(product.functionalRole)} alongside factors such as {toSentenceList(product.keyCharacteristics)} when building formulation-development, sourcing, validation, and repeat-order shortlists.
+                Teams reviewing this SKU often compare {toSentenceList(product.functionalRole)} alongside factors such as {toSentenceList(product.keyCharacteristics)} when building formulation-development, sourcing, validation, and repeat-order shortlists for more serious technical, wellness-adjacent, and commercially credible peptide portfolios.
               </p>
             </div>
           </article>
@@ -269,10 +271,10 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
             </h2>
             <div className="mt-4 space-y-4">
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Atlas BioLabs presents {product.name} for commercial sourcing, research applications, and formulation development. This page is written to help buyers map the peptide to common research, formulation, and evaluation contexts such as {toSentenceList(product.commonApplications)} while keeping the content commercially focused and documentation-aligned.
+                Atlas BioLabs presents {product.name} for commercial sourcing, research applications, and formulation development. This page is written to help buyers map the peptide to common research, formulation, and evaluation contexts such as {toSentenceList(product.commonApplications)} while keeping the content commercially focused, academically grounded, and documentation-aligned.
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                In practical sourcing terms, {product.name} is usually reviewed by {toSentenceList(product.intendedBuyerType)} who need visibility into category fit, technical positioning, reorder planning, and documentation readiness before moving into quote discussions.
+                In practical sourcing terms, {product.name} is usually reviewed by {toSentenceList(product.intendedBuyerType)} who need visibility into category fit, technical positioning, reorder planning, and documentation readiness before moving into quote discussions tied to health-adjacent, formulation-led, or research-aware product programs.
               </p>
             </div>
           </article>

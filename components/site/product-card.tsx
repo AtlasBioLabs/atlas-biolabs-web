@@ -27,14 +27,14 @@ export function ProductCard({ product }: ProductCardProps) {
     productCategories.find((category) => category.id === product.category)?.label ??
     product.category;
 
-  const quoteHref = `/request-quote?product=${encodeURIComponent(product.name)}&qty=${encodeURIComponent(`${product.moq} units`)}`;
+  const quoteHref = "/request-quote";
 
   return (
     <article className="surface-card flex h-full flex-col overflow-hidden rounded-2xl">
       <div className="relative aspect-[4/3] w-full border-b border-border/70 bg-gradient-to-br from-[#f7faff] to-[#edf3ff]">
         <Image
           src={product.image}
-          alt={`Atlas BioLabs product illustration for ${product.name} in ${categoryLabel}`}
+          alt={`${product.name} peptide catalog image for ${categoryLabel}`}
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -49,7 +49,9 @@ export function ProductCard({ product }: ProductCardProps) {
           {categoryLabel}
         </Link>
         <h3 className="mt-2 text-xl font-semibold text-[var(--brand-navy)]">
-          {product.name}
+          <Link href={`/shop/${product.slug}`} className="hover:text-[var(--brand-blue)]">
+            {product.name}
+          </Link>
         </h3>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {product.shortDescription}

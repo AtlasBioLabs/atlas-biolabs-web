@@ -85,7 +85,11 @@ export default function HomePage() {
               Peptide Supplier Overview
             </p>
             <p className="mt-3 max-w-4xl text-sm leading-relaxed text-muted-foreground">
-              Atlas BioLabs operates as a peptide supplier for commercial buyers who need structured peptide sourcing, wholesale peptides, custom peptide sourcing, documentation support, batch transparency, and enough technical product context to move into quote discussions with clearer expectations.
+              Atlas BioLabs operates as a premium peptide supplier for commercial
+              buyers who need structured peptide sourcing, wholesale peptide
+              supply, custom peptide sourcing, Atlas Labs documentation review,
+              batch transparency support, and a cleaner path from category
+              discovery into quote-ready commercial planning.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Button asChild size="sm" variant="outline">
@@ -119,7 +123,7 @@ export default function HomePage() {
                 Popular Peptides
               </p>
               <h2 className="mt-2 text-3xl font-semibold text-[var(--brand-navy)] sm:text-4xl">
-                Popular Peptides for Commercial Sourcing
+                Popular Peptides for Commercial Sourcing Programs
               </h2>
             </div>
             <Button asChild variant="outline" className="w-full md:w-auto">
