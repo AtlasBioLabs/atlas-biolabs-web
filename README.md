@@ -1,5 +1,18 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Atlas Outreach Bot Integration
+
+Website forms keep their existing UI and email notification behavior, and also sync server-side RFQ data to the Atlas BioLabs Outreach Automation Bot when configured.
+
+Set these server-only environment variables. Do not prefix them with `NEXT_PUBLIC_`.
+
+```env
+ATLAS_BOT_RFQ_ENDPOINT=https://automation.atlasbiolabs.co/api/rfqs/create.php
+ATLAS_BOT_API_TOKEN=change_me_to_a_private_secret
+```
+
+The integration runs from server actions only. If the bot endpoint or token is missing, or the bot is unavailable, the form logs the sync issue server-side and continues the existing form flow.
+
 ## Getting Started
 
 First, run the development server:

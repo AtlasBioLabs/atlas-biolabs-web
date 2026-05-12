@@ -1,11 +1,16 @@
 'use server'
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 
 import {
   clearInquiryCart,
   getInquiryCart,
 } from "@/lib/cart-session";
+import {
+  sendRfqToAutomationBot,
+  type AutomationBotPayload,
+} from "@/lib/automation-bot";
 import { sendFormNotification } from "@/lib/form-mail";
 import type { FormSubmissionState } from "@/lib/form-state";
 import {
@@ -52,6 +57,32 @@ function getDirectEmailFallbackMessage(requestLabel: string) {
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
+}
+
+async function getSubmissionContext(fallbackPath: string) {
+  const headerStore = await headers();
+  const forwardedHost = headerStore.get("x-forwarded-host");
+  const host = forwardedHost || headerStore.get("host") || "atlasbiolabs.co";
+  const protocol = headerStore.get("x-forwarded-proto") || "https";
+  const referer = headerStore.get("referer") || "";
+
+  return {
+    page_url: referer || `${protocol}://${host}${fallbackPath}`,
+    user_agent: headerStore.get("user-agent") || "",
+  };
+}
+
+async function syncSubmissionToAutomationBot(
+  payload: AutomationBotPayload
+) {
+  const result = await sendRfqToAutomationBot(payload);
+  if (!result.success) {
+    console.warn("Atlas automation bot sync did not complete.", {
+      source: payload.source,
+      email: payload.email,
+      error: result.error,
+    });
+  }
 }
 
 function createSuccessState<TField extends string>(
@@ -238,6 +269,14 @@ export async function submitContactFormAction(
       ],
       footer: "Submitted from the Atlas BioLabs contact page.",
     });
+    await syncSubmissionToAutomationBot({
+      source: "contact_form",
+      name: data.name,
+      company: data.organization,
+      email: data.email,
+      message: data.message,
+      ...(await getSubmissionContext("/contact")),
+    });
 
     return createSuccessState(
       "Thank you. We received your message and will get back to you soon."
@@ -282,6 +321,17 @@ export async function submitCustomRequestFormAction(
         },
       ],
       footer: "Submitted from the Atlas BioLabs custom requests page.",
+    });
+    await syncSubmissionToAutomationBot({
+      source: "custom_request",
+      name: data.name,
+      company: data.company,
+      email: data.email,
+      product_interest: data.peptideName,
+      estimated_quantity: data.quantity,
+      timeline: data.timeline,
+      message: data.notes,
+      ...(await getSubmissionContext("/custom-requests")),
     });
 
     return createSuccessState(
@@ -330,6 +380,18 @@ export async function submitQuoteRequestFormAction(
         },
       ],
       footer: "Submitted from the Atlas BioLabs quote workflow.",
+    });
+    await syncSubmissionToAutomationBot({
+      source: "request_quote",
+      name: data.fullName,
+      company: data.companyName,
+      email: data.email,
+      phone: data.phoneWhatsApp,
+      country: data.country,
+      product_interest: data.product,
+      estimated_quantity: data.quantity,
+      message: data.message,
+      ...(await getSubmissionContext("/request-quote")),
     });
 
     return createSuccessState(
@@ -403,6 +465,25 @@ export async function submitCartInquiryFormAction(
         },
       ],
       footer: "Submitted from the Atlas BioLabs inquiry cart.",
+    });
+    await syncSubmissionToAutomationBot({
+      source: "inquiry_cart",
+      name: data.fullName,
+      company: data.companyName,
+      email: data.email,
+      phone: data.phoneWhatsApp,
+      country: data.country,
+      product_interest: data.product,
+      estimated_quantity: data.quantity,
+      message: data.message,
+      items: items.map((item) => ({
+        slug: item.slug,
+        name: item.name,
+        quantity: item.quantity,
+        moq: item.moq,
+        unit_price_from: item.unitPriceFrom,
+      })),
+      ...(await getSubmissionContext("/cart")),
     });
 
     await clearInquiryCart();
