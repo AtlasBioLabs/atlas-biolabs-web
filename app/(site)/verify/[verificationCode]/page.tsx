@@ -26,7 +26,7 @@ export async function generateMetadata({
 export default async function VerifyDetailPage({ params }: VerifyDetailPageProps) {
   const { verificationCode } = await params;
   const decodedCode = decodeURIComponent(verificationCode).trim();
-  const record = getCoaVerificationByCode(decodedCode);
+  const record = await getCoaVerificationByCode(decodedCode);
 
   const breadcrumbItems: BreadcrumbItem[] = [
     { name: "Home", path: "/" },

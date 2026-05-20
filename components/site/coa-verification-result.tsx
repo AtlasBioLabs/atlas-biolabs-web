@@ -60,7 +60,7 @@ const toneMap: Record<
     badgeClassName: "border-emerald-200 bg-emerald-100 text-emerald-800",
     summaryTitle: "Released and verified",
     summaryText:
-      "This certificate record matches the current Atlas Labs mock verification register.",
+      "This certificate record matches the current Atlas Labs verification register.",
     icon: CheckCircle2Icon,
     iconClassName: "text-emerald-600",
   },
@@ -87,7 +87,7 @@ const toneMap: Record<
     badgeClassName: "border-rose-200 bg-rose-100 text-rose-800",
     summaryTitle: "Not verified",
     summaryText:
-      "The submitted verification code does not match any record in the current Atlas Labs mock verification register.",
+      "The submitted verification code does not match any record in the current Atlas Labs verification register.",
     icon: AlertTriangleIcon,
     iconClassName: "text-rose-600",
   },
