@@ -305,8 +305,6 @@ export function getCoaStatusLabel(status: CoaVerificationStatus) {
       return "REJECTED / NON-CONFORMING";
     case "Superseded":
       return "SUPERSEDED";
-    default:
-      return status.toUpperCase();
   }
 }
 
