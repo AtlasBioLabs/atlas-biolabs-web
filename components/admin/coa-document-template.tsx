@@ -3,18 +3,26 @@
 
 import QRCode from "react-qr-code";
 
+import {
+  buildDefaultAnalyticalRecordRows,
+  buildDefaultAnalyticalTestRows,
+} from "@/lib/coa-fixed-rows";
 import type { CoaBrandSettings } from "@/lib/coa-brand-settings";
 import type { CoaVerificationRecord } from "@/lib/coa-verification";
 import {
   deriveAnalyticalStatus,
   getCoaStatusLabel,
   getDefaultIntendedUseScope,
+  type CoaAnalyticalRecordRow,
+  type CoaAnalyticalTestResultRow,
 } from "@/lib/coa-verification-admin";
 
 type CoaDocumentTemplateProps = {
   coa: CoaVerificationRecord;
   branding: CoaBrandSettings;
   verificationUrl: string;
+  analyticalResults?: CoaAnalyticalTestResultRow[];
+  analyticalRecords?: CoaAnalyticalRecordRow[];
 };
 
 function getStatusTone(status: CoaVerificationRecord["verificationStatus"]) {
@@ -29,8 +37,67 @@ function getStatusTone(status: CoaVerificationRecord["verificationStatus"]) {
   }
 }
 
-function displayValue(value?: string | null, fallback = "—") {
+function displayValue(value?: string | null, fallback = "N/A") {
   return value && value.trim().length > 0 ? value : fallback;
+}
+
+function buildTemplateAnalyticalRows(
+  coa: CoaVerificationRecord,
+  analyticalResults?: CoaAnalyticalTestResultRow[]
+) {
+  const defaultRows = buildDefaultAnalyticalTestRows({
+    appearance_spec: coa.appearanceSpec ?? undefined,
+    appearance_result: coa.appearanceResult ?? undefined,
+    identity_result: coa.identityResult,
+    hplc_purity: coa.hplcPurity,
+    purity_result: coa.purityResult ?? undefined,
+    peptide_content_result: coa.peptideContentResult ?? undefined,
+    water_content: coa.waterContent,
+    counter_ion_result: coa.counterIonResult ?? undefined,
+    residual_solvents_result: coa.residualSolventsResult ?? undefined,
+    heavy_metals_result: coa.heavyMetalsResult ?? undefined,
+    microbial_limits_result: coa.microbialLimitsResult ?? undefined,
+    endotoxin_sterility_result: coa.endotoxinSterilityResult ?? undefined,
+  });
+
+  const rowMap = new Map((analyticalResults ?? []).map((row) => [row.row_key, row]));
+
+  return defaultRows.map((row) => {
+    const existing = rowMap.get(row.row_key);
+    return {
+      attribute: row.test_attribute,
+      method: existing?.method?.trim() || row.method,
+      specification: existing?.specification?.trim() || row.specification,
+      result: existing?.batch_result?.trim() || row.batch_result,
+      status:
+        existing?.status?.trim() ||
+        deriveAnalyticalStatus(existing?.batch_result ?? row.batch_result),
+    };
+  });
+}
+
+function buildTemplateAnalyticalRecordRows(
+  coa: CoaVerificationRecord,
+  analyticalRecords?: CoaAnalyticalRecordRow[]
+) {
+  const defaultRows = buildDefaultAnalyticalRecordRows({
+    hplc_file_name: coa.hplcFileName ?? undefined,
+    lcms_file_name: coa.lcmsFileName ?? undefined,
+    sds_file_name: coa.sdsFileName ?? undefined,
+    raw_data_archive_ref: coa.rawDataArchiveRef ?? undefined,
+  });
+
+  const rowMap = new Map((analyticalRecords ?? []).map((row) => [row.row_key, row]));
+
+  return defaultRows.map((row) => {
+    const existing = rowMap.get(row.row_key);
+    return {
+      recordType: row.record_type,
+      referenceFileName:
+        existing?.reference_file_name?.trim() || row.reference_file_name,
+      availability: existing?.availability?.trim() || row.availability,
+    };
+  });
 }
 
 function CoaHeader({
@@ -41,36 +108,36 @@ function CoaHeader({
   coa: CoaVerificationRecord;
 }) {
   return (
-    <div className="flex items-start justify-between gap-6 border-b border-[#d9e1ec] pb-5">
+    <div className="flex items-start justify-between gap-5 border-b border-[#cad5e4] pb-4">
       <div className="flex items-start gap-4">
         {branding.logo_url ? (
           <img
             src={branding.logo_url}
             alt={`${branding.company_name} logo`}
-            className="max-h-16 w-auto object-contain"
+            className="max-h-14 w-auto object-contain"
           />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[#d9e1ec] bg-[#f7faff] text-center text-xs font-semibold text-[var(--brand-navy)]">
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[#cad5e4] bg-[#f7faff] px-2 text-center text-[10px] font-semibold text-[var(--brand-navy)]">
             {branding.company_name}
           </div>
         )}
         <div className="space-y-1">
-          <p className="text-xl font-semibold tracking-tight text-[var(--brand-navy)]">
+          <p className="text-lg font-semibold tracking-tight text-[var(--brand-navy)]">
             {branding.company_name}
           </p>
-          <p className="text-sm font-medium text-[var(--brand-blue)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--brand-blue)]">
             {branding.quality_unit_name}
           </p>
-          <p className="max-w-xl text-xs leading-relaxed text-slate-600">
+          <p className="max-w-xl text-[11px] leading-relaxed text-slate-600">
             {branding.tagline}
           </p>
         </div>
       </div>
-      <div className="min-w-[210px] rounded-xl border border-[#d9e1ec] bg-[#f8fbff] p-4 text-sm text-[var(--brand-navy)]">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+      <div className="min-w-[220px] border border-[#cad5e4] bg-[#f8fbff] px-4 py-3 text-[11px] text-[var(--brand-navy)]">
+        <p className="font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
           Controlled Document
         </p>
-        <dl className="mt-3 space-y-2">
+        <dl className="mt-2 space-y-1.5">
           <div className="flex justify-between gap-3">
             <dt className="text-slate-600">COA Number</dt>
             <dd className="font-medium">{coa.coaNumber}</dd>
@@ -89,34 +156,7 @@ function CoaHeader({
   );
 }
 
-function InfoTable({
-  rows,
-  columns = 2,
-}: {
-  rows: Array<{ label: string; value?: string | null }>;
-  columns?: 2 | 4;
-}) {
-  const gridClass =
-    columns === 4
-      ? "grid-cols-1 md:grid-cols-2"
-      : "grid-cols-1 md:grid-cols-2";
-
-  return (
-    <div className={`grid gap-0 border border-[#d9e1ec] ${gridClass}`}>
-      {rows.map((row) => (
-        <div
-          key={`${row.label}-${row.value ?? ""}`}
-          className="grid grid-cols-[160px_1fr] border-b border-[#d9e1ec] px-4 py-3 text-sm last:border-b-0 md:[&:nth-last-child(-n+2)]:border-b-0"
-        >
-          <div className="pr-4 font-semibold text-[var(--brand-navy)]">{row.label}</div>
-          <div className="text-slate-700">{displayValue(row.value)}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function SectionTitle({
+function SectionHeading({
   title,
   subtitle,
 }: {
@@ -125,10 +165,35 @@ function SectionTitle({
 }) {
   return (
     <div className="space-y-1">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
         {title}
       </p>
-      {subtitle ? <p className="text-sm leading-relaxed text-slate-600">{subtitle}</p> : null}
+      {subtitle ? <p className="text-[11px] leading-relaxed text-slate-600">{subtitle}</p> : null}
+    </div>
+  );
+}
+
+function KeyValueTable({
+  rows,
+}: {
+  rows: Array<{ label: string; value?: string | null }>;
+}) {
+  return (
+    <div className="overflow-hidden border border-[#cad5e4]">
+      <table className="min-w-full border-collapse text-left text-[11px]">
+        <tbody>
+          {rows.map((row) => (
+            <tr key={`${row.label}-${row.value ?? ""}`}>
+              <td className="w-[28%] border-b border-[#cad5e4] bg-[#f8fbff] px-3 py-2 font-semibold text-[var(--brand-navy)]">
+                {row.label}
+              </td>
+              <td className="border-b border-[#cad5e4] px-3 py-2 text-slate-700">
+                {displayValue(row.value)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -137,105 +202,46 @@ export function CoaDocumentTemplate({
   coa,
   branding,
   verificationUrl,
+  analyticalResults,
+  analyticalRecords,
 }: CoaDocumentTemplateProps) {
   const statusLabel = getCoaStatusLabel(coa.verificationStatus);
   const statusTone = getStatusTone(coa.verificationStatus);
   const intendedUseScope = coa.intendedUseScope || getDefaultIntendedUseScope();
-
-  const analyticalRows = [
-    {
-      attribute: "Appearance",
-      method: "Visual inspection",
-      specification: coa.appearanceSpec || "White to off-white powder",
-      result: coa.appearanceResult,
-    },
-    {
-      attribute: "Identity",
-      method: "LC-MS / MS",
-      specification: "Consistent with reference MW / sequence",
-      result: coa.identityResult,
-    },
-    {
-      attribute: "Purity",
-      method: "RP-HPLC",
-      specification: ">= 98.0% by area normalization, unless otherwise specified",
-      result: coa.purityResult || coa.hplcPurity,
-    },
-    {
-      attribute: "Peptide content",
-      method: "UV / HPLC calculation",
-      specification: "Report result",
-      result: coa.peptideContentResult,
-    },
-    {
-      attribute: "Water content",
-      method: "Karl Fischer",
-      specification: "<= 5.0%",
-      result: coa.waterContent,
-    },
-    {
-      attribute: "Counter-ion",
-      method: "Ion chromatography / declaration",
-      specification: "Report result",
-      result: coa.counterIonResult,
-    },
-    {
-      attribute: "Residual solvents",
-      method: "GC / ICH-oriented screening",
-      specification: "Meets internal limit",
-      result: coa.residualSolventsResult,
-    },
-    {
-      attribute: "Heavy metals",
-      method: "ICP-MS screen",
-      specification: "<= 10 ppm total",
-      result: coa.heavyMetalsResult,
-    },
-    {
-      attribute: "Microbial limits",
-      method: "USP/EP-oriented screen",
-      specification: "As requested / applicable",
-      result: coa.microbialLimitsResult,
-    },
-    {
-      attribute: "Endotoxin / Sterility",
-      method: "LAL / sterility test",
-      specification: "Not standard unless requested",
-      result: coa.endotoxinSterilityResult,
-    },
-  ];
+  const analyticalRows = buildTemplateAnalyticalRows(coa, analyticalResults);
+  const analyticalRecordRows = buildTemplateAnalyticalRecordRows(coa, analyticalRecords);
 
   return (
     <div className="space-y-6">
-      <article className="coa-print-page mx-auto w-full max-w-[8.5in] bg-white text-[13px] leading-relaxed text-[var(--brand-navy)]">
+      <article className="coa-print-page mx-auto w-full max-w-[8.27in] bg-white text-[12px] leading-relaxed text-[var(--brand-navy)]">
         <CoaHeader branding={branding} coa={coa} />
 
-        <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_240px]">
-          <div className="space-y-3">
-            <h2 className="text-3xl font-semibold tracking-tight text-[var(--brand-navy)]">
+        <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_220px]">
+          <div className="space-y-2">
+            <h2 className="text-[28px] font-semibold tracking-tight text-[var(--brand-navy)]">
               CERTIFICATE OF ANALYSIS
             </h2>
-            <p className="text-sm leading-relaxed text-slate-600">
+            <p className="text-[11px] leading-relaxed text-slate-600">
               Batch-specific quality documentation for qualified B2B sourcing review
             </p>
           </div>
-          <div className={`rounded-xl border px-4 py-4 text-center ${statusTone}`}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em]">
+          <div className={`border px-4 py-4 text-center ${statusTone}`}>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em]">
               Status
             </p>
-            <p className="mt-2 text-lg font-semibold">{statusLabel}</p>
+            <p className="mt-2 text-base font-semibold">{statusLabel}</p>
           </div>
         </div>
 
-        <div className="mt-5 rounded-xl border border-[#d9e1ec] bg-[#f8fbff] px-4 py-4 text-sm text-slate-700">
+        <div className="mt-4 border border-[#cad5e4] bg-[#f8fbff] px-4 py-3 text-[11px] text-slate-700">
           This COA record is prepared for buyer review and must be matched to the final
           batch-specific HPLC, MS/LC-MS and QA release records before commercial shipment.
         </div>
 
-        <div className="mt-6 space-y-6">
-          <section className="space-y-3">
-            <SectionTitle title="Document Summary" />
-            <InfoTable
+        <div className="mt-5 space-y-5">
+          <section className="space-y-2.5">
+            <SectionHeading title="Document Summary" />
+            <KeyValueTable
               rows={[
                 { label: "COA Number", value: coa.coaNumber },
                 { label: "Issue Date", value: coa.issueDate },
@@ -247,9 +253,9 @@ export function CoaDocumentTemplate({
             />
           </section>
 
-          <section className="space-y-3">
-            <SectionTitle title="Product Identification" />
-            <InfoTable
+          <section className="space-y-2.5">
+            <SectionHeading title="Product Identification" />
+            <KeyValueTable
               rows={[
                 { label: "Product Name", value: coa.productName },
                 { label: "Catalog Code", value: coa.catalogCode },
@@ -267,9 +273,9 @@ export function CoaDocumentTemplate({
             />
           </section>
 
-          <section className="space-y-3">
-            <SectionTitle title="Batch Summary" />
-            <InfoTable
+          <section className="space-y-2.5">
+            <SectionHeading title="Batch Summary" />
+            <KeyValueTable
               rows={[
                 { label: "Manufacture Date", value: coa.manufactureDate },
                 { label: "Retest / Expiry", value: coa.retestExpiryDate },
@@ -285,9 +291,9 @@ export function CoaDocumentTemplate({
             />
           </section>
 
-          <section className="space-y-3">
-            <SectionTitle title="Release Snapshot" />
-            <InfoTable
+          <section className="space-y-2.5">
+            <SectionHeading title="Release Snapshot" />
+            <KeyValueTable
               rows={[
                 { label: "Identity", value: coa.identityResult },
                 { label: "HPLC Purity", value: coa.hplcPurity },
@@ -297,63 +303,77 @@ export function CoaDocumentTemplate({
             />
           </section>
 
-          <section className="space-y-3">
-            <SectionTitle title="Intended Use & Documentation Scope" />
-            <div className="rounded-xl border border-[#d9e1ec] bg-[#f8fbff] px-4 py-4 text-sm leading-relaxed text-slate-700">
+          <section className="space-y-2.5">
+            <SectionHeading title="Intended Use & Documentation Scope" />
+            <div className="border border-[#cad5e4] bg-[#f8fbff] px-4 py-3 text-[11px] leading-relaxed text-slate-700">
               {intendedUseScope}
             </div>
           </section>
         </div>
 
-        <footer className="mt-8 border-t border-[#d9e1ec] pt-4 text-xs leading-relaxed text-slate-500">
+        <footer className="mt-6 border-t border-[#cad5e4] pt-3 text-[10px] leading-relaxed text-slate-500">
           {branding.footer_text}
         </footer>
       </article>
 
       <div className="coa-print-break" />
 
-      <article className="coa-print-page mx-auto w-full max-w-[8.5in] bg-white text-[13px] leading-relaxed text-[var(--brand-navy)]">
+      <article className="coa-print-page mx-auto w-full max-w-[8.27in] bg-white text-[12px] leading-relaxed text-[var(--brand-navy)]">
         <CoaHeader branding={branding} coa={coa} />
 
-        <div className="mt-6 rounded-xl border border-[#d9e1ec] bg-[#f8fbff] px-5 py-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+        <div className="mt-4 border border-[#cad5e4] bg-[#f8fbff] px-4 py-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
             Analytical Results & Quality Review
           </p>
-          <h3 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--brand-navy)]">
+          <h3 className="mt-1 text-[24px] font-semibold tracking-tight text-[var(--brand-navy)]">
             Analytical Results & Quality Review
           </h3>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">
+          <p className="mt-2 text-[11px] leading-relaxed text-slate-600">
             Batch-specific analytical summary aligned to the referenced release file set.
           </p>
         </div>
 
-        <div className="mt-6 space-y-6">
-          <section className="space-y-3">
-            <SectionTitle title="Analytical Test Results" />
-            <div className="overflow-hidden rounded-xl border border-[#d9e1ec]">
-              <table className="min-w-full border-collapse text-left text-sm">
+        <div className="mt-5 space-y-5">
+          <section className="space-y-2.5">
+            <SectionHeading title="Analytical Test Results" />
+            <div className="overflow-hidden border border-[#cad5e4]">
+              <table className="coa-print-table min-w-full border-collapse text-left text-[10.5px]">
                 <thead className="bg-[#f8fbff] text-[var(--brand-navy)]">
                   <tr>
-                    <th className="border-b border-[#d9e1ec] px-4 py-3 font-semibold">Test / Attribute</th>
-                    <th className="border-b border-[#d9e1ec] px-4 py-3 font-semibold">Method</th>
-                    <th className="border-b border-[#d9e1ec] px-4 py-3 font-semibold">Specification</th>
-                    <th className="border-b border-[#d9e1ec] px-4 py-3 font-semibold">Batch Result</th>
-                    <th className="border-b border-[#d9e1ec] px-4 py-3 font-semibold">Status</th>
+                    <th className="w-[18%] border-b border-[#cad5e4] px-3 py-2 font-semibold">
+                      Test / Attribute
+                    </th>
+                    <th className="w-[20%] border-b border-[#cad5e4] px-3 py-2 font-semibold">
+                      Method
+                    </th>
+                    <th className="w-[22%] border-b border-[#cad5e4] px-3 py-2 font-semibold">
+                      Specification
+                    </th>
+                    <th className="w-[26%] border-b border-[#cad5e4] px-3 py-2 font-semibold">
+                      Batch Result
+                    </th>
+                    <th className="w-[14%] border-b border-[#cad5e4] px-3 py-2 font-semibold">
+                      Status
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {analyticalRows.map((row) => (
                     <tr key={row.attribute} className="align-top">
-                      <td className="border-b border-[#d9e1ec] px-4 py-3 font-medium text-[var(--brand-navy)]">
+                      <td className="border-b border-[#cad5e4] px-3 py-2 font-medium text-[var(--brand-navy)]">
                         {row.attribute}
                       </td>
-                      <td className="border-b border-[#d9e1ec] px-4 py-3 text-slate-700">{row.method}</td>
-                      <td className="border-b border-[#d9e1ec] px-4 py-3 text-slate-700">{row.specification}</td>
-                      <td className="border-b border-[#d9e1ec] px-4 py-3 text-slate-700">
+                      <td className="border-b border-[#cad5e4] px-3 py-2 text-slate-700">
+                        {displayValue(row.method)}
+                      </td>
+                      <td className="border-b border-[#cad5e4] px-3 py-2 text-slate-700">
+                        {displayValue(row.specification)}
+                      </td>
+                      <td className="border-b border-[#cad5e4] px-3 py-2 text-slate-700">
                         {displayValue(row.result)}
                       </td>
-                      <td className="border-b border-[#d9e1ec] px-4 py-3 text-slate-700">
-                        {deriveAnalyticalStatus(row.result)}
+                      <td className="border-b border-[#cad5e4] px-3 py-2 text-slate-700">
+                        {displayValue(row.status)}
                       </td>
                     </tr>
                   ))}
@@ -362,29 +382,34 @@ export function CoaDocumentTemplate({
             </div>
           </section>
 
-          <section className="space-y-3">
-            <SectionTitle title="Analytical Records Referenced" />
-            <div className="overflow-hidden rounded-xl border border-[#d9e1ec]">
-              <table className="min-w-full border-collapse text-left text-sm">
+          <section className="space-y-2.5">
+            <SectionHeading title="Analytical Records Referenced" />
+            <div className="overflow-hidden border border-[#cad5e4]">
+              <table className="coa-print-table min-w-full border-collapse text-left text-[10.5px]">
                 <thead className="bg-[#f8fbff] text-[var(--brand-navy)]">
                   <tr>
-                    <th className="border-b border-[#d9e1ec] px-4 py-3 font-semibold">Reference</th>
-                    <th className="border-b border-[#d9e1ec] px-4 py-3 font-semibold">File / Archive</th>
+                    <th className="w-[30%] border-b border-[#cad5e4] px-3 py-2 font-semibold">
+                      Record Type
+                    </th>
+                    <th className="w-[45%] border-b border-[#cad5e4] px-3 py-2 font-semibold">
+                      Reference / File Name
+                    </th>
+                    <th className="w-[25%] border-b border-[#cad5e4] px-3 py-2 font-semibold">
+                      Availability
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    { label: "HPLC chromatogram", value: coa.hplcFileName },
-                    { label: "LC-MS identity report", value: coa.lcmsFileName },
-                    { label: "SDS / Safety Data Sheet", value: coa.sdsFileName },
-                    { label: "Raw data archive", value: coa.rawDataArchiveRef },
-                  ].map((row) => (
-                    <tr key={row.label}>
-                      <td className="border-b border-[#d9e1ec] px-4 py-3 font-medium text-[var(--brand-navy)]">
-                        {row.label}
+                  {analyticalRecordRows.map((row) => (
+                    <tr key={row.recordType}>
+                      <td className="border-b border-[#cad5e4] px-3 py-2 font-medium text-[var(--brand-navy)]">
+                        {row.recordType}
                       </td>
-                      <td className="border-b border-[#d9e1ec] px-4 py-3 text-slate-700">
-                        {displayValue(row.value)}
+                      <td className="border-b border-[#cad5e4] px-3 py-2 text-slate-700">
+                        {displayValue(row.referenceFileName)}
+                      </td>
+                      <td className="border-b border-[#cad5e4] px-3 py-2 text-slate-700">
+                        {displayValue(row.availability)}
                       </td>
                     </tr>
                   ))}
@@ -393,22 +418,23 @@ export function CoaDocumentTemplate({
             </div>
           </section>
 
-          <section className="space-y-3">
-            <SectionTitle title="Certification Statement" />
-            <div className="rounded-xl border border-[#d9e1ec] bg-[#f8fbff] px-4 py-4 text-sm leading-relaxed text-slate-700">
-              Atlas Labs confirms that the product identity, specifications and release status
-              listed in this document apply only to the batch/lot number referenced above.
-              Final certification requires completed batch-specific analytical records and
-              authorized signature. This document does not provide dosage, treatment, medical,
-              diagnostic, veterinary or human-use instructions.
+          <section className="space-y-2.5">
+            <SectionHeading title="Certification Statement" />
+            <div className="border border-[#cad5e4] bg-[#f8fbff] px-4 py-3 text-[11px] leading-relaxed text-slate-700">
+              Atlas Labs confirms that the product identity, specifications and release
+              status listed in this document apply only to the batch/lot number
+              referenced above. Final certification requires completed batch-specific
+              analytical records and authorized signature. This document does not
+              provide dosage, treatment, medical, diagnostic, veterinary or human-use
+              instructions.
             </div>
           </section>
 
-          <section className="space-y-3">
-            <SectionTitle title="Authorization" />
-            <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-              <div className="overflow-hidden rounded-xl border border-[#d9e1ec]">
-                <table className="min-w-full border-collapse text-left text-sm">
+          <section className="space-y-2.5">
+            <SectionHeading title="Authorization" />
+            <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="overflow-hidden border border-[#cad5e4]">
+                <table className="min-w-full border-collapse text-left text-[10.5px]">
                   <tbody>
                     {[
                       { label: "Prepared By", value: coa.createdBy },
@@ -425,10 +451,10 @@ export function CoaDocumentTemplate({
                       },
                     ].map((row) => (
                       <tr key={row.label}>
-                        <td className="border-b border-[#d9e1ec] px-4 py-3 font-medium text-[var(--brand-navy)]">
+                        <td className="w-[34%] border-b border-[#cad5e4] bg-[#f8fbff] px-3 py-2 font-medium text-[var(--brand-navy)]">
                           {row.label}
                         </td>
-                        <td className="border-b border-[#d9e1ec] px-4 py-3 text-slate-700">
+                        <td className="border-b border-[#cad5e4] px-3 py-2 text-slate-700">
                           {displayValue(row.value)}
                         </td>
                       </tr>
@@ -437,41 +463,43 @@ export function CoaDocumentTemplate({
                 </table>
               </div>
 
-              <div className="space-y-4 rounded-xl border border-[#d9e1ec] bg-[#f8fbff] p-4">
-                {branding.seal_url ? (
-                  <img
-                    src={branding.seal_url}
-                    alt={`${branding.company_name} seal`}
-                    className="max-h-24 w-auto object-contain"
-                  />
-                ) : (
-                  <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-[#9eb8ff] bg-white text-center text-sm font-medium text-[var(--brand-navy)]">
-                    Atlas Labs Seal / Stamp
+              <div className="border border-[#cad5e4] bg-[#f8fbff] p-4">
+                <div className="space-y-4">
+                  {branding.seal_url ? (
+                    <img
+                      src={branding.seal_url}
+                      alt={`${branding.company_name} seal`}
+                      className="max-h-20 w-auto object-contain"
+                    />
+                  ) : (
+                    <div className="flex h-20 items-center justify-center border border-dashed border-[#9eb8ff] bg-white text-center text-[11px] font-medium text-[var(--brand-navy)]">
+                      Atlas Labs Seal / Stamp
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+                      Verification URL
+                    </p>
+                    <p className="mt-2 break-all text-[10.5px] leading-relaxed text-slate-700">
+                      {verificationUrl}
+                    </p>
                   </div>
-                )}
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
-                    Verification URL
-                  </p>
-                  <p className="mt-2 break-all text-sm leading-relaxed text-slate-700">
-                    {verificationUrl}
-                  </p>
-                </div>
-                <div className="rounded-xl bg-white p-3">
-                  <QRCode
-                    value={verificationUrl}
-                    size={128}
-                    style={{ height: "auto", width: "100%" }}
-                    fgColor="#0A1A2F"
-                    bgColor="#FFFFFF"
-                  />
+                  <div className="mx-auto w-full max-w-[156px] bg-white p-3">
+                    <QRCode
+                      value={verificationUrl}
+                      size={132}
+                      style={{ height: "auto", width: "100%" }}
+                      fgColor="#0A1A2F"
+                      bgColor="#FFFFFF"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </section>
         </div>
 
-        <footer className="mt-8 border-t border-[#d9e1ec] pt-4 text-xs leading-relaxed text-slate-500">
+        <footer className="mt-6 border-t border-[#cad5e4] pt-3 text-[10px] leading-relaxed text-slate-500">
           {branding.footer_text}
         </footer>
       </article>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   CopyIcon,
+  CopyPlusIcon,
   ExternalLinkIcon,
   PlusIcon,
   PrinterIcon,
@@ -10,6 +11,7 @@ import {
   Settings2Icon,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { AdminGuard } from "@/components/admin/admin-guard";
@@ -17,7 +19,11 @@ import { CoaStatusBadge } from "@/components/admin/coa-status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { listCoaVerificationRows, verificationStatusOptions } from "@/lib/coa-verification-admin";
+import {
+  duplicateCoaVerificationRecord,
+  listCoaVerificationRows,
+  verificationStatusOptions,
+} from "@/lib/coa-verification-admin";
 import type { CoaVerificationRow, CoaVerificationStatus } from "@/lib/coa-verification";
 import type { BreadcrumbItem } from "@/lib/seo";
 
@@ -60,6 +66,7 @@ function AdminCoaVerificationIndex({
 }: {
   supabase: SupabaseClient;
 }) {
+  const router = useRouter();
   const [rows, setRows] = useState<CoaVerificationRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -130,6 +137,33 @@ function AdminCoaVerificationIndex({
     await navigator.clipboard.writeText(verificationUrl);
     setCopyMessage(`Verification URL copied for ${row.coa_number}.`);
     window.setTimeout(() => setCopyMessage(null), 2500);
+  }
+
+  async function handleDuplicate(row: CoaVerificationRow) {
+    if (
+      !window.confirm(
+        "You are duplicating this COA as a new record. A new COA number, verification code, and verification URL will be generated."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const duplicatedRecord = await duplicateCoaVerificationRecord(supabase, row.id);
+
+      if (!duplicatedRecord) {
+        throw new Error("The duplicated COA record was not returned after creation.");
+      }
+
+      router.push(`/admin/coa-verifications/${duplicatedRecord.id}/edit?duplicated=1`);
+      router.refresh();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "The COA record could not be duplicated."
+      );
+    }
   }
 
   return (
@@ -269,6 +303,15 @@ function AdminCoaVerificationIndex({
                         >
                           <CopyIcon className="mr-1 size-3.5" />
                           Copy Verification URL
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDuplicate(row)}
+                          className="border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+                        >
+                          <CopyPlusIcon className="mr-1 size-3.5" />
+                          Duplicate / Copy as New
                         </Button>
                       </div>
                     </td>

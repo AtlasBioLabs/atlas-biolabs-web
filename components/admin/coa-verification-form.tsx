@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   CopyIcon,
+  CopyPlusIcon,
   ExternalLinkIcon,
   EyeIcon,
   RefreshCcwIcon,
@@ -11,20 +12,35 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { CoaAnalyticalRecordsEditor } from "@/components/admin/coa-analytical-records-editor";
+import { CoaAnalyticalResultsEditor } from "@/components/admin/coa-analytical-results-editor";
 import { CoaStatusBadge } from "@/components/admin/coa-status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  analyticalBatchResultPresets,
+  analyticalMethodPresets,
+  analyticalRecordAvailabilityPresets,
+  analyticalSpecificationPresets,
+  analyticalStatusPresets,
+  buildDefaultAnalyticalRecordRows,
+  buildDefaultAnalyticalTestRows,
+  type CoaAnalyticalRecordDraftRow,
+  type CoaAnalyticalTestDraftRow,
+} from "@/lib/coa-fixed-rows";
+import {
+  buildCoaNumberFromVerificationCode,
   buildPublicVerificationPath,
   buildVerificationUrl,
   createCoaVerificationRecord,
+  duplicateCoaVerificationRecord,
   generateVerificationCode,
   getCoaAdminWarnings,
-  getCoaVerificationRowById,
+  getCoaVerificationEditorData,
   getDefaultCoaFormValues,
-  mapRowToFormValues,
   releaseDecisionOptions,
+  syncSummaryFieldsFromAnalyticalTables,
   updateCoaVerificationRecord,
   verificationStatusOptions,
   type CoaVerificationFormValues,
@@ -44,7 +60,7 @@ type FieldConfig = {
   textarea?: boolean;
   placeholder?: string;
   readOnly?: boolean;
-  type?: "text" | "select-release" | "select-status";
+  datalistOptions?: readonly string[];
 };
 
 type FormSection = {
@@ -57,13 +73,11 @@ const inputClassName =
   "h-11 border-[#d5def0] bg-white px-4 text-[var(--brand-navy)] placeholder:text-slate-400";
 const textareaClassName =
   "min-h-28 w-full rounded-lg border border-[#d5def0] bg-white px-4 py-3 text-sm text-[var(--brand-navy)] outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40";
-const selectClassName =
-  "h-11 w-full rounded-lg border border-[#d5def0] bg-white px-4 text-sm text-[var(--brand-navy)] outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40";
 
 const formSections: FormSection[] = [
   {
     title: "Header / Document Control",
-    description: "Document identifiers, public verification routing, and header release markers.",
+    description: "Document identifiers, public verification routing, and release header fields.",
     fields: [
       { name: "coa_number", label: "COA Number", required: true },
       { name: "verification_code", label: "Verification Code", required: true },
@@ -79,25 +93,19 @@ const formSections: FormSection[] = [
         name: "verification_status",
         label: "Verification Status",
         required: true,
-        type: "select-status",
+        datalistOptions: verificationStatusOptions,
       },
       {
         name: "release_decision",
         label: "Release Decision",
         required: true,
-        type: "select-release",
-      },
-      {
-        name: "verification_message",
-        label: "Verification Message",
-        required: true,
-        textarea: true,
+        datalistOptions: releaseDecisionOptions,
       },
     ],
   },
   {
     title: "Product Identification",
-    description: "Core product identity, presentation, and storage details shown on page 1.",
+    description: "Core product identity, specification, and storage details shown on page 1.",
     fields: [
       { name: "product_name", label: "Product Name", required: true },
       { name: "catalog_code", label: "Catalog Code", required: true },
@@ -106,7 +114,11 @@ const formSections: FormSection[] = [
       { name: "molecular_weight", label: "Molecular Weight" },
       { name: "molecular_formula", label: "Molecular Formula" },
       { name: "physical_form", label: "Physical Form" },
-      { name: "appearance_spec", label: "Appearance Spec" },
+      {
+        name: "appearance_spec",
+        label: "Appearance Spec",
+        datalistOptions: analyticalSpecificationPresets,
+      },
       { name: "grade_scope", label: "Grade / Scope" },
       { name: "pack_size", label: "Pack Size" },
       { name: "storage", label: "Storage" },
@@ -141,49 +153,6 @@ const formSections: FormSection[] = [
     ],
   },
   {
-    title: "Release Snapshot",
-    description: "The visible batch release summary displayed on page 1.",
-    fields: [
-      { name: "identity_result", label: "Identity Result", required: true, textarea: true },
-      { name: "hplc_purity", label: "HPLC Purity", required: true },
-      { name: "water_content", label: "Water Content", required: true },
-    ],
-  },
-  {
-    title: "Analytical Test Results",
-    description: "Page 2 analytical result statements that support the release review summary.",
-    fields: [
-      { name: "appearance_result", label: "Appearance Result", textarea: true },
-      { name: "purity_result", label: "Purity Result", textarea: true },
-      { name: "peptide_content_result", label: "Peptide Content Result", textarea: true },
-      { name: "counter_ion_result", label: "Counter-ion Result", textarea: true },
-      {
-        name: "residual_solvents_result",
-        label: "Residual Solvents Result",
-        textarea: true,
-      },
-      { name: "heavy_metals_result", label: "Heavy Metals Result", textarea: true },
-      { name: "microbial_limits_result", label: "Microbial Limits Result", textarea: true },
-      {
-        name: "endotoxin_sterility_result",
-        label: "Endotoxin / Sterility Result",
-        textarea: true,
-      },
-    ],
-  },
-  {
-    title: "Analytical Records Referenced",
-    description: "Referenced file names, archive references, and URL placeholders used on page 2.",
-    fields: [
-      { name: "hplc_file_name", label: "HPLC File Name" },
-      { name: "lcms_file_name", label: "LC-MS File Name" },
-      { name: "sds_file_name", label: "SDS File Name" },
-      { name: "raw_data_archive_ref", label: "Raw Data Archive Reference" },
-      { name: "coa_pdf_url", label: "COA PDF URL" },
-      { name: "qr_code_url", label: "QR Code URL" },
-    ],
-  },
-  {
     title: "Authorization",
     description: "Internal preparation, review, and approval references displayed in the certification block.",
     fields: [
@@ -191,9 +160,28 @@ const formSections: FormSection[] = [
       { name: "reviewed_by", label: "Reviewed By" },
       { name: "approved_by", label: "Approved By" },
       { name: "approved_at", label: "Approved At" },
+      { name: "coa_pdf_url", label: "COA PDF URL" },
+      { name: "qr_code_url", label: "QR Code URL" },
     ],
   },
 ];
+
+function SummaryCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl border border-[#d9e1ec] bg-[#f8fbff] px-4 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-blue)]">
+        {label}
+      </p>
+      <p className="mt-2 text-sm font-medium text-[var(--brand-navy)]">{value || "Pending"}</p>
+    </div>
+  );
+}
 
 export function CoaVerificationForm({
   supabase,
@@ -202,25 +190,29 @@ export function CoaVerificationForm({
 }: CoaVerificationFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<CoaVerificationFormValues>(getDefaultCoaFormValues);
+  const [analyticalResults, setAnalyticalResults] = useState<CoaAnalyticalTestDraftRow[]>(
+    () => buildDefaultAnalyticalTestRows(getDefaultCoaFormValues())
+  );
+  const [analyticalRecords, setAnalyticalRecords] = useState<CoaAnalyticalRecordDraftRow[]>(
+    () => buildDefaultAnalyticalRecordRows(getDefaultCoaFormValues())
+  );
   const [isLoading, setIsLoading] = useState(mode === "edit");
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
 
   const warnings = useMemo(() => getCoaAdminWarnings(values), [values]);
   const publicVerificationPath = buildPublicVerificationPath(values.verification_code);
-  const printRoute = recordId
-    ? `/admin/coa-verifications/${recordId}/print`
-    : null;
+  const printRoute = recordId ? `/admin/coa-verifications/${recordId}/print` : null;
 
   useEffect(() => {
     if (mode !== "edit" || !recordId) {
       return;
     }
 
-    const safeRecordId = recordId;
     let isMounted = true;
 
     async function loadRecord() {
@@ -228,24 +220,28 @@ export function CoaVerificationForm({
       setFormError(null);
 
       try {
-        const row = await getCoaVerificationRowById(supabase, safeRecordId);
+        const editorData = await getCoaVerificationEditorData(supabase, recordId);
 
         if (!isMounted) {
           return;
         }
 
-        if (!row) {
+        if (!editorData) {
           setFormError("The requested COA record could not be found.");
           setIsLoading(false);
           return;
         }
 
-        const nextValues = mapRowToFormValues(row);
-        nextValues.verification_url = buildVerificationUrl(
-          nextValues.verification_code,
-          window.location.origin
-        );
+        const nextValues = {
+          ...editorData.values,
+          verification_url: buildVerificationUrl(
+            editorData.values.verification_code,
+            window.location.origin
+          ),
+        };
         setValues(nextValues);
+        setAnalyticalResults(editorData.analyticalResults);
+        setAnalyticalRecords(editorData.analyticalRecords);
       } catch (error) {
         if (!isMounted) {
           return;
@@ -270,12 +266,23 @@ export function CoaVerificationForm({
     };
   }, [mode, recordId, supabase]);
 
+  function commitAnalyticalState(
+    nextResults: CoaAnalyticalTestDraftRow[],
+    nextRecords: CoaAnalyticalRecordDraftRow[]
+  ) {
+    setAnalyticalResults(nextResults);
+    setAnalyticalRecords(nextRecords);
+    setValues((currentValues) =>
+      syncSummaryFieldsFromAnalyticalTables(currentValues, nextResults, nextRecords)
+    );
+  }
+
   function updateField(name: keyof CoaVerificationFormValues, value: string) {
     setValues((currentValues) => {
       const nextValues = {
         ...currentValues,
         [name]: value,
-      };
+      } as CoaVerificationFormValues;
 
       if (name === "verification_code") {
         nextValues.verification_code = value.toUpperCase();
@@ -283,10 +290,38 @@ export function CoaVerificationForm({
           nextValues.verification_code,
           typeof window !== "undefined" ? window.location.origin : null
         );
+
+        if (!currentValues.coa_number.trim()) {
+          nextValues.coa_number = buildCoaNumberFromVerificationCode(
+            nextValues.verification_code
+          );
+        }
       }
 
       return nextValues;
     });
+  }
+
+  function updateAnalyticalResultRow(
+    rowKey: CoaAnalyticalTestDraftRow["row_key"],
+    field: "method" | "specification" | "batch_result" | "status",
+    value: string
+  ) {
+    const nextResults = analyticalResults.map((row) =>
+      row.row_key === rowKey ? { ...row, [field]: value } : row
+    );
+    commitAnalyticalState(nextResults, analyticalRecords);
+  }
+
+  function updateAnalyticalRecordRow(
+    rowKey: CoaAnalyticalRecordDraftRow["row_key"],
+    field: "reference_file_name" | "availability",
+    value: string
+  ) {
+    const nextRecords = analyticalRecords.map((row) =>
+      row.row_key === rowKey ? { ...row, [field]: value } : row
+    );
+    commitAnalyticalState(analyticalResults, nextRecords);
   }
 
   async function handleGenerateCode() {
@@ -311,6 +346,9 @@ export function CoaVerificationForm({
           verificationCode,
           typeof window !== "undefined" ? window.location.origin : null
         ),
+        coa_number:
+          currentValues.coa_number.trim() ||
+          buildCoaNumberFromVerificationCode(verificationCode),
       }));
     } catch (error) {
       setFormError(
@@ -341,6 +379,42 @@ export function CoaVerificationForm({
     window.setTimeout(() => setCopyMessage(null), 2500);
   }
 
+  async function handleDuplicateRecord() {
+    if (!recordId) {
+      return;
+    }
+
+    if (
+      !window.confirm(
+        "You are duplicating this COA as a new record. A new COA number, verification code, and verification URL will be generated."
+      )
+    ) {
+      return;
+    }
+
+    setIsDuplicating(true);
+    setFormError(null);
+
+    try {
+      const duplicatedRecord = await duplicateCoaVerificationRecord(supabase, recordId);
+
+      if (!duplicatedRecord) {
+        throw new Error("The duplicated COA record was not returned after creation.");
+      }
+
+      router.push(`/admin/coa-verifications/${duplicatedRecord.id}/edit?duplicated=1`);
+      router.refresh();
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "The COA record could not be duplicated."
+      );
+    } finally {
+      setIsDuplicating(false);
+    }
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
@@ -358,17 +432,24 @@ export function CoaVerificationForm({
     setIsSaving(true);
 
     try {
-      const nextValues = {
-        ...values,
-        verification_code: values.verification_code.trim().toUpperCase(),
-        verification_url: buildVerificationUrl(
-          values.verification_code,
-          window.location.origin
-        ),
-      };
+      const nextValues = syncSummaryFieldsFromAnalyticalTables(
+        {
+          ...values,
+          verification_code: values.verification_code.trim().toUpperCase(),
+          verification_url: buildVerificationUrl(
+            values.verification_code,
+            window.location.origin
+          ),
+        },
+        analyticalResults,
+        analyticalRecords
+      );
 
       if (mode === "create") {
-        const createdRecord = await createCoaVerificationRecord(supabase, nextValues);
+        const createdRecord = await createCoaVerificationRecord(supabase, nextValues, {
+          analyticalResults,
+          analyticalRecords,
+        });
 
         if (!createdRecord) {
           throw new Error("The COA record was not returned after creation.");
@@ -383,7 +464,10 @@ export function CoaVerificationForm({
         throw new Error("Record id is required for edits.");
       }
 
-      await updateCoaVerificationRecord(supabase, recordId, nextValues);
+      await updateCoaVerificationRecord(supabase, recordId, nextValues, {
+        analyticalResults,
+        analyticalRecords,
+      });
       setFormSuccess("COA record updated successfully.");
       router.refresh();
     } catch (error) {
@@ -396,6 +480,8 @@ export function CoaVerificationForm({
   }
 
   function renderField(field: FieldConfig) {
+    const datalistId = `coa-${field.name}-options`;
+
     if (field.name === "verification_code") {
       return (
         <div className="space-y-3">
@@ -429,40 +515,6 @@ export function CoaVerificationForm({
       );
     }
 
-    if (field.type === "select-release") {
-      return (
-        <select
-          id={field.name}
-          value={values.release_decision}
-          onChange={(event) => updateField(field.name, event.target.value)}
-          className={selectClassName}
-        >
-          {releaseDecisionOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      );
-    }
-
-    if (field.type === "select-status") {
-      return (
-        <select
-          id={field.name}
-          value={values.verification_status}
-          onChange={(event) => updateField(field.name, event.target.value)}
-          className={selectClassName}
-        >
-          {verificationStatusOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      );
-    }
-
     if (field.readOnly) {
       return (
         <Input
@@ -489,14 +541,24 @@ export function CoaVerificationForm({
     }
 
     return (
-      <Input
-        id={field.name}
-        value={values[field.name]}
-        onChange={(event) => updateField(field.name, event.target.value)}
-        required={field.required}
-        placeholder={field.placeholder}
-        className={inputClassName}
-      />
+      <>
+        <Input
+          id={field.name}
+          list={field.datalistOptions ? datalistId : undefined}
+          value={values[field.name]}
+          onChange={(event) => updateField(field.name, event.target.value)}
+          required={field.required}
+          placeholder={field.placeholder}
+          className={inputClassName}
+        />
+        {field.datalistOptions ? (
+          <datalist id={datalistId}>
+            {field.datalistOptions.map((option) => (
+              <option key={option} value={option} />
+            ))}
+          </datalist>
+        ) : null}
+      </>
     );
   }
 
@@ -535,6 +597,18 @@ export function CoaVerificationForm({
                 <CopyIcon className="mr-1 size-4" />
                 Copy Verification URL
               </Button>
+              {recordId ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+                  onClick={handleDuplicateRecord}
+                  disabled={isDuplicating}
+                >
+                  <CopyPlusIcon className="mr-1 size-4" />
+                  {isDuplicating ? "Duplicating..." : "Duplicate / Copy as New"}
+                </Button>
+              ) : null}
               {printRoute ? (
                 <Button
                   asChild
@@ -613,7 +687,7 @@ export function CoaVerificationForm({
 
       <Card className="surface-card border p-0">
         <CardContent className="space-y-8 py-6">
-          {formSections.map((section) => (
+          {formSections.slice(0, 3).map((section) => (
             <section
               key={section.title}
               className="space-y-4 border-b border-border/70 pb-8 last:border-b-0 last:pb-0"
@@ -644,6 +718,104 @@ export function CoaVerificationForm({
               </div>
             </section>
           ))}
+
+          <section className="space-y-4 border-b border-border/70 pb-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+                Release Snapshot
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                The public verification summary and page-1 release snapshot stay synced
+                from the fixed analytical table below.
+              </p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <SummaryCard label="Verification Status" value={values.verification_status} />
+              <SummaryCard label="Release Decision" value={values.release_decision} />
+              <SummaryCard label="Identity Summary" value={values.identity_result} />
+              <SummaryCard label="HPLC Purity Summary" value={values.hplc_purity} />
+              <SummaryCard label="Water Content Summary" value={values.water_content} />
+            </div>
+            <div className="space-y-2">
+              <label
+                className="text-sm font-medium text-[var(--brand-navy)]"
+                htmlFor="verification_message"
+              >
+                Verification Message
+              </label>
+              <textarea
+                id="verification_message"
+                value={values.verification_message}
+                onChange={(event) => updateField("verification_message", event.target.value)}
+                required
+                className={textareaClassName}
+              />
+            </div>
+          </section>
+
+          <section className="space-y-4 border-b border-border/70 pb-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+                Analytical Test Results
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Fixed analytical rows mirror the printable COA. Row labels are locked,
+                but methods, specifications, batch results, and status remain editable.
+              </p>
+            </div>
+            <CoaAnalyticalResultsEditor
+              rows={analyticalResults}
+              methodOptions={analyticalMethodPresets}
+              specificationOptions={analyticalSpecificationPresets}
+              batchResultOptions={analyticalBatchResultPresets}
+              statusOptions={analyticalStatusPresets}
+              onChange={updateAnalyticalResultRow}
+            />
+          </section>
+
+          <section className="space-y-4 border-b border-border/70 pb-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+                Analytical Records Referenced
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Fixed reference rows stay aligned with the COA template while allowing
+                batch-specific file names and access notes to be updated.
+              </p>
+            </div>
+            <CoaAnalyticalRecordsEditor
+              rows={analyticalRecords}
+              availabilityOptions={analyticalRecordAvailabilityPresets}
+              onChange={updateAnalyticalRecordRow}
+            />
+          </section>
+
+          <section className="space-y-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+                Authorization
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Internal preparation, review, and approval references displayed in the certification block.
+              </p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {formSections[3]?.fields.map((field) => (
+                <div
+                  key={field.name}
+                  className={cn("space-y-2", field.textarea ? "md:col-span-2" : "")}
+                >
+                  <label
+                    className="text-sm font-medium text-[var(--brand-navy)]"
+                    htmlFor={field.name}
+                  >
+                    {field.label}
+                  </label>
+                  {renderField(field)}
+                </div>
+              ))}
+            </div>
+          </section>
         </CardContent>
       </Card>
     </form>

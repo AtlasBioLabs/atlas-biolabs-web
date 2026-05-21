@@ -278,9 +278,18 @@
 
   .coa-print-page {
     border: 1px solid rgb(10 26 47 / 14%);
-    border-radius: 1.25rem;
-    padding: 1.1rem;
+    border-radius: 0.5rem;
+    padding: 0.8rem;
     box-shadow: 0 18px 46px -38px rgb(10 26 47 / 35%);
+  }
+
+  .coa-print-page section,
+  .coa-print-table,
+  .coa-print-table tr,
+  .coa-print-table td,
+  .coa-print-table th {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .coa-print-break {
@@ -324,7 +333,7 @@
     max-width: none !important;
     border-radius: 0 !important;
     margin: 0 !important;
-    padding: 10mm !important;
+    padding: 7mm !important;
     break-inside: avoid;
     page-break-inside: avoid;
   }

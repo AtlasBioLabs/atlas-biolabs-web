@@ -1,5 +1,14 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
+import {
+  buildDefaultAnalyticalRecordRows,
+  buildDefaultAnalyticalTestRows,
+  deriveAnalyticalStatusValue,
+  type CoaAnalyticalRecordDraftRow,
+  type CoaAnalyticalRecordRowKey,
+  type CoaAnalyticalTestDraftRow,
+  type CoaAnalyticalTestRowKey,
+} from "@/lib/coa-fixed-rows";
 import type {
   CoaReleaseDecision,
   CoaVerificationRecord,
@@ -70,10 +79,54 @@ export type CoaVerificationFormValues = {
   approved_at: string;
 };
 
+export type CoaAnalyticalTestResultRow = {
+  id: string;
+  coa_verification_id: string;
+  row_key: CoaAnalyticalTestRowKey;
+  position: number;
+  test_attribute: string;
+  method: string | null;
+  specification: string | null;
+  batch_result: string | null;
+  status: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type CoaAnalyticalRecordRow = {
+  id: string;
+  coa_verification_id: string;
+  row_key: CoaAnalyticalRecordRowKey;
+  position: number;
+  record_type: string;
+  reference_file_name: string | null;
+  availability: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type CoaVerificationEditorData = {
+  row: CoaVerificationRow;
+  values: CoaVerificationFormValues;
+  analyticalResults: CoaAnalyticalTestDraftRow[];
+  analyticalRecords: CoaAnalyticalRecordDraftRow[];
+};
+
 type CoaVerificationMutationPayload = Omit<
   CoaVerificationRow,
   "id" | "created_at" | "updated_at"
 >;
+
+type GenerateCodeInput = {
+  supabase: SupabaseClient;
+  catalogCode: string;
+  year?: number;
+};
+
+type SaveCoaRecordOptions = {
+  analyticalResults?: CoaAnalyticalTestDraftRow[];
+  analyticalRecords?: CoaAnalyticalRecordDraftRow[];
+};
 
 const legacyCoaVerificationColumns = new Set([
   "coa_number",
@@ -113,12 +166,8 @@ const legacyCoaVerificationColumns = new Set([
 ]);
 
 let extendedCoaSchemaSupport: boolean | null = null;
-
-type GenerateCodeInput = {
-  supabase: SupabaseClient;
-  catalogCode: string;
-  year?: number;
-};
+let analyticalTestResultsSupport: boolean | null = null;
+let analyticalRecordsSupport: boolean | null = null;
 
 export const verificationStatusOptions: CoaVerificationStatus[] = [
   "Draft",
@@ -289,11 +338,9 @@ export function buildVerificationUrl(
   }
 
   const normalizedBase = siteUrl.replace(/\/$/, "");
-  const verificationPath = normalizedBase.endsWith("/verify")
+  return normalizedBase.endsWith("/verify")
     ? `${normalizedBase}/${encodeURIComponent(normalizedCode)}`
     : `${normalizedBase}/verify/${encodeURIComponent(normalizedCode)}`;
-
-  return verificationPath;
 }
 
 export function buildPublicVerificationPath(verificationCode: string) {
@@ -328,6 +375,24 @@ export function resolveVerificationUrl({
   );
 }
 
+export function buildCoaNumberFromVerificationCode(verificationCode: string) {
+  const normalizedCode = verificationCode.trim().toUpperCase();
+
+  if (!normalizedCode) {
+    return "";
+  }
+
+  const parts = normalizedCode.split("-");
+  return parts.length >= 4
+    ? `COA-${parts.slice(0, 4).join("-")}`
+    : `COA-${normalizedCode}`;
+}
+
+export function buildDuplicateBatchLotNo(batchLotNo: string) {
+  const normalizedBatchLot = batchLotNo.trim();
+  return normalizedBatchLot ? `${normalizedBatchLot}-DRAFT` : "";
+}
+
 export function getCoaStatusLabel(status: CoaVerificationStatus) {
   switch (status) {
     case "Released / Verified":
@@ -348,42 +413,44 @@ export function getCoaStatusLabel(status: CoaVerificationStatus) {
 }
 
 export function deriveAnalyticalStatus(value?: string | null) {
-  const normalizedValue = value?.trim().toLowerCase() ?? "";
+  return deriveAnalyticalStatusValue(value);
+}
 
-  if (!normalizedValue) {
-    return "Pending";
-  }
+export function syncSummaryFieldsFromAnalyticalTables(
+  values: CoaVerificationFormValues,
+  analyticalResults: CoaAnalyticalTestDraftRow[],
+  analyticalRecords: CoaAnalyticalRecordDraftRow[]
+) {
+  const nextValues = { ...values };
+  const analyticalResultMap = new Map(
+    analyticalResults.map((row) => [row.row_key, row])
+  );
+  const analyticalRecordMap = new Map(
+    analyticalRecords.map((row) => [row.row_key, row])
+  );
+  const getBatchResult = (rowKey: CoaAnalyticalTestDraftRow["row_key"]) =>
+    analyticalResultMap.get(rowKey)?.batch_result?.trim() ?? "";
+  const getReferenceFileName = (rowKey: CoaAnalyticalRecordDraftRow["row_key"]) =>
+    analyticalRecordMap.get(rowKey)?.reference_file_name?.trim() ?? "";
 
-  if (normalizedValue.includes("pending")) {
-    return "Pending";
-  }
+  nextValues.appearance_result = getBatchResult("appearance");
+  nextValues.identity_result = getBatchResult("identity");
+  nextValues.hplc_purity = getBatchResult("purity");
+  nextValues.purity_result = getBatchResult("purity");
+  nextValues.peptide_content_result = getBatchResult("peptide_content");
+  nextValues.water_content = getBatchResult("water_content");
+  nextValues.counter_ion_result = getBatchResult("counter_ion");
+  nextValues.residual_solvents_result = getBatchResult("residual_solvents");
+  nextValues.heavy_metals_result = getBatchResult("heavy_metals");
+  nextValues.microbial_limits_result = getBatchResult("microbial_limits");
+  nextValues.endotoxin_sterility_result = getBatchResult("endotoxin_sterility");
 
-  if (
-    normalizedValue.includes("not included") ||
-    normalizedValue === "n/a" ||
-    normalizedValue.includes("not applicable")
-  ) {
-    return "Not Included";
-  }
+  nextValues.hplc_file_name = getReferenceFileName("hplc_chromatogram");
+  nextValues.lcms_file_name = getReferenceFileName("lcms_identity_report");
+  nextValues.sds_file_name = getReferenceFileName("sds_safety_data_sheet");
+  nextValues.raw_data_archive_ref = getReferenceFileName("raw_data_archive");
 
-  if (
-    normalizedValue.includes("conform") ||
-    normalizedValue.includes("meets") ||
-    normalizedValue.includes("pass") ||
-    normalizedValue.includes("complies")
-  ) {
-    return "Conforms";
-  }
-
-  if (
-    normalizedValue.includes("rejected") ||
-    normalizedValue.includes("revoke") ||
-    normalizedValue.includes("deviation")
-  ) {
-    return "Review";
-  }
-
-  return "Reported";
+  return nextValues;
 }
 
 export function getCoaAdminWarnings(values: CoaVerificationFormValues) {
@@ -444,8 +511,8 @@ export function getCoaPrintWarnings(
     record.heavyMetalsResult,
   ];
 
-  const hasPending = valuesToCheck.some(
-    (value) => value?.toLowerCase().includes("pending")
+  const hasPending = valuesToCheck.some((value) =>
+    value?.toLowerCase().includes("pending")
   );
 
   return hasPending
@@ -518,11 +585,97 @@ export async function getCoaVerificationRowById(
   return (data as CoaVerificationRow | null) ?? null;
 }
 
+export async function listCoaAnalyticalTestResultRows(
+  supabase: SupabaseClient,
+  coaVerificationId: string
+) {
+  if (!(await detectAnalyticalTestResultsSupport(supabase))) {
+    return [] as CoaAnalyticalTestResultRow[];
+  }
+
+  const { data, error } = await supabase
+    .from("coa_analytical_test_results")
+    .select("*")
+    .eq("coa_verification_id", coaVerificationId)
+    .order("position", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as CoaAnalyticalTestResultRow[];
+}
+
+export async function listCoaAnalyticalRecordRows(
+  supabase: SupabaseClient,
+  coaVerificationId: string
+) {
+  if (!(await detectAnalyticalRecordsSupport(supabase))) {
+    return [] as CoaAnalyticalRecordRow[];
+  }
+
+  const { data, error } = await supabase
+    .from("coa_analytical_records")
+    .select("*")
+    .eq("coa_verification_id", coaVerificationId)
+    .order("position", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as CoaAnalyticalRecordRow[];
+}
+
+export async function getCoaVerificationEditorData(
+  supabase: SupabaseClient,
+  id: string
+): Promise<CoaVerificationEditorData | null> {
+  const row = await getCoaVerificationRowById(supabase, id);
+
+  if (!row) {
+    return null;
+  }
+
+  const values = mapRowToFormValues(row);
+  const analyticalResults = await ensureFixedAnalyticalTestRows(
+    supabase,
+    id,
+    values
+  );
+  const analyticalRecords = await ensureFixedAnalyticalRecordRows(
+    supabase,
+    id,
+    values
+  );
+
+  return {
+    row,
+    values: syncSummaryFieldsFromAnalyticalTables(
+      values,
+      analyticalResults,
+      analyticalRecords
+    ),
+    analyticalResults,
+    analyticalRecords,
+  };
+}
+
 export async function createCoaVerificationRecord(
   supabase: SupabaseClient,
-  values: CoaVerificationFormValues
+  values: CoaVerificationFormValues,
+  options: SaveCoaRecordOptions = {}
 ) {
-  const payload = toMutationPayload(values);
+  const analyticalResults =
+    options.analyticalResults ?? buildDefaultAnalyticalTestRows(values);
+  const analyticalRecords =
+    options.analyticalRecords ?? buildDefaultAnalyticalRecordRows(values);
+  const syncedValues = syncSummaryFieldsFromAnalyticalTables(
+    values,
+    analyticalResults,
+    analyticalRecords
+  );
+  const payload = toMutationPayload(syncedValues);
   const compatiblePayload = await getCompatibleCoaMutationPayload(
     supabase,
     payload
@@ -538,15 +691,38 @@ export async function createCoaVerificationRecord(
     throw error;
   }
 
-  return (data as CoaVerificationRow | null) ?? null;
+  const createdRow = (data as CoaVerificationRow | null) ?? null;
+
+  if (!createdRow) {
+    return null;
+  }
+
+  await persistFixedAnalyticalRows(
+    supabase,
+    createdRow.id,
+    analyticalResults,
+    analyticalRecords
+  );
+
+  return createdRow;
 }
 
 export async function updateCoaVerificationRecord(
   supabase: SupabaseClient,
   id: string,
-  values: CoaVerificationFormValues
+  values: CoaVerificationFormValues,
+  options: SaveCoaRecordOptions = {}
 ) {
-  const payload = toMutationPayload(values);
+  const analyticalResults =
+    options.analyticalResults ?? buildDefaultAnalyticalTestRows(values);
+  const analyticalRecords =
+    options.analyticalRecords ?? buildDefaultAnalyticalRecordRows(values);
+  const syncedValues = syncSummaryFieldsFromAnalyticalTables(
+    values,
+    analyticalResults,
+    analyticalRecords
+  );
+  const payload = toMutationPayload(syncedValues);
   const compatiblePayload = await getCompatibleCoaMutationPayload(
     supabase,
     payload
@@ -563,7 +739,61 @@ export async function updateCoaVerificationRecord(
     throw error;
   }
 
+  await persistFixedAnalyticalRows(
+    supabase,
+    id,
+    analyticalResults,
+    analyticalRecords
+  );
+
   return (data as CoaVerificationRow | null) ?? null;
+}
+
+export async function duplicateCoaVerificationRecord(
+  supabase: SupabaseClient,
+  id: string
+) {
+  const source = await getCoaVerificationEditorData(supabase, id);
+
+  if (!source) {
+    throw new Error("The source COA record could not be found.");
+  }
+
+  const nextVerificationCode = await generateVerificationCode({
+    supabase,
+    catalogCode: source.values.catalog_code,
+  });
+
+  const duplicatedValues = syncSummaryFieldsFromAnalyticalTables(
+    {
+      ...source.values,
+      coa_number: buildCoaNumberFromVerificationCode(nextVerificationCode),
+      verification_code: nextVerificationCode,
+      verification_url: buildVerificationUrl(nextVerificationCode),
+      batch_lot_no: buildDuplicateBatchLotNo(source.values.batch_lot_no),
+      verification_status: "Draft",
+      release_decision: "Pending QA Review",
+      verification_message:
+        "This COA has not yet been released for customer verification.",
+      coa_pdf_url: "",
+      qr_code_url: "",
+      approved_by: "",
+      approved_at: "",
+    },
+    source.analyticalResults.map((row) => ({
+      ...row,
+      status:
+        row.batch_result.trim().toLowerCase().includes("pending")
+          ? "Pending"
+          : row.status,
+    })),
+    source.analyticalRecords.map((row) => ({ ...row }))
+  );
+
+  return createCoaVerificationRecord(supabase, duplicatedValues, {
+    analyticalResults: source.analyticalResults.map((row) => ({ ...row })),
+    analyticalRecords: source.analyticalRecords.map((row) => ({ ...row })),
+  });
 }
 
 export async function generateVerificationCode({
@@ -665,6 +895,168 @@ function toMutationPayload(
   };
 }
 
+function mergeAnalyticalTestRows(
+  values: CoaVerificationFormValues,
+  rows: Array<Partial<CoaAnalyticalTestResultRow>>
+) {
+  const defaultRows = buildDefaultAnalyticalTestRows(values);
+  const rowMap = new Map(rows.map((row) => [row.row_key, row]));
+
+  return defaultRows.map((defaultRow) => {
+    const existingRow = rowMap.get(defaultRow.row_key);
+
+    return {
+      ...defaultRow,
+      method: existingRow?.method?.trim() || defaultRow.method,
+      specification: existingRow?.specification?.trim() || defaultRow.specification,
+      batch_result: existingRow?.batch_result?.trim() || defaultRow.batch_result,
+      status: existingRow?.status?.trim() || defaultRow.status,
+    };
+  });
+}
+
+function mergeAnalyticalRecordRows(
+  values: CoaVerificationFormValues,
+  rows: Array<Partial<CoaAnalyticalRecordRow>>
+) {
+  const defaultRows = buildDefaultAnalyticalRecordRows(values);
+  const rowMap = new Map(rows.map((row) => [row.row_key, row]));
+
+  return defaultRows.map((defaultRow) => {
+    const existingRow = rowMap.get(defaultRow.row_key);
+
+    return {
+      ...defaultRow,
+      reference_file_name:
+        existingRow?.reference_file_name?.trim() || defaultRow.reference_file_name,
+      availability: existingRow?.availability?.trim() || defaultRow.availability,
+    };
+  });
+}
+
+async function ensureFixedAnalyticalTestRows(
+  supabase: SupabaseClient,
+  coaVerificationId: string,
+  values: CoaVerificationFormValues
+) {
+  const defaultRows = buildDefaultAnalyticalTestRows(values);
+
+  if (!(await detectAnalyticalTestResultsSupport(supabase))) {
+    return defaultRows;
+  }
+
+  const existingRows = await listCoaAnalyticalTestResultRows(supabase, coaVerificationId);
+  const mergedRows = mergeAnalyticalTestRows(values, existingRows);
+  const existingKeys = new Set(existingRows.map((row) => row.row_key));
+  const missingRows = mergedRows.filter((row) => !existingKeys.has(row.row_key));
+
+  if (missingRows.length > 0) {
+    const { error } = await supabase.from("coa_analytical_test_results").insert(
+      missingRows.map((row) => ({
+        coa_verification_id: coaVerificationId,
+        row_key: row.row_key,
+        position: row.position,
+        test_attribute: row.test_attribute,
+        method: emptyToNull(row.method),
+        specification: emptyToNull(row.specification),
+        batch_result: emptyToNull(row.batch_result),
+        status: emptyToNull(row.status),
+      }))
+    );
+
+    if (error && !isMissingRelationError(error)) {
+      throw error;
+    }
+  }
+
+  return mergedRows;
+}
+
+async function ensureFixedAnalyticalRecordRows(
+  supabase: SupabaseClient,
+  coaVerificationId: string,
+  values: CoaVerificationFormValues
+) {
+  const defaultRows = buildDefaultAnalyticalRecordRows(values);
+
+  if (!(await detectAnalyticalRecordsSupport(supabase))) {
+    return defaultRows;
+  }
+
+  const existingRows = await listCoaAnalyticalRecordRows(supabase, coaVerificationId);
+  const mergedRows = mergeAnalyticalRecordRows(values, existingRows);
+  const existingKeys = new Set(existingRows.map((row) => row.row_key));
+  const missingRows = mergedRows.filter((row) => !existingKeys.has(row.row_key));
+
+  if (missingRows.length > 0) {
+    const { error } = await supabase.from("coa_analytical_records").insert(
+      missingRows.map((row) => ({
+        coa_verification_id: coaVerificationId,
+        row_key: row.row_key,
+        position: row.position,
+        record_type: row.record_type,
+        reference_file_name: emptyToNull(row.reference_file_name),
+        availability: emptyToNull(row.availability),
+      }))
+    );
+
+    if (error && !isMissingRelationError(error)) {
+      throw error;
+    }
+  }
+
+  return mergedRows;
+}
+
+async function persistFixedAnalyticalRows(
+  supabase: SupabaseClient,
+  coaVerificationId: string,
+  analyticalResults: CoaAnalyticalTestDraftRow[],
+  analyticalRecords: CoaAnalyticalRecordDraftRow[]
+) {
+  if (await detectAnalyticalTestResultsSupport(supabase)) {
+    const { error } = await supabase.from("coa_analytical_test_results").upsert(
+      analyticalResults.map((row) => ({
+        coa_verification_id: coaVerificationId,
+        row_key: row.row_key,
+        position: row.position,
+        test_attribute: row.test_attribute,
+        method: emptyToNull(row.method),
+        specification: emptyToNull(row.specification),
+        batch_result: emptyToNull(row.batch_result),
+        status: emptyToNull(row.status),
+      })),
+      {
+        onConflict: "coa_verification_id,row_key",
+      }
+    );
+
+    if (error && !isMissingRelationError(error)) {
+      throw error;
+    }
+  }
+
+  if (await detectAnalyticalRecordsSupport(supabase)) {
+    const { error } = await supabase.from("coa_analytical_records").upsert(
+      analyticalRecords.map((row) => ({
+        coa_verification_id: coaVerificationId,
+        row_key: row.row_key,
+        position: row.position,
+        record_type: row.record_type,
+        reference_file_name: emptyToNull(row.reference_file_name),
+        availability: emptyToNull(row.availability),
+      })),
+      {
+        onConflict: "coa_verification_id,row_key",
+      }
+    );
+
+    if (error && !isMissingRelationError(error)) {
+      throw error;
+    }
+  }
+}
+
 async function getCompatibleCoaMutationPayload(
   supabase: SupabaseClient,
   payload: CoaVerificationMutationPayload
@@ -690,14 +1082,47 @@ async function detectExtendedCoaSchemaSupport(supabase: SupabaseClient) {
     .select("id, peptide_sequence")
     .limit(1);
 
-  if (
-    error &&
-    /peptide_sequence/i.test(error.message)
-  ) {
+  if (error && /peptide_sequence/i.test(error.message)) {
     extendedCoaSchemaSupport = false;
     return extendedCoaSchemaSupport;
   }
 
   extendedCoaSchemaSupport = true;
   return extendedCoaSchemaSupport;
+}
+
+async function detectAnalyticalTestResultsSupport(supabase: SupabaseClient) {
+  if (analyticalTestResultsSupport !== null) {
+    return analyticalTestResultsSupport;
+  }
+
+  const { error } = await supabase
+    .from("coa_analytical_test_results")
+    .select("id")
+    .limit(1);
+
+  analyticalTestResultsSupport = !error || !isMissingRelationError(error);
+  return analyticalTestResultsSupport;
+}
+
+async function detectAnalyticalRecordsSupport(supabase: SupabaseClient) {
+  if (analyticalRecordsSupport !== null) {
+    return analyticalRecordsSupport;
+  }
+
+  const { error } = await supabase
+    .from("coa_analytical_records")
+    .select("id")
+    .limit(1);
+
+  analyticalRecordsSupport = !error || !isMissingRelationError(error);
+  return analyticalRecordsSupport;
+}
+
+function isMissingRelationError(error: { code?: string; message?: string }) {
+  return (
+    error.code === "PGRST205" ||
+    /Could not find the table/i.test(error.message ?? "") ||
+    /relation .* does not exist/i.test(error.message ?? "")
+  );
 }

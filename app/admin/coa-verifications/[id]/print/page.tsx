@@ -13,9 +13,13 @@ import {
   type CoaBrandSettings,
 } from "@/lib/coa-brand-settings";
 import {
+  listCoaAnalyticalRecordRows,
+  listCoaAnalyticalTestResultRows,
   getCoaPrintWarnings,
   getCoaVerificationRowById,
   resolveVerificationUrl,
+  type CoaAnalyticalRecordRow,
+  type CoaAnalyticalTestResultRow,
 } from "@/lib/coa-verification-admin";
 import {
   mapCoaVerificationRowToRecord,
@@ -59,6 +63,8 @@ function PrintableCoaView({
 }) {
   const [coa, setCoa] = useState<CoaVerificationRecord | null>(null);
   const [branding, setBranding] = useState<CoaBrandSettings>(getDefaultCoaBrandSettings);
+  const [analyticalResults, setAnalyticalResults] = useState<CoaAnalyticalTestResultRow[]>([]);
+  const [analyticalRecords, setAnalyticalRecords] = useState<CoaAnalyticalRecordRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -70,9 +76,11 @@ function PrintableCoaView({
       setErrorMessage(null);
 
       try {
-        const [row, activeBranding] = await Promise.all([
+        const [row, activeBranding, analyticalResultRows, analyticalRecordRows] = await Promise.all([
           getCoaVerificationRowById(supabase, recordId),
           getActiveCoaBrandSettings(supabase),
+          listCoaAnalyticalTestResultRows(supabase, recordId),
+          listCoaAnalyticalRecordRows(supabase, recordId),
         ]);
 
         if (!isMounted) {
@@ -87,6 +95,8 @@ function PrintableCoaView({
 
         setCoa(mapCoaVerificationRowToRecord(row));
         setBranding(activeBranding);
+        setAnalyticalResults(analyticalResultRows);
+        setAnalyticalRecords(analyticalRecordRows);
       } catch (error) {
         if (!isMounted) {
           return;
@@ -150,6 +160,8 @@ function PrintableCoaView({
         coa={coa}
         branding={branding}
         verificationUrl={verificationUrl}
+        analyticalResults={analyticalResults}
+        analyticalRecords={analyticalRecords}
       />
     </div>
   );
