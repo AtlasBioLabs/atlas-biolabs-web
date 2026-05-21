@@ -14,6 +14,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { CoaAnalyticalRecordsEditor } from "@/components/admin/coa-analytical-records-editor";
 import { CoaAnalyticalResultsEditor } from "@/components/admin/coa-analytical-results-editor";
+import { CoaComboboxInput } from "@/components/admin/coa-combobox-input";
 import { CoaStatusBadge } from "@/components/admin/coa-status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +30,29 @@ import {
   type CoaAnalyticalRecordDraftRow,
   type CoaAnalyticalTestDraftRow,
 } from "@/lib/coa-fixed-rows";
+import {
+  coaProductCatalogCodeOptions,
+  coaProductNameOptions,
+  findCoaProductPreset,
+} from "@/lib/coa-product-presets";
+import {
+  appearanceSpecOptions,
+  batchQuantityOptions,
+  countryOfOriginOptions,
+  documentPackOptions,
+  gradeScopeOptions,
+  labelOptionOptions,
+  manufactureDateOptions,
+  manufacturingSiteOptions,
+  packSizeOptions,
+  packagingOptions,
+  physicalFormOptions,
+  releaseSiteOptions,
+  retestExpiryOptions,
+  retestPeriodOptions,
+  shippingConditionsOptions,
+  storageOptions,
+} from "@/lib/coa-select-options";
 import {
   buildCoaNumberFromVerificationCode,
   buildPublicVerificationPath,
@@ -61,6 +85,7 @@ type FieldConfig = {
   placeholder?: string;
   readOnly?: boolean;
   datalistOptions?: readonly string[];
+  helperText?: string;
 };
 
 type FormSection = {
@@ -107,22 +132,50 @@ const formSections: FormSection[] = [
     title: "Product Identification",
     description: "Core product identity, specification, and storage details shown on page 1.",
     fields: [
-      { name: "product_name", label: "Product Name", required: true },
-      { name: "catalog_code", label: "Catalog Code", required: true },
+      {
+        name: "product_name",
+        label: "Product Name",
+        required: true,
+        datalistOptions: coaProductNameOptions,
+        helperText: "Select from the Atlas BioLabs catalog list or type a custom product name.",
+      },
+      {
+        name: "catalog_code",
+        label: "Catalog Code",
+        required: true,
+        datalistOptions: coaProductCatalogCodeOptions,
+        helperText: "Select a preset catalog code or enter a custom controlled code.",
+      },
       { name: "client_recipient", label: "Client / Recipient", required: true },
       { name: "peptide_sequence", label: "Peptide Sequence" },
       { name: "molecular_weight", label: "Molecular Weight" },
       { name: "molecular_formula", label: "Molecular Formula" },
-      { name: "physical_form", label: "Physical Form" },
+      {
+        name: "physical_form",
+        label: "Physical Form",
+        datalistOptions: physicalFormOptions,
+      },
       {
         name: "appearance_spec",
         label: "Appearance Spec",
-        datalistOptions: analyticalSpecificationPresets,
+        datalistOptions: appearanceSpecOptions,
       },
-      { name: "grade_scope", label: "Grade / Scope" },
-      { name: "pack_size", label: "Pack Size" },
-      { name: "storage", label: "Storage" },
-      { name: "retest_period", label: "Retest Period" },
+      {
+        name: "grade_scope",
+        label: "Grade / Scope",
+        datalistOptions: gradeScopeOptions,
+      },
+      {
+        name: "pack_size",
+        label: "Pack Size",
+        datalistOptions: packSizeOptions,
+      },
+      { name: "storage", label: "Storage", datalistOptions: storageOptions },
+      {
+        name: "retest_period",
+        label: "Retest Period",
+        datalistOptions: retestPeriodOptions,
+      },
     ],
   },
   {
@@ -130,20 +183,52 @@ const formSections: FormSection[] = [
     description: "Manufacturing, packaging, release site, and shipment details referenced in the COA body.",
     fields: [
       { name: "batch_lot_no", label: "Batch / Lot No.", required: true },
-      { name: "manufacture_date", label: "Manufacture Date" },
-      { name: "retest_expiry_date", label: "Retest / Expiry" },
-      { name: "batch_quantity", label: "Batch Quantity" },
-      { name: "manufacturing_site", label: "Manufacturing Site" },
-      { name: "country_of_origin", label: "Country of Origin" },
-      { name: "release_site", label: "Release Site" },
-      { name: "packaging", label: "Packaging" },
-      { name: "label_option", label: "Label Option" },
-      { name: "shipping_conditions", label: "Shipping Conditions" },
+      {
+        name: "manufacture_date",
+        label: "Manufacture Date",
+        datalistOptions: manufactureDateOptions,
+      },
+      {
+        name: "retest_expiry_date",
+        label: "Retest / Expiry",
+        datalistOptions: retestExpiryOptions,
+      },
+      {
+        name: "batch_quantity",
+        label: "Batch Quantity",
+        datalistOptions: batchQuantityOptions,
+      },
+      {
+        name: "manufacturing_site",
+        label: "Manufacturing Site",
+        datalistOptions: manufacturingSiteOptions,
+      },
+      {
+        name: "country_of_origin",
+        label: "Country of Origin",
+        datalistOptions: countryOfOriginOptions,
+      },
+      {
+        name: "release_site",
+        label: "Release Site",
+        datalistOptions: releaseSiteOptions,
+      },
+      { name: "packaging", label: "Packaging", datalistOptions: packagingOptions },
+      {
+        name: "label_option",
+        label: "Label Option",
+        datalistOptions: labelOptionOptions,
+      },
+      {
+        name: "shipping_conditions",
+        label: "Shipping Conditions",
+        datalistOptions: shippingConditionsOptions,
+      },
       {
         name: "document_pack",
         label: "Document Pack",
         required: true,
-        textarea: true,
+        datalistOptions: documentPackOptions,
       },
       {
         name: "intended_use_scope",
@@ -207,6 +292,14 @@ export function CoaVerificationForm({
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
 
   const warnings = useMemo(() => getCoaAdminWarnings(values), [values]);
+  const matchedProductPreset = useMemo(
+    () =>
+      findCoaProductPreset({
+        productName: values.product_name,
+        catalogCode: values.catalog_code,
+      }),
+    [values.catalog_code, values.product_name]
+  );
   const publicVerificationPath = buildPublicVerificationPath(values.verification_code);
   const printRoute = recordId ? `/admin/coa-verifications/${recordId}/print` : null;
 
@@ -325,6 +418,180 @@ export function CoaVerificationForm({
       row.row_key === rowKey ? { ...row, [field]: value } : row
     );
     commitAnalyticalState(analyticalResults, nextRecords);
+  }
+
+  function applyProductPreset(replaceExisting: boolean) {
+    if (!matchedProductPreset) {
+      setFormError("Select a matching Atlas BioLabs product preset first.");
+      return;
+    }
+
+    if (
+      !window.confirm(
+        "Apply product defaults? This will fill empty fields and optionally replace current COA field values."
+      )
+    ) {
+      return;
+    }
+
+    const baselineValues = getDefaultCoaFormValues();
+    const baselineAnalyticalRows = buildDefaultAnalyticalTestRows(baselineValues);
+    const baselineAnalyticalRecords = buildDefaultAnalyticalRecordRows(baselineValues);
+
+    const shouldApplyValue = (
+      currentValue: string,
+      presetValue?: string,
+      baselineValue?: string
+    ) => {
+      if (!presetValue) {
+        return currentValue;
+      }
+
+      if (replaceExisting || !currentValue.trim()) {
+        return presetValue;
+      }
+
+      if (baselineValue && currentValue.trim() === baselineValue.trim()) {
+        return presetValue;
+      }
+
+      return currentValue;
+    };
+
+    const nextValues = {
+      ...values,
+      product_name: shouldApplyValue(
+        values.product_name,
+        matchedProductPreset.product_name,
+        baselineValues.product_name
+      ),
+      catalog_code: shouldApplyValue(
+        values.catalog_code,
+        matchedProductPreset.catalog_code,
+        baselineValues.catalog_code
+      ),
+      physical_form: shouldApplyValue(
+        values.physical_form,
+        matchedProductPreset.default_physical_form,
+        baselineValues.physical_form
+      ),
+      appearance_spec: shouldApplyValue(
+        values.appearance_spec,
+        matchedProductPreset.default_appearance_spec,
+        baselineValues.appearance_spec
+      ),
+      grade_scope: shouldApplyValue(
+        values.grade_scope,
+        matchedProductPreset.default_grade_scope,
+        baselineValues.grade_scope
+      ),
+      pack_size: shouldApplyValue(
+        values.pack_size,
+        matchedProductPreset.default_pack_size,
+        baselineValues.pack_size
+      ),
+      storage: shouldApplyValue(
+        values.storage,
+        matchedProductPreset.default_storage,
+        baselineValues.storage
+      ),
+      retest_period: shouldApplyValue(
+        values.retest_period,
+        matchedProductPreset.default_retest_period,
+        baselineValues.retest_period
+      ),
+      document_pack: shouldApplyValue(
+        values.document_pack,
+        matchedProductPreset.default_document_pack,
+        baselineValues.document_pack
+      ),
+      shipping_conditions: shouldApplyValue(
+        values.shipping_conditions,
+        matchedProductPreset.default_shipping_conditions,
+        baselineValues.shipping_conditions
+      ),
+      packaging: shouldApplyValue(
+        values.packaging,
+        matchedProductPreset.default_packaging,
+        baselineValues.packaging
+      ),
+      label_option: shouldApplyValue(
+        values.label_option,
+        matchedProductPreset.default_label_option,
+        baselineValues.label_option
+      ),
+      peptide_sequence: shouldApplyValue(
+        values.peptide_sequence,
+        matchedProductPreset.default_peptide_sequence,
+        baselineValues.peptide_sequence
+      ),
+      molecular_weight: shouldApplyValue(
+        values.molecular_weight,
+        matchedProductPreset.default_molecular_weight,
+        baselineValues.molecular_weight
+      ),
+      molecular_formula: shouldApplyValue(
+        values.molecular_formula,
+        matchedProductPreset.default_molecular_formula,
+        baselineValues.molecular_formula
+      ),
+    };
+
+    const presetAnalyticalRows = matchedProductPreset.default_analytical_rows;
+    const presetAnalyticalRecords = matchedProductPreset.default_analytical_records;
+    const nextResults = presetAnalyticalRows.map((presetRow) => {
+      const currentRow =
+        analyticalResults.find((row) => row.row_key === presetRow.row_key) ?? presetRow;
+      const baselineRow =
+        baselineAnalyticalRows.find((row) => row.row_key === presetRow.row_key) ?? presetRow;
+
+      return {
+        ...currentRow,
+        method: shouldApplyValue(currentRow.method, presetRow.method, baselineRow.method),
+        specification: shouldApplyValue(
+          currentRow.specification,
+          presetRow.specification,
+          baselineRow.specification
+        ),
+        batch_result: shouldApplyValue(
+          currentRow.batch_result,
+          presetRow.batch_result,
+          baselineRow.batch_result
+        ),
+        status: shouldApplyValue(currentRow.status, presetRow.status, baselineRow.status),
+      };
+    });
+    const nextRecords = presetAnalyticalRecords.map((presetRow) => {
+      const currentRow =
+        analyticalRecords.find((row) => row.row_key === presetRow.row_key) ?? presetRow;
+      const baselineRow =
+        baselineAnalyticalRecords.find((row) => row.row_key === presetRow.row_key) ??
+        presetRow;
+
+      return {
+        ...currentRow,
+        reference_file_name: shouldApplyValue(
+          currentRow.reference_file_name,
+          presetRow.reference_file_name,
+          baselineRow.reference_file_name
+        ),
+        availability: shouldApplyValue(
+          currentRow.availability,
+          presetRow.availability,
+          baselineRow.availability
+        ),
+      };
+    });
+
+    setAnalyticalResults(nextResults);
+    setAnalyticalRecords(nextRecords);
+    setValues(syncSummaryFieldsFromAnalyticalTables(nextValues, nextResults, nextRecords));
+    setFormError(null);
+    setFormSuccess(
+      replaceExisting
+        ? `Product defaults applied for ${matchedProductPreset.product_name}.`
+        : `Empty fields filled from the ${matchedProductPreset.product_name} preset.`
+    );
   }
 
   async function handleGenerateCode() {
@@ -487,8 +754,6 @@ export function CoaVerificationForm({
   }
 
   function renderField(field: FieldConfig) {
-    const datalistId = `coa-${field.name}-options`;
-
     if (field.name === "verification_code") {
       return (
         <div className="space-y-3">
@@ -547,25 +812,30 @@ export function CoaVerificationForm({
       );
     }
 
-    return (
-      <>
-        <Input
+    if (field.datalistOptions) {
+      return (
+        <CoaComboboxInput
           id={field.name}
-          list={field.datalistOptions ? datalistId : undefined}
           value={values[field.name]}
-          onChange={(event) => updateField(field.name, event.target.value)}
-          required={field.required}
+          options={field.datalistOptions}
+          onChange={(value) => updateField(field.name, value)}
           placeholder={field.placeholder}
+          required={field.required}
+          helperText={field.helperText}
           className={inputClassName}
         />
-        {field.datalistOptions ? (
-          <datalist id={datalistId}>
-            {field.datalistOptions.map((option) => (
-              <option key={option} value={option} />
-            ))}
-          </datalist>
-        ) : null}
-      </>
+      );
+    }
+
+    return (
+      <Input
+        id={field.name}
+        value={values[field.name]}
+        onChange={(event) => updateField(field.name, event.target.value)}
+        required={field.required}
+        placeholder={field.placeholder}
+        className={inputClassName}
+      />
     );
   }
 
@@ -723,6 +993,55 @@ export function CoaVerificationForm({
                   </div>
                 ))}
               </div>
+              {section.title === "Product Identification" ? (
+                <div className="rounded-2xl border border-[#d9e1ec] bg-[#f8fbff] px-5 py-4">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-[var(--brand-navy)]">
+                        Product preset defaults
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Select a catalog product name or catalog code, then apply
+                        Atlas BioLabs default COA values while keeping custom text
+                        editable.
+                      </p>
+                      {matchedProductPreset ? (
+                        <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--brand-blue)]">
+                          Matched preset: {matchedProductPreset.product_name}{" "}
+                          <span className="text-slate-500">
+                            ({matchedProductPreset.catalog_code})
+                          </span>
+                        </p>
+                      ) : (
+                        <p className="text-xs text-slate-500">
+                          No preset match yet. Use a listed product name or catalog
+                          code to enable preset actions.
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={!matchedProductPreset}
+                        onClick={() => applyProductPreset(false)}
+                        className="border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+                      >
+                        Fill Empty Fields Only
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={!matchedProductPreset}
+                        onClick={() => applyProductPreset(true)}
+                        className="border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+                      >
+                        Replace With Product Defaults
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </section>
           ))}
 

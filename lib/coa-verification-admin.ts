@@ -936,7 +936,7 @@ function toMutationPayload(
     verification_code: verificationCode,
     verification_url: verificationUrl || null,
     product_name: values.product_name.trim(),
-    catalog_code: values.catalog_code.trim().toUpperCase(),
+    catalog_code: values.catalog_code.trim(),
     batch_lot_no: values.batch_lot_no.trim(),
     issue_date: values.issue_date.trim(),
     revision: values.revision.trim(),
