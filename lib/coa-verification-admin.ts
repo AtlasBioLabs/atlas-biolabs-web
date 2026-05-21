@@ -75,6 +75,45 @@ type CoaVerificationMutationPayload = Omit<
   "id" | "created_at" | "updated_at"
 >;
 
+const legacyCoaVerificationColumns = new Set([
+  "coa_number",
+  "verification_code",
+  "verification_url",
+  "product_name",
+  "catalog_code",
+  "batch_lot_no",
+  "issue_date",
+  "revision",
+  "client_recipient",
+  "identity_result",
+  "hplc_purity",
+  "water_content",
+  "release_decision",
+  "verification_status",
+  "document_pack",
+  "verification_message",
+  "appearance_result",
+  "purity_result",
+  "peptide_content_result",
+  "counter_ion_result",
+  "residual_solvents_result",
+  "heavy_metals_result",
+  "microbial_limits_result",
+  "endotoxin_sterility_result",
+  "hplc_file_name",
+  "lcms_file_name",
+  "sds_file_name",
+  "raw_data_archive_ref",
+  "coa_pdf_url",
+  "qr_code_url",
+  "created_by",
+  "reviewed_by",
+  "approved_by",
+  "approved_at",
+]);
+
+let extendedCoaSchemaSupport: boolean | null = null;
+
 type GenerateCodeInput = {
   supabase: SupabaseClient;
   catalogCode: string;
@@ -420,7 +459,7 @@ export async function getActiveAdminUser(
   supabase: SupabaseClient,
   user: User
 ): Promise<AdminUserRecord | null> {
-  const { data: byAuthUserId } = await supabase
+  const authUserIdLookup = await supabase
     .from("admin_users")
     .select("*")
     .eq("auth_user_id", user.id)
@@ -428,8 +467,8 @@ export async function getActiveAdminUser(
     .limit(1)
     .maybeSingle();
 
-  if (byAuthUserId) {
-    return byAuthUserId as AdminUserRecord;
+  if (!authUserIdLookup.error && authUserIdLookup.data) {
+    return authUserIdLookup.data as AdminUserRecord;
   }
 
   if (!user.email) {
@@ -484,9 +523,13 @@ export async function createCoaVerificationRecord(
   values: CoaVerificationFormValues
 ) {
   const payload = toMutationPayload(values);
+  const compatiblePayload = await getCompatibleCoaMutationPayload(
+    supabase,
+    payload
+  );
   const { data, error } = await supabase
     .from("coa_verifications")
-    .insert(payload)
+    .insert(compatiblePayload)
     .select("*")
     .limit(1)
     .maybeSingle();
@@ -504,9 +547,13 @@ export async function updateCoaVerificationRecord(
   values: CoaVerificationFormValues
 ) {
   const payload = toMutationPayload(values);
+  const compatiblePayload = await getCompatibleCoaMutationPayload(
+    supabase,
+    payload
+  );
   const { data, error } = await supabase
     .from("coa_verifications")
-    .update(payload)
+    .update(compatiblePayload)
     .eq("id", id)
     .select("*")
     .limit(1)
@@ -524,6 +571,7 @@ export async function generateVerificationCode({
   catalogCode,
   year = new Date().getFullYear(),
 }: GenerateCodeInput) {
+  void supabase;
   const cleanedCatalog = catalogCode
     .trim()
     .toUpperCase()
@@ -534,27 +582,7 @@ export async function generateVerificationCode({
     throw new Error("Catalog code is required before generating a verification code.");
   }
 
-  const prefix = `ATL-${cleanedCatalog}-${year}-`;
-  const { data } = await supabase
-    .from("coa_verifications")
-    .select("verification_code")
-    .like("verification_code", `${prefix}%`);
-
-  const codes = (data ?? []) as Array<{ verification_code?: string | null }>;
-  const sequences = codes
-    .map((record) => {
-      const code = record.verification_code ?? "";
-      const match = code.match(new RegExp(`^${prefix}(\\d{3})-[A-Z0-9]{6}$`));
-      return match ? Number.parseInt(match[1] ?? "0", 10) : 0;
-    })
-    .filter((value) => Number.isFinite(value) && value > 0);
-
-  const nextSequence = String((Math.max(0, ...sequences) || 0) + 1).padStart(
-    3,
-    "0"
-  );
-
-  return `${prefix}${nextSequence}-${createRandomSuffix(6)}`;
+  return `ATL-${cleanedCatalog}-${year}-001-${createRandomSuffix(6)}`;
 }
 
 function createRandomSuffix(length: number) {
@@ -635,4 +663,41 @@ function toMutationPayload(
     approved_by: emptyToNull(values.approved_by),
     approved_at: emptyToNull(values.approved_at),
   };
+}
+
+async function getCompatibleCoaMutationPayload(
+  supabase: SupabaseClient,
+  payload: CoaVerificationMutationPayload
+) {
+  const supportsExtendedSchema = await detectExtendedCoaSchemaSupport(supabase);
+
+  if (supportsExtendedSchema) {
+    return payload;
+  }
+
+  return Object.fromEntries(
+    Object.entries(payload).filter(([key]) => legacyCoaVerificationColumns.has(key))
+  ) as Partial<CoaVerificationMutationPayload>;
+}
+
+async function detectExtendedCoaSchemaSupport(supabase: SupabaseClient) {
+  if (extendedCoaSchemaSupport !== null) {
+    return extendedCoaSchemaSupport;
+  }
+
+  const { error } = await supabase
+    .from("coa_verifications")
+    .select("id, peptide_sequence")
+    .limit(1);
+
+  if (
+    error &&
+    /peptide_sequence/i.test(error.message)
+  ) {
+    extendedCoaSchemaSupport = false;
+    return extendedCoaSchemaSupport;
+  }
+
+  extendedCoaSchemaSupport = true;
+  return extendedCoaSchemaSupport;
 }

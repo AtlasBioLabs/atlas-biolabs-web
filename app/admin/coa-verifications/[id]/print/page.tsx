@@ -41,6 +41,7 @@ export default function PrintCoaVerificationPage() {
       title="Printable COA preview"
       description="Preview the batch-specific Certificate of Analysis and print or save it as a PDF from the browser."
       breadcrumbs={breadcrumbItems}
+      hideHeaderOnPrint
     >
       {({ supabase }) => (
         <PrintableCoaView recordId={recordId} supabase={supabase} />

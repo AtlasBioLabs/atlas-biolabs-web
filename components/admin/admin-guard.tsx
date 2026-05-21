@@ -23,6 +23,7 @@ type AdminGuardProps = {
   title: string;
   description: string;
   breadcrumbs?: BreadcrumbItem[];
+  hideHeaderOnPrint?: boolean;
   children: (context: AdminGuardContext) => React.ReactNode;
 };
 
@@ -33,6 +34,7 @@ export function AdminGuard({
     { name: "Home", path: "/" },
     { name: "COA Admin", path: "/admin/coa-verifications" },
   ],
+  hideHeaderOnPrint = false,
   children,
 }: AdminGuardProps) {
   const router = useRouter();
@@ -56,6 +58,10 @@ export function AdminGuard({
       }
 
       if (!session?.user) {
+        setUser(null);
+        setAdminUser(null);
+        setIsAccessDenied(false);
+        setIsLoading(false);
         router.replace(`/admin/login?next=${encodeURIComponent(pathname)}`);
         return;
       }
@@ -68,6 +74,7 @@ export function AdminGuard({
       }
 
       if (!adminRecord) {
+        setAdminUser(null);
         setIsAccessDenied(true);
         setIsLoading(false);
         return;
@@ -94,12 +101,20 @@ export function AdminGuard({
 
   async function signOut() {
     await supabase.auth.signOut();
+    setUser(null);
+    setAdminUser(null);
+    setIsAccessDenied(false);
     router.replace("/admin/login");
   }
 
   return (
     <>
-      <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] via-white to-white">
+      <section
+        data-admin-shell-header
+        className={`section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] via-white to-white ${
+          hideHeaderOnPrint ? "print:hidden" : ""
+        }`}
+      >
         <div className="site-container">
           <Breadcrumbs items={breadcrumbs} />
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -133,7 +148,10 @@ export function AdminGuard({
         </div>
       </section>
 
-      <section className="section-space pt-10">
+      <section
+        data-admin-shell-content
+        className={`section-space pt-10 ${hideHeaderOnPrint ? "print:pt-0" : ""}`}
+      >
         <div className="site-container">
           {isLoading ? (
             <Card className="surface-card border p-0">

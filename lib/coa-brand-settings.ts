@@ -73,6 +73,9 @@ export async function getActiveCoaBrandSettings(supabase: SupabaseClient) {
     .maybeSingle();
 
   if (error) {
+    if (/coa_brand_settings/i.test(error.message)) {
+      return getDefaultCoaBrandSettings();
+    }
     throw error;
   }
 
