@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CopyIcon, ExternalLinkIcon, RefreshCcwIcon } from "lucide-react";
+import {
+  CopyIcon,
+  ExternalLinkIcon,
+  EyeIcon,
+  RefreshCcwIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -39,6 +44,13 @@ type FieldConfig = {
   textarea?: boolean;
   placeholder?: string;
   readOnly?: boolean;
+  type?: "text" | "select-release" | "select-status";
+};
+
+type FormSection = {
+  title: string;
+  description: string;
+  fields: FieldConfig[];
 };
 
 const inputClassName =
@@ -48,46 +60,32 @@ const textareaClassName =
 const selectClassName =
   "h-11 w-full rounded-lg border border-[#d5def0] bg-white px-4 text-sm text-[var(--brand-navy)] outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40";
 
-const groupedFields: Array<{
-  title: string;
-  description: string;
-  fields: FieldConfig[];
-}> = [
+const formSections: FormSection[] = [
   {
     title: "Header / Document Control",
-    description: "Core document identifiers and public verification routing.",
+    description: "Document identifiers, public verification routing, and header release markers.",
     fields: [
       { name: "coa_number", label: "COA Number", required: true },
       { name: "verification_code", label: "Verification Code", required: true },
       {
         name: "verification_url",
         label: "Verification URL",
-        placeholder: "Auto-generated from verification code",
         readOnly: true,
+        placeholder: "Auto-generated from verification code",
       },
       { name: "issue_date", label: "Issue Date", required: true },
       { name: "revision", label: "Revision", required: true },
-    ],
-  },
-  {
-    title: "Product Identification",
-    description: "Commercial product details printed on the COA header.",
-    fields: [
-      { name: "product_name", label: "Product Name", required: true },
-      { name: "catalog_code", label: "Catalog Code", required: true },
-      { name: "client_recipient", label: "Client / Recipient", required: true },
-    ],
-  },
-  {
-    title: "Batch Summary",
-    description: "Batch and verification notes used for customer traceability.",
-    fields: [
-      { name: "batch_lot_no", label: "Batch / Lot No.", required: true },
       {
-        name: "document_pack",
-        label: "Document Pack",
+        name: "verification_status",
+        label: "Verification Status",
         required: true,
-        textarea: true,
+        type: "select-status",
+      },
+      {
+        name: "release_decision",
+        label: "Release Decision",
+        required: true,
+        type: "select-release",
       },
       {
         name: "verification_message",
@@ -98,26 +96,67 @@ const groupedFields: Array<{
     ],
   },
   {
-    title: "Authorization",
-    description: "Internal QA sign-off details and release ownership fields.",
+    title: "Product Identification",
+    description: "Core product identity, presentation, and storage details shown on page 1.",
     fields: [
-      { name: "created_by", label: "Created By" },
-      { name: "reviewed_by", label: "Reviewed By" },
-      { name: "approved_by", label: "Approved By" },
-      { name: "approved_at", label: "Approved At" },
+      { name: "product_name", label: "Product Name", required: true },
+      { name: "catalog_code", label: "Catalog Code", required: true },
+      { name: "client_recipient", label: "Client / Recipient", required: true },
+      { name: "peptide_sequence", label: "Peptide Sequence" },
+      { name: "molecular_weight", label: "Molecular Weight" },
+      { name: "molecular_formula", label: "Molecular Formula" },
+      { name: "physical_form", label: "Physical Form" },
+      { name: "appearance_spec", label: "Appearance Spec" },
+      { name: "grade_scope", label: "Grade / Scope" },
+      { name: "pack_size", label: "Pack Size" },
+      { name: "storage", label: "Storage" },
+      { name: "retest_period", label: "Retest Period" },
     ],
   },
   {
-    title: "Analytical Test Results",
-    description: "Key result statements visible to Atlas Labs buyers and QA staff.",
+    title: "Batch Summary",
+    description: "Manufacturing, packaging, release site, and shipment details referenced in the COA body.",
+    fields: [
+      { name: "batch_lot_no", label: "Batch / Lot No.", required: true },
+      { name: "manufacture_date", label: "Manufacture Date" },
+      { name: "retest_expiry_date", label: "Retest / Expiry" },
+      { name: "batch_quantity", label: "Batch Quantity" },
+      { name: "manufacturing_site", label: "Manufacturing Site" },
+      { name: "country_of_origin", label: "Country of Origin" },
+      { name: "release_site", label: "Release Site" },
+      { name: "packaging", label: "Packaging" },
+      { name: "label_option", label: "Label Option" },
+      { name: "shipping_conditions", label: "Shipping Conditions" },
+      {
+        name: "document_pack",
+        label: "Document Pack",
+        required: true,
+        textarea: true,
+      },
+      {
+        name: "intended_use_scope",
+        label: "Intended Use & Documentation Scope",
+        textarea: true,
+      },
+    ],
+  },
+  {
+    title: "Release Snapshot",
+    description: "The visible batch release summary displayed on page 1.",
     fields: [
       { name: "identity_result", label: "Identity Result", required: true, textarea: true },
       { name: "hplc_purity", label: "HPLC Purity", required: true },
       { name: "water_content", label: "Water Content", required: true },
+    ],
+  },
+  {
+    title: "Analytical Test Results",
+    description: "Page 2 analytical result statements that support the release review summary.",
+    fields: [
       { name: "appearance_result", label: "Appearance Result", textarea: true },
       { name: "purity_result", label: "Purity Result", textarea: true },
       { name: "peptide_content_result", label: "Peptide Content Result", textarea: true },
-      { name: "counter_ion_result", label: "Counter Ion Result", textarea: true },
+      { name: "counter_ion_result", label: "Counter-ion Result", textarea: true },
       {
         name: "residual_solvents_result",
         label: "Residual Solvents Result",
@@ -134,7 +173,7 @@ const groupedFields: Array<{
   },
   {
     title: "Analytical Records Referenced",
-    description: "Supporting file references and internal archive pointers.",
+    description: "Referenced file names, archive references, and URL placeholders used on page 2.",
     fields: [
       { name: "hplc_file_name", label: "HPLC File Name" },
       { name: "lcms_file_name", label: "LC-MS File Name" },
@@ -142,6 +181,16 @@ const groupedFields: Array<{
       { name: "raw_data_archive_ref", label: "Raw Data Archive Reference" },
       { name: "coa_pdf_url", label: "COA PDF URL" },
       { name: "qr_code_url", label: "QR Code URL" },
+    ],
+  },
+  {
+    title: "Authorization",
+    description: "Internal preparation, review, and approval references displayed in the certification block.",
+    fields: [
+      { name: "created_by", label: "Prepared / Created By" },
+      { name: "reviewed_by", label: "Reviewed By" },
+      { name: "approved_by", label: "Approved By" },
+      { name: "approved_at", label: "Approved At" },
     ],
   },
 ];
@@ -162,6 +211,9 @@ export function CoaVerificationForm({
 
   const warnings = useMemo(() => getCoaAdminWarnings(values), [values]);
   const publicVerificationPath = buildPublicVerificationPath(values.verification_code);
+  const printRoute = recordId
+    ? `/admin/coa-verifications/${recordId}/print`
+    : null;
 
   useEffect(() => {
     if (mode !== "edit" || !recordId) {
@@ -218,18 +270,15 @@ export function CoaVerificationForm({
     };
   }, [mode, recordId, supabase]);
 
-  function updateField(
-    name: keyof CoaVerificationFormValues,
-    value: string | CoaVerificationFormValues["release_decision"] | CoaVerificationFormValues["verification_status"]
-  ) {
+  function updateField(name: keyof CoaVerificationFormValues, value: string) {
     setValues((currentValues) => {
       const nextValues = {
         ...currentValues,
         [name]: value,
-      } as CoaVerificationFormValues;
+      };
 
       if (name === "verification_code") {
-        nextValues.verification_code = String(value).toUpperCase();
+        nextValues.verification_code = value.toUpperCase();
         nextValues.verification_url = buildVerificationUrl(
           nextValues.verification_code,
           typeof window !== "undefined" ? window.location.origin : null
@@ -325,7 +374,6 @@ export function CoaVerificationForm({
           throw new Error("The COA record was not returned after creation.");
         }
 
-        setFormSuccess("COA record created successfully.");
         router.replace(`/admin/coa-verifications/${createdRecord.id}/edit?created=1`);
         router.refresh();
         return;
@@ -345,6 +393,111 @@ export function CoaVerificationForm({
     } finally {
       setIsSaving(false);
     }
+  }
+
+  function renderField(field: FieldConfig) {
+    if (field.name === "verification_code") {
+      return (
+        <div className="space-y-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Input
+              id={field.name}
+              value={values[field.name]}
+              onChange={(event) => updateField(field.name, event.target.value)}
+              required={field.required}
+              autoComplete="off"
+              spellCheck={false}
+              className={cn(inputClassName, "flex-1")}
+              placeholder="ATL-BPC157-2026-001-X9K4P2"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGenerateCode}
+              disabled={isGeneratingCode}
+              className="h-11 border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+            >
+              <RefreshCcwIcon className="mr-1 size-4" />
+              {isGeneratingCode ? "Generating..." : "Generate Code"}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            The generated format uses catalog code, year, sequence, and a random
+            uppercase suffix. You can still edit the code manually.
+          </p>
+        </div>
+      );
+    }
+
+    if (field.type === "select-release") {
+      return (
+        <select
+          id={field.name}
+          value={values.release_decision}
+          onChange={(event) => updateField(field.name, event.target.value)}
+          className={selectClassName}
+        >
+          {releaseDecisionOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    if (field.type === "select-status") {
+      return (
+        <select
+          id={field.name}
+          value={values.verification_status}
+          onChange={(event) => updateField(field.name, event.target.value)}
+          className={selectClassName}
+        >
+          {verificationStatusOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    if (field.readOnly) {
+      return (
+        <Input
+          id={field.name}
+          value={values[field.name]}
+          readOnly
+          className={cn(inputClassName, "bg-slate-50")}
+          placeholder={field.placeholder}
+        />
+      );
+    }
+
+    if (field.textarea) {
+      return (
+        <textarea
+          id={field.name}
+          value={values[field.name]}
+          onChange={(event) => updateField(field.name, event.target.value)}
+          required={field.required}
+          placeholder={field.placeholder}
+          className={textareaClassName}
+        />
+      );
+    }
+
+    return (
+      <Input
+        id={field.name}
+        value={values[field.name]}
+        onChange={(event) => updateField(field.name, event.target.value)}
+        required={field.required}
+        placeholder={field.placeholder}
+        className={inputClassName}
+      />
+    );
   }
 
   if (isLoading) {
@@ -367,8 +520,8 @@ export function CoaVerificationForm({
                 {mode === "create" ? "New COA verification record" : "Edit COA verification record"}
               </CardTitle>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Atlas Labs verification status must remain aligned with the record contents
-                and public verification output.
+                Atlas Labs verification status must remain aligned with the record contents,
+                printable COA layout, and public verification output.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
@@ -382,6 +535,18 @@ export function CoaVerificationForm({
                 <CopyIcon className="mr-1 size-4" />
                 Copy Verification URL
               </Button>
+              {printRoute ? (
+                <Button
+                  asChild
+                  variant="outline"
+                  className="border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+                >
+                  <Link href={printRoute}>
+                    <EyeIcon className="mr-1 size-4" />
+                    Preview / Print COA
+                  </Link>
+                </Button>
+              ) : null}
               <Button
                 asChild
                 variant="outline"
@@ -448,173 +613,37 @@ export function CoaVerificationForm({
 
       <Card className="surface-card border p-0">
         <CardContent className="space-y-8 py-6">
-          {groupedFields.map((group) => (
-            <section key={group.title} className="space-y-4 border-b border-border/70 pb-8 last:border-b-0 last:pb-0">
+          {formSections.map((section) => (
+            <section
+              key={section.title}
+              className="space-y-4 border-b border-border/70 pb-8 last:border-b-0 last:pb-0"
+            >
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
-                  {group.title}
+                  {section.title}
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {group.description}
+                  {section.description}
                 </p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                {group.fields.map((field) => (
+                {section.fields.map((field) => (
                   <div
                     key={field.name}
-                    className={cn(
-                      "space-y-2",
-                      field.textarea ? "md:col-span-2" : ""
-                    )}
+                    className={cn("space-y-2", field.textarea ? "md:col-span-2" : "")}
                   >
-                    <label className="text-sm font-medium text-[var(--brand-navy)]" htmlFor={field.name}>
+                    <label
+                      className="text-sm font-medium text-[var(--brand-navy)]"
+                      htmlFor={field.name}
+                    >
                       {field.label}
                     </label>
-                    {field.name === "verification_code" ? (
-                      <div className="space-y-3">
-                        <div className="flex flex-col gap-3 sm:flex-row">
-                          <Input
-                            id={field.name}
-                            value={values[field.name]}
-                            onChange={(event) => updateField(field.name, event.target.value)}
-                            required={field.required}
-                            autoComplete="off"
-                            spellCheck={false}
-                            className={cn(inputClassName, "flex-1")}
-                            placeholder="ATL-BPC157-2026-001-X9K4P2"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleGenerateCode}
-                            disabled={isGeneratingCode}
-                            className="h-11 border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
-                          >
-                            <RefreshCcwIcon className="mr-1 size-4" />
-                            {isGeneratingCode ? "Generating..." : "Generate Code"}
-                          </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          The generated format uses catalog code, year, sequence, and a random
-                          uppercase suffix. You can still edit the code manually.
-                        </p>
-                      </div>
-                    ) : field.name === "verification_url" ? (
-                      <Input
-                        id={field.name}
-                        value={values[field.name]}
-                        readOnly
-                        className={cn(inputClassName, "bg-slate-50")}
-                        placeholder={field.placeholder}
-                      />
-                    ) : field.name === "release_decision" ? (
-                      <select
-                        id={field.name}
-                        value={values.release_decision}
-                        onChange={(event) => updateField(field.name, event.target.value as CoaVerificationFormValues["release_decision"])}
-                        className={selectClassName}
-                      >
-                        {releaseDecisionOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    ) : field.name === "verification_status" ? (
-                      <select
-                        id={field.name}
-                        value={values.verification_status}
-                        onChange={(event) => updateField(field.name, event.target.value as CoaVerificationFormValues["verification_status"])}
-                        className={selectClassName}
-                      >
-                        {verificationStatusOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    ) : field.textarea ? (
-                      <textarea
-                        id={field.name}
-                        value={values[field.name]}
-                        onChange={(event) => updateField(field.name, event.target.value)}
-                        required={field.required}
-                        placeholder={field.placeholder}
-                        className={textareaClassName}
-                      />
-                    ) : (
-                      <Input
-                        id={field.name}
-                        value={values[field.name]}
-                        onChange={(event) => updateField(field.name, event.target.value)}
-                        required={field.required}
-                        placeholder={field.placeholder}
-                        className={inputClassName}
-                      />
-                    )}
+                    {renderField(field)}
                   </div>
                 ))}
               </div>
             </section>
           ))}
-
-          <section className="space-y-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
-                Release Snapshot
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Final public-facing release state that controls how the verification page should
-                present this COA.
-              </p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[var(--brand-navy)]" htmlFor="release_decision">
-                  Release Decision
-                </label>
-                <select
-                  id="release_decision"
-                  value={values.release_decision}
-                  onChange={(event) =>
-                    updateField(
-                      "release_decision",
-                      event.target.value as CoaVerificationFormValues["release_decision"]
-                    )
-                  }
-                  className={selectClassName}
-                >
-                  {releaseDecisionOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[var(--brand-navy)]" htmlFor="verification_status">
-                  Verification Status
-                </label>
-                <select
-                  id="verification_status"
-                  value={values.verification_status}
-                  onChange={(event) =>
-                    updateField(
-                      "verification_status",
-                      event.target.value as CoaVerificationFormValues["verification_status"]
-                    )
-                  }
-                  className={selectClassName}
-                >
-                  {verificationStatusOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </section>
         </CardContent>
       </Card>
     </form>

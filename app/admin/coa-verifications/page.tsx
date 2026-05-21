@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CopyIcon, ExternalLinkIcon, PlusIcon, SearchIcon } from "lucide-react";
+import {
+  CopyIcon,
+  ExternalLinkIcon,
+  PlusIcon,
+  PrinterIcon,
+  SearchIcon,
+  Settings2Icon,
+} from "lucide-react";
 import Link from "next/link";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -154,12 +161,24 @@ function AdminCoaVerificationIndex({
               ))}
             </select>
           </div>
-          <Button asChild className="h-11 bg-[var(--brand-navy)] text-white hover:bg-[var(--brand-blue)]">
-            <Link href="/admin/coa-verifications/new">
-              <PlusIcon className="mr-1 size-4" />
-              Create COA Record
-            </Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              asChild
+              variant="outline"
+              className="h-11 border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+            >
+              <Link href="/admin/settings/coa-branding">
+                <Settings2Icon className="mr-1 size-4" />
+                COA Branding
+              </Link>
+            </Button>
+            <Button asChild className="h-11 bg-[var(--brand-navy)] text-white hover:bg-[var(--brand-blue)]">
+              <Link href="/admin/coa-verifications/new">
+                <PlusIcon className="mr-1 size-4" />
+                Create COA Record
+              </Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -225,6 +244,12 @@ function AdminCoaVerificationIndex({
                       <div className="flex flex-wrap gap-2">
                         <Button asChild size="sm" variant="outline" className="border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]">
                           <Link href={`/admin/coa-verifications/${row.id}/edit`}>Edit</Link>
+                        </Button>
+                        <Button asChild size="sm" variant="outline" className="border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]">
+                          <Link href={`/admin/coa-verifications/${row.id}/print`}>
+                            <PrinterIcon className="mr-1 size-3.5" />
+                            Print COA
+                          </Link>
                         </Button>
                         <Button asChild size="sm" variant="outline" className="border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]">
                           <Link

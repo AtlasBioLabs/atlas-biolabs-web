@@ -26,6 +26,25 @@ export type CoaVerificationRecord = {
   issueDate: string;
   revision: string;
   clientRecipient: string;
+  peptideSequence: string | null;
+  molecularWeight: string | null;
+  molecularFormula: string | null;
+  physicalForm: string | null;
+  appearanceSpec: string | null;
+  gradeScope: string | null;
+  packSize: string | null;
+  storage: string | null;
+  retestPeriod: string | null;
+  manufactureDate: string | null;
+  retestExpiryDate: string | null;
+  batchQuantity: string | null;
+  manufacturingSite: string | null;
+  countryOfOrigin: string | null;
+  releaseSite: string | null;
+  packaging: string | null;
+  labelOption: string | null;
+  shippingConditions: string | null;
+  intendedUseScope: string | null;
   identityResult: string;
   hplcPurity: string;
   waterContent: string;
@@ -66,6 +85,25 @@ export type CoaVerificationRow = {
   issue_date: string;
   revision: string;
   client_recipient: string;
+  peptide_sequence: string | null;
+  molecular_weight: string | null;
+  molecular_formula: string | null;
+  physical_form: string | null;
+  appearance_spec: string | null;
+  grade_scope: string | null;
+  pack_size: string | null;
+  storage: string | null;
+  retest_period: string | null;
+  manufacture_date: string | null;
+  retest_expiry_date: string | null;
+  batch_quantity: string | null;
+  manufacturing_site: string | null;
+  country_of_origin: string | null;
+  release_site: string | null;
+  packaging: string | null;
+  label_option: string | null;
+  shipping_conditions: string | null;
+  intended_use_scope: string | null;
   identity_result: string;
   hplc_purity: string;
   water_content: string;
@@ -107,6 +145,26 @@ const mockCoaVerificationRows: CoaVerificationRow[] = [
     issue_date: "20 May 2026",
     revision: "Rev. 01",
     client_recipient: "MagLab / Qualified B2B Buyer",
+    peptide_sequence: null,
+    molecular_weight: null,
+    molecular_formula: null,
+    physical_form: "Lyophilized powder",
+    appearance_spec: "White to off-white powder",
+    grade_scope: "Qualified B2B sourcing review",
+    pack_size: "5 mg vials",
+    storage: "2-8C, dry and light-protected",
+    retest_period: "12 months from issue date when stored as recommended",
+    manufacture_date: null,
+    retest_expiry_date: null,
+    batch_quantity: null,
+    manufacturing_site: null,
+    country_of_origin: "China",
+    release_site: null,
+    packaging: "Sealed vial",
+    label_option: "Atlas Labs batch code label",
+    shipping_conditions: "Cold-chain when required by product profile",
+    intended_use_scope:
+      "This COA supports qualified B2B sourcing, documentation review, MOQ/bulk supply conversations, and private-label planning. No medical, therapeutic, diagnostic, veterinary, or human-use claims are made. Final release documentation must match the tested batch and analytical records referenced in this document.",
     identity_result: "LC-MS/MS: Conforms",
     hplc_purity: "99.21%",
     water_content: "1.6%",
@@ -148,6 +206,26 @@ const mockCoaVerificationRows: CoaVerificationRow[] = [
     issue_date: "20 May 2026",
     revision: "Rev. 01",
     client_recipient: "Qualified B2B Buyer",
+    peptide_sequence: null,
+    molecular_weight: null,
+    molecular_formula: null,
+    physical_form: "Lyophilized powder",
+    appearance_spec: "White to off-white powder",
+    grade_scope: "Qualified B2B sourcing review",
+    pack_size: "10 mg vials",
+    storage: "2-8C, dry and light-protected",
+    retest_period: "Pending final QA release",
+    manufacture_date: null,
+    retest_expiry_date: null,
+    batch_quantity: null,
+    manufacturing_site: null,
+    country_of_origin: "China",
+    release_site: null,
+    packaging: "Sealed vial",
+    label_option: "Atlas Labs batch code label",
+    shipping_conditions: "Cold-chain when required by product profile",
+    intended_use_scope:
+      "This COA supports qualified B2B sourcing, documentation review, MOQ/bulk supply conversations, and private-label planning. No medical, therapeutic, diagnostic, veterinary, or human-use claims are made. Final release documentation must match the tested batch and analytical records referenced in this document.",
     identity_result: "Pending LC-MS/MS review",
     hplc_purity: "Pending HPLC report",
     water_content: "Pending KF result",
@@ -188,6 +266,26 @@ const mockCoaVerificationRows: CoaVerificationRow[] = [
     issue_date: "20 May 2026",
     revision: "Rev. 01",
     client_recipient: "Internal Test",
+    peptide_sequence: null,
+    molecular_weight: null,
+    molecular_formula: null,
+    physical_form: null,
+    appearance_spec: null,
+    grade_scope: "Internal QA record",
+    pack_size: null,
+    storage: null,
+    retest_period: null,
+    manufacture_date: null,
+    retest_expiry_date: null,
+    batch_quantity: null,
+    manufacturing_site: null,
+    country_of_origin: null,
+    release_site: null,
+    packaging: null,
+    label_option: null,
+    shipping_conditions: null,
+    intended_use_scope:
+      "This COA supports internal QA record review and batch traceability only.",
     identity_result: "N/A",
     hplc_purity: "N/A",
     water_content: "N/A",
@@ -219,7 +317,9 @@ const mockCoaVerificationRows: CoaVerificationRow[] = [
   },
 ];
 
-function mapRowToRecord(row: CoaVerificationRow): CoaVerificationRecord {
+export function mapCoaVerificationRowToRecord(
+  row: CoaVerificationRow
+): CoaVerificationRecord {
   return {
     verificationCode: row.verification_code,
     coaNumber: row.coa_number,
@@ -230,6 +330,25 @@ function mapRowToRecord(row: CoaVerificationRow): CoaVerificationRecord {
     issueDate: row.issue_date,
     revision: row.revision,
     clientRecipient: row.client_recipient,
+    peptideSequence: row.peptide_sequence,
+    molecularWeight: row.molecular_weight,
+    molecularFormula: row.molecular_formula,
+    physicalForm: row.physical_form,
+    appearanceSpec: row.appearance_spec,
+    gradeScope: row.grade_scope,
+    packSize: row.pack_size,
+    storage: row.storage,
+    retestPeriod: row.retest_period,
+    manufactureDate: row.manufacture_date,
+    retestExpiryDate: row.retest_expiry_date,
+    batchQuantity: row.batch_quantity,
+    manufacturingSite: row.manufacturing_site,
+    countryOfOrigin: row.country_of_origin,
+    releaseSite: row.release_site,
+    packaging: row.packaging,
+    labelOption: row.label_option,
+    shippingConditions: row.shipping_conditions,
+    intendedUseScope: row.intended_use_scope,
     identityResult: row.identity_result,
     hplcPurity: row.hplc_purity,
     waterContent: row.water_content,
@@ -284,7 +403,7 @@ export async function getCoaVerificationByCode(verificationCode: string) {
   if (!hasSupabaseEnv()) {
     if (process.env.NODE_ENV !== "production") {
       const mockRecord = getMockCoaVerificationByCode(normalizedCode);
-      return mockRecord ? mapRowToRecord(mockRecord) : null;
+      return mockRecord ? mapCoaVerificationRowToRecord(mockRecord) : null;
     }
 
     return null;
@@ -305,5 +424,5 @@ export async function getCoaVerificationByCode(verificationCode: string) {
 
   const row = data as CoaVerificationRow | null;
 
-  return row ? mapRowToRecord(row) : null;
+  return row ? mapCoaVerificationRowToRecord(row) : null;
 }

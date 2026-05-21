@@ -2,6 +2,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import type {
   CoaReleaseDecision,
+  CoaVerificationRecord,
   CoaVerificationRow,
   CoaVerificationStatus,
 } from "@/lib/coa-verification";
@@ -23,6 +24,25 @@ export type CoaVerificationFormValues = {
   issue_date: string;
   revision: string;
   client_recipient: string;
+  peptide_sequence: string;
+  molecular_weight: string;
+  molecular_formula: string;
+  physical_form: string;
+  appearance_spec: string;
+  grade_scope: string;
+  pack_size: string;
+  storage: string;
+  retest_period: string;
+  manufacture_date: string;
+  retest_expiry_date: string;
+  batch_quantity: string;
+  manufacturing_site: string;
+  country_of_origin: string;
+  release_site: string;
+  packaging: string;
+  label_option: string;
+  shipping_conditions: string;
+  intended_use_scope: string;
   identity_result: string;
   hplc_purity: string;
   water_content: string;
@@ -87,6 +107,10 @@ export function formatReadableDate(date: Date) {
   }).format(date);
 }
 
+export function getDefaultIntendedUseScope() {
+  return "This COA supports qualified B2B sourcing, documentation review, MOQ/bulk supply conversations, and private-label planning. No medical, therapeutic, diagnostic, veterinary, or human-use claims are made. Final release documentation must match the tested batch and analytical records referenced in this document.";
+}
+
 export function getDefaultCoaFormValues(): CoaVerificationFormValues {
   return {
     coa_number: "",
@@ -98,6 +122,25 @@ export function getDefaultCoaFormValues(): CoaVerificationFormValues {
     issue_date: formatReadableDate(new Date()),
     revision: "Rev. 01",
     client_recipient: "Qualified B2B Buyer",
+    peptide_sequence: "",
+    molecular_weight: "",
+    molecular_formula: "",
+    physical_form: "Lyophilized powder",
+    appearance_spec: "White to off-white powder",
+    grade_scope: "Qualified B2B sourcing review",
+    pack_size: "",
+    storage: "",
+    retest_period: "",
+    manufacture_date: "",
+    retest_expiry_date: "",
+    batch_quantity: "",
+    manufacturing_site: "",
+    country_of_origin: "China",
+    release_site: "",
+    packaging: "",
+    label_option: "",
+    shipping_conditions: "",
+    intended_use_scope: getDefaultIntendedUseScope(),
     identity_result: "Pending LC-MS/MS review",
     hplc_purity: "Pending HPLC report",
     water_content: "Pending KF result",
@@ -109,7 +152,7 @@ export function getDefaultCoaFormValues(): CoaVerificationFormValues {
     appearance_result: "Pending QA check",
     purity_result: "Pending purity report",
     peptide_content_result: "Pending batch calculation",
-    counter_ion_result: "",
+    counter_ion_result: "To be confirmed",
     residual_solvents_result: "Pending GC report",
     heavy_metals_result: "Pending ICP-MS report",
     microbial_limits_result: "Not included unless ordered",
@@ -138,6 +181,25 @@ export function mapRowToFormValues(row: CoaVerificationRow): CoaVerificationForm
     issue_date: row.issue_date,
     revision: row.revision,
     client_recipient: row.client_recipient,
+    peptide_sequence: row.peptide_sequence ?? "",
+    molecular_weight: row.molecular_weight ?? "",
+    molecular_formula: row.molecular_formula ?? "",
+    physical_form: row.physical_form ?? "",
+    appearance_spec: row.appearance_spec ?? "",
+    grade_scope: row.grade_scope ?? "",
+    pack_size: row.pack_size ?? "",
+    storage: row.storage ?? "",
+    retest_period: row.retest_period ?? "",
+    manufacture_date: row.manufacture_date ?? "",
+    retest_expiry_date: row.retest_expiry_date ?? "",
+    batch_quantity: row.batch_quantity ?? "",
+    manufacturing_site: row.manufacturing_site ?? "",
+    country_of_origin: row.country_of_origin ?? "",
+    release_site: row.release_site ?? "",
+    packaging: row.packaging ?? "",
+    label_option: row.label_option ?? "",
+    shipping_conditions: row.shipping_conditions ?? "",
+    intended_use_scope: row.intended_use_scope ?? getDefaultIntendedUseScope(),
     identity_result: row.identity_result,
     hplc_purity: row.hplc_purity,
     water_content: row.water_content,
@@ -168,7 +230,8 @@ export function mapRowToFormValues(row: CoaVerificationRow): CoaVerificationForm
 
 export function buildVerificationUrl(
   verificationCode: string,
-  originFallback?: string | null
+  originFallback?: string | null,
+  preferredBaseUrl?: string | null
 ) {
   const normalizedCode = verificationCode.trim().toUpperCase();
 
@@ -178,6 +241,7 @@ export function buildVerificationUrl(
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
+    preferredBaseUrl?.trim() ||
     originFallback?.trim() ||
     "";
 
@@ -185,7 +249,12 @@ export function buildVerificationUrl(
     return `/verify/${encodeURIComponent(normalizedCode)}`;
   }
 
-  return `${siteUrl.replace(/\/$/, "")}/verify/${encodeURIComponent(normalizedCode)}`;
+  const normalizedBase = siteUrl.replace(/\/$/, "");
+  const verificationPath = normalizedBase.endsWith("/verify")
+    ? `${normalizedBase}/${encodeURIComponent(normalizedCode)}`
+    : `${normalizedBase}/verify/${encodeURIComponent(normalizedCode)}`;
+
+  return verificationPath;
 }
 
 export function buildPublicVerificationPath(verificationCode: string) {
@@ -198,9 +267,91 @@ export function buildPublicVerificationPath(verificationCode: string) {
   return `/verify/${encodeURIComponent(normalizedCode)}`;
 }
 
+export function resolveVerificationUrl({
+  verificationCode,
+  verificationUrl,
+  brandingBaseUrl,
+  originFallback,
+}: {
+  verificationCode: string;
+  verificationUrl?: string | null;
+  brandingBaseUrl?: string | null;
+  originFallback?: string | null;
+}) {
+  if (verificationUrl && verificationUrl.trim().length > 0) {
+    return verificationUrl.trim();
+  }
+
+  return buildVerificationUrl(
+    verificationCode,
+    originFallback,
+    brandingBaseUrl
+  );
+}
+
+export function getCoaStatusLabel(status: CoaVerificationStatus) {
+  switch (status) {
+    case "Released / Verified":
+      return "RELEASED / VERIFIED";
+    case "Pending QA Review":
+      return "PENDING QA REVIEW";
+    case "Draft":
+      return "DRAFT";
+    case "Revoked":
+      return "REVOKED";
+    case "Expired":
+      return "EXPIRED";
+    case "Rejected / Non-Conforming":
+      return "REJECTED / NON-CONFORMING";
+    case "Superseded":
+      return "SUPERSEDED";
+    default:
+      return status.toUpperCase();
+  }
+}
+
+export function deriveAnalyticalStatus(value?: string | null) {
+  const normalizedValue = value?.trim().toLowerCase() ?? "";
+
+  if (!normalizedValue) {
+    return "Pending";
+  }
+
+  if (normalizedValue.includes("pending")) {
+    return "Pending";
+  }
+
+  if (
+    normalizedValue.includes("not included") ||
+    normalizedValue === "n/a" ||
+    normalizedValue.includes("not applicable")
+  ) {
+    return "Not Included";
+  }
+
+  if (
+    normalizedValue.includes("conform") ||
+    normalizedValue.includes("meets") ||
+    normalizedValue.includes("pass") ||
+    normalizedValue.includes("complies")
+  ) {
+    return "Conforms";
+  }
+
+  if (
+    normalizedValue.includes("rejected") ||
+    normalizedValue.includes("revoke") ||
+    normalizedValue.includes("deviation")
+  ) {
+    return "Review";
+  }
+
+  return "Reported";
+}
+
 export function getCoaAdminWarnings(values: CoaVerificationFormValues) {
   const warnings: string[] = [];
-  const pendingFields = [
+  const releasePendingFields = [
     values.identity_result,
     values.hplc_purity,
     values.water_content,
@@ -217,7 +368,7 @@ export function getCoaAdminWarnings(values: CoaVerificationFormValues) {
 
   if (
     values.verification_status === "Released / Verified" &&
-    pendingFields.some((value) => value.toLowerCase().includes("pending"))
+    releasePendingFields.some((value) => value.toLowerCase().includes("pending"))
   ) {
     warnings.push(
       "Released / Verified records should not keep Pending values in Identity Result, HPLC Purity, or Water Content."
@@ -225,6 +376,46 @@ export function getCoaAdminWarnings(values: CoaVerificationFormValues) {
   }
 
   return warnings;
+}
+
+export function getCoaPrintWarnings(
+  record: Pick<
+    CoaVerificationRecord,
+    | "verificationStatus"
+    | "identityResult"
+    | "hplcPurity"
+    | "waterContent"
+    | "appearanceResult"
+    | "purityResult"
+    | "peptideContentResult"
+    | "residualSolventsResult"
+    | "heavyMetalsResult"
+  >
+) {
+  if (record.verificationStatus !== "Released / Verified") {
+    return [];
+  }
+
+  const valuesToCheck = [
+    record.identityResult,
+    record.hplcPurity,
+    record.waterContent,
+    record.appearanceResult,
+    record.purityResult,
+    record.peptideContentResult,
+    record.residualSolventsResult,
+    record.heavyMetalsResult,
+  ];
+
+  const hasPending = valuesToCheck.some(
+    (value) => value?.toLowerCase().includes("pending")
+  );
+
+  return hasPending
+    ? [
+        "This record is marked Released / Verified but still contains pending analytical fields. Review before issuing the COA.",
+      ]
+    : [];
 }
 
 export async function getActiveAdminUser(
@@ -401,6 +592,25 @@ function toMutationPayload(
     issue_date: values.issue_date.trim(),
     revision: values.revision.trim(),
     client_recipient: values.client_recipient.trim(),
+    peptide_sequence: emptyToNull(values.peptide_sequence),
+    molecular_weight: emptyToNull(values.molecular_weight),
+    molecular_formula: emptyToNull(values.molecular_formula),
+    physical_form: emptyToNull(values.physical_form),
+    appearance_spec: emptyToNull(values.appearance_spec),
+    grade_scope: emptyToNull(values.grade_scope),
+    pack_size: emptyToNull(values.pack_size),
+    storage: emptyToNull(values.storage),
+    retest_period: emptyToNull(values.retest_period),
+    manufacture_date: emptyToNull(values.manufacture_date),
+    retest_expiry_date: emptyToNull(values.retest_expiry_date),
+    batch_quantity: emptyToNull(values.batch_quantity),
+    manufacturing_site: emptyToNull(values.manufacturing_site),
+    country_of_origin: emptyToNull(values.country_of_origin),
+    release_site: emptyToNull(values.release_site),
+    packaging: emptyToNull(values.packaging),
+    label_option: emptyToNull(values.label_option),
+    shipping_conditions: emptyToNull(values.shipping_conditions),
+    intended_use_scope: emptyToNull(values.intended_use_scope),
     identity_result: values.identity_result.trim(),
     hplc_purity: values.hplc_purity.trim(),
     water_content: values.water_content.trim(),
