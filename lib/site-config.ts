@@ -10,7 +10,7 @@ export function absoluteUrl(path: string) {
   const url = new URL(path, siteConfig.url);
 
   if (url.pathname === "/" && !url.search && !url.hash) {
-    return url.origin;
+    return `${url.origin}/`;
   }
 
   return url.toString();

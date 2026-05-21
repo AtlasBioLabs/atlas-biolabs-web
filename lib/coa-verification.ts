@@ -140,7 +140,7 @@ export type CoaVerificationRow = {
 const mockCoaVerificationRows: CoaVerificationRow[] = [
   {
     id: "00000000-0000-0000-0000-000000000001",
-    verification_url: "https://atlasbiolabs.co/verify/ATL-BPC157-2026-001-X9K4P2",
+    verification_url: "https://www.atlasbiolabs.co/verify/ATL-BPC157-2026-001-X9K4P2",
     verification_code: "ATL-BPC157-2026-001-X9K4P2",
     coa_number: "COA-ATL-BPC157-2026-001",
     product_name: "BPC-157 Acetate",
@@ -204,7 +204,7 @@ const mockCoaVerificationRows: CoaVerificationRow[] = [
     id: "00000000-0000-0000-0000-000000000002",
     verification_code: "ATL-SEMAGLUTIDE-2026-001-PENDING",
     verification_url:
-      "https://atlasbiolabs.co/verify/ATL-SEMAGLUTIDE-2026-001-PENDING",
+      "https://www.atlasbiolabs.co/verify/ATL-SEMAGLUTIDE-2026-001-PENDING",
     coa_number: "COA-ATL-SEMAGLUTIDE-2026-001",
     product_name: "Semaglutide",
     catalog_code: "ATL-SEMAGLUTIDE",
@@ -266,7 +266,7 @@ const mockCoaVerificationRows: CoaVerificationRow[] = [
   {
     id: "00000000-0000-0000-0000-000000000003",
     verification_code: "ATL-REVOKED-TEST-001",
-    verification_url: "https://atlasbiolabs.co/verify/ATL-REVOKED-TEST-001",
+    verification_url: "https://www.atlasbiolabs.co/verify/ATL-REVOKED-TEST-001",
     coa_number: "COA-ATL-REVOKED-TEST-001",
     product_name: "Verification Test Record",
     catalog_code: "ATL-TEST",

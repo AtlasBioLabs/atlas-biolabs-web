@@ -15,7 +15,7 @@ const auditedRoutes = [
   {
     label: "Homepage",
     path: "/",
-    expectedCanonical: canonicalOrigin,
+    expectedCanonical: `${canonicalOrigin}/`,
     expectedTypes: ["Organization", "WebSite"],
     expectBreadcrumb: false,
   },
@@ -133,11 +133,24 @@ function extractMetaDescription(html) {
   return match?.[1]?.trim() ?? "";
 }
 
-function extractCanonical(html) {
-  const match = html.match(
-    /<link\s+rel=["']canonical["']\s+href=["']([\s\S]*?)["'][^>]*>/i
+function extractCanonicals(html) {
+  return [
+    ...html.matchAll(
+      /<link\s+rel=["']canonical["']\s+href=["']([\s\S]*?)["'][^>]*>/gi
+    ),
+  ].map((match) => match[1]?.trim() ?? "");
+}
+
+function canonicalEquals(actual, expected) {
+  if (actual === expected) {
+    return true;
+  }
+
+  // Next.js Metadata API serializes the root canonical as the origin.
+  return (
+    actual === `${canonicalOrigin}` &&
+    expected === `${canonicalOrigin}/`
   );
-  return match?.[1]?.trim() ?? "";
 }
 
 function hasNoIndex(html) {
@@ -232,13 +245,15 @@ async function run() {
 
       const title = extractTitle(text);
       const description = extractMetaDescription(text);
-      const canonical = extractCanonical(text);
+      const canonicals = extractCanonicals(text);
+      const canonical = canonicals[0] ?? "";
       const jsonLdBlocks = getJsonLdBlocks(text);
       const topLevelTypes = getTopLevelTypes(jsonLdBlocks);
 
       assert(title.length > 0, `${route.label}: missing <title>`);
       assert(description.length > 0, `${route.label}: missing meta description`);
-      assert(canonical === route.expectedCanonical, `${route.label}: canonical mismatch`);
+      assert(canonicals.length === 1, `${route.label}: expected exactly one canonical link, found ${canonicals.length}`);
+      assert(canonicalEquals(canonical, route.expectedCanonical), `${route.label}: canonical mismatch`);
       assert(!hasNoIndex(text), `${route.label}: page is marked noindex`);
 
       for (const type of route.expectedTypes) {
@@ -281,6 +296,26 @@ async function run() {
       }
 
       if (route.path === "/shop") {
+        const productHrefs = new Set(
+          [...text.matchAll(/href="\/shop\/([^"#?]+)"/g)].map(
+            (match) => `/shop/${match[1]}`
+          )
+        );
+        const categoryHrefs = new Set(
+          [...text.matchAll(/href="\/categories\/([^"#?]+)"/g)].map(
+            (match) => `/categories/${match[1]}`
+          )
+        );
+
+        assert(
+          productHrefs.size === 41,
+          `${route.label}: expected 41 unique crawlable product links, found ${productHrefs.size}`
+        );
+        assert(
+          categoryHrefs.size === 8,
+          `${route.label}: expected 8 unique crawlable category links, found ${categoryHrefs.size}`
+        );
+
         for (const expectedHref of [
           "/shop/bpc-157",
           "/shop/retatrutide",
@@ -308,6 +343,9 @@ async function run() {
 
     const sitemap = await fetchText("/sitemap.xml");
     assert(sitemap.response.ok, "sitemap.xml: expected 200");
+    assert(sitemap.text.includes(`<loc>${canonicalOrigin}/</loc>`), "sitemap.xml: missing homepage canonical");
+    assert(!/https:\/\/atlasbiolabs\.co\//i.test(sitemap.text), "sitemap.xml: contains non-www canonical URL");
+    assert(!/http:\/\/(?:www\.)?atlasbiolabs\.co\//i.test(sitemap.text), "sitemap.xml: contains http URL");
     assert(sitemap.text.includes(`${canonicalOrigin}/shop/bpc-157`), "sitemap.xml: missing product canonical");
     assert(
       sitemap.text.includes(`${canonicalOrigin}/shop/retatrutide`),

@@ -77,6 +77,7 @@ export const BlogPost = defineDocumentType(() => ({
     tags: { type: "list", of: { type: "string" }, required: true },
     relatedProductSlugs: { type: "list", of: { type: "string" }, required: false },
     relatedCategorySlugs: { type: "list", of: { type: "string" }, required: false },
+    relatedArticleSlugs: { type: "list", of: { type: "string" }, required: false },
     seoTitle: { type: "string", required: false },
     metaDescription: { type: "string", required: false },
     canonical: { type: "string", required: false },

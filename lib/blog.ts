@@ -213,6 +213,16 @@ export function getRecentBlogPosts(limit = 3, excludeSlug?: string) {
 }
 
 export function getRelatedBlogPosts(post: BlogPost, limit = 3) {
+  const pinnedPosts = (post.relatedArticleSlugs ?? [])
+    .map((slug) => getBlogPostBySlug(slug))
+    .filter((entry): entry is BlogPost => entry !== undefined)
+    .filter((entry) => entry.slug !== post.slug)
+    .slice(0, limit);
+
+  if (pinnedPosts.length >= limit) {
+    return pinnedPosts;
+  }
+
   const genericTokens = new Set([
     "atlas",
     "biolabs",
@@ -235,6 +245,10 @@ export function getRelatedBlogPosts(post: BlogPost, limit = 3) {
 
   const rankedPosts = getAllBlogPosts()
     .filter((candidate) => candidate.slug !== post.slug)
+    .filter(
+      (candidate) =>
+        !pinnedPosts.some((pinnedPost) => pinnedPost.slug === candidate.slug)
+    )
     .map((candidate) => ({
       post: candidate,
       score: scorePost(candidate, keywordPool),
@@ -242,7 +256,10 @@ export function getRelatedBlogPosts(post: BlogPost, limit = 3) {
     .filter((entry) => entry.score > 0)
     .sort((a, b) => b.score - a.score || toTime(getBlogPostModifiedDate(b.post)) - toTime(getBlogPostModifiedDate(a.post)));
 
-  const topMatches = rankedPosts.slice(0, limit).map((entry) => entry.post);
+  const topMatches = [
+    ...pinnedPosts,
+    ...rankedPosts.slice(0, limit).map((entry) => entry.post),
+  ].slice(0, limit);
 
   if (topMatches.length >= limit) {
     return topMatches;
@@ -288,12 +305,19 @@ export function getRelevantBlogPostsForCategory(
   const categoryProducts = products
     .filter((product) => product.category === categoryId)
     .slice(0, 4);
+  const pinnedPosts = getAllBlogPosts()
+    .filter((post) => (post.relatedCategorySlugs ?? []).includes(categoryId))
+    .slice(0, limit);
 
   if (!category) {
     return getRecentBlogPosts(limit);
   }
 
-  return getPostsForKeywords(
+  if (pinnedPosts.length >= limit) {
+    return pinnedPosts;
+  }
+
+  const keywordMatches = getPostsForKeywords(
     [
       category.label,
       category.description,
@@ -302,14 +326,24 @@ export function getRelevantBlogPostsForCategory(
       "documentation",
       "wholesale peptides",
     ],
-    limit
+    limit - pinnedPosts.length,
+    pinnedPosts.map((post) => post.slug)
   );
+
+  return [...pinnedPosts, ...keywordMatches].slice(0, limit);
 }
 
 export function getRelevantBlogPostsForProduct(product: Product, limit = 3) {
   const category = productCategories.find((entry) => entry.id === product.category);
+  const pinnedPosts = getAllBlogPosts()
+    .filter((post) => (post.relatedProductSlugs ?? []).includes(product.slug))
+    .slice(0, limit);
 
-  return getPostsForKeywords(
+  if (pinnedPosts.length >= limit) {
+    return pinnedPosts;
+  }
+
+  const keywordMatches = getPostsForKeywords(
     [
       product.name,
       category?.label ?? product.category,
@@ -319,8 +353,11 @@ export function getRelevantBlogPostsForProduct(product: Product, limit = 3) {
       "batch transparency",
       "documentation support",
     ],
-    limit
+    limit - pinnedPosts.length,
+    pinnedPosts.map((post) => post.slug)
   );
+
+  return [...pinnedPosts, ...keywordMatches].slice(0, limit);
 }
 
 export function getRelevantProductsForBlogPost(post: BlogPost, limit = 3) {

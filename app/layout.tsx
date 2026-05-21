@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import Script from "next/script";
+import { SITE_URL } from "@/lib/site";
 import { siteConfig } from "@/lib/site-config";
 import { siteDefaultTitle, siteDescription } from "@/lib/seo";
 import "./globals.css";
@@ -22,7 +23,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: siteDefaultTitle,
     template: "%s | Atlas BioLabs",
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
     "peptide supply USA",
   ],
   alternates: {
-    canonical: "/",
+    canonical: `${SITE_URL}/`,
   },
   robots: {
     index: true,

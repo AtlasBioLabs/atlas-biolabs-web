@@ -62,7 +62,7 @@ function readString(formData: FormData, key: string) {
 async function getSubmissionContext(fallbackPath: string) {
   const headerStore = await headers();
   const forwardedHost = headerStore.get("x-forwarded-host");
-  const host = forwardedHost || headerStore.get("host") || "atlasbiolabs.co";
+  const host = forwardedHost || headerStore.get("host") || "www.atlasbiolabs.co";
   const protocol = headerStore.get("x-forwarded-proto") || "https";
   const referer = headerStore.get("referer") || "";
 

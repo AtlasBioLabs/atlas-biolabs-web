@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "contentlayer2 build && eslint",
     "seo:audit": "node scripts/seo-audit.mjs",
+    "check:canonicals": "node scripts/check-canonicals.mjs",
     "validate:blog": "node scripts/validate-blog.js",
     "generate:blog-images": "node scripts/generate-blog-images.js"
   },

@@ -67,7 +67,7 @@ export function getDefaultCoaBrandSettings(): CoaBrandSettings {
     seal_url: "",
     footer_text:
       "Atlas BioLabs / Atlas Labs - Batch documentation. Final release requires authorized signature and batch-specific analytical records.",
-    verification_base_url: "https://atlasbiolabs.co/verify",
+    verification_base_url: "https://www.atlasbiolabs.co/verify",
     document_class: "Batch QA record",
     is_active: true,
   };

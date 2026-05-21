@@ -572,7 +572,6 @@ function bodyFor(post) {
   const linkedCategories = post.categories.map(linkCategory);
   const primaryProducts = linkedProducts.slice(0, 3).join(", ");
   const primaryCategories = linkedCategories.join(" and ");
-  const categoryName = categoryLabel[post.category];
   const relatedGuide = `[related sourcing guide](/blog/${post.guide})`;
 
   return `Atlas BioLabs created this guide for qualified B2B buyers who want a clearer commercial view of ${post.angle}. The goal is not to provide medical, dosage, diagnostic, veterinary, or personal-use guidance. It is to help procurement and formulation teams understand how product pages, documentation, MOQ, batch transparency, and quote-led supply fit together.
@@ -623,7 +622,7 @@ for (const [index, post] of posts.entries()) {
   const frontmatter = `---
 title: "${post.title.replaceAll('"', '\\"')}"
 description: "${description.replaceAll('"', '\\"')}"
-date: "${dateForIndex(index)}"
+date: "${publishedDate}"
 updatedAt: "${updatedForIndex(index, publishedDate)}"
 slug: "${post.slug}"
 author: "Atlas BioLabs Editorial"
