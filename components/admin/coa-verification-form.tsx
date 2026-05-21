@@ -213,6 +213,7 @@ export function CoaVerificationForm({
       return;
     }
 
+    const safeRecordId = recordId;
     let isMounted = true;
 
     async function loadRecord() {
@@ -220,7 +221,7 @@ export function CoaVerificationForm({
       setFormError(null);
 
       try {
-        const editorData = await getCoaVerificationEditorData(supabase, recordId);
+        const editorData = await getCoaVerificationEditorData(supabase, safeRecordId);
 
         if (!isMounted) {
           return;
