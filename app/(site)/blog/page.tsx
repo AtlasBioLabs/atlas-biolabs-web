@@ -36,6 +36,50 @@ export const metadata: Metadata = createPageMetadata({
 export default function BlogPage() {
   const posts = getAllBlogPosts();
   const featuredPosts = posts.slice(0, 3);
+  const postsBySlug = new Map(posts.map((post) => [post.slug, post]));
+  const toPostLinks = (slugs: string[]) =>
+    slugs
+      .map((slug) => postsBySlug.get(slug))
+      .filter((post): post is (typeof posts)[number] => post !== undefined)
+      .map((post) => ({
+        title: post.title,
+        href: `/blog/${post.slug}`,
+        description: post.excerpt ?? post.description,
+        eyebrow: post.tags[0],
+      }));
+  const pillarGuideLinks = toPostLinks([
+    "peptide-supplier-checklist",
+    "how-to-read-peptide-coa",
+    "peptide-purity-hplc-ms-documentation",
+    "source-peptides-wholesale",
+    "cosmetic-peptides-guide",
+    "trending-emerging-peptides-2026",
+    "retatrutide-peptide-commercial-sourcing",
+    "atlas-biolabs-peptide-catalog-guide",
+  ]);
+  const startHereLinks = toPostLinks([
+    "atlas-biolabs-peptide-catalog-guide",
+    "peptide-supplier-checklist",
+    "how-to-read-peptide-coa",
+  ]);
+  const trendingNowLinks = toPostLinks([
+    "retatrutide-peptide-commercial-sourcing",
+    "why-retatrutide-is-watched-in-2026",
+    "trending-emerging-peptides-2026",
+    "klow-peptide-blend-sourcing-context",
+  ]);
+  const documentationLinks = toPostLinks([
+    "how-to-read-peptide-coa",
+    "peptide-purity-hplc-ms-documentation",
+    "batch-number-coa-verification",
+    "lot-specific-peptide-documentation",
+  ]);
+  const cosmeticLinks = toPostLinks([
+    "cosmetic-peptides-guide",
+    "ghk-cu-copper-peptide-cosmetic-formulation",
+    "matrixyl-peptide-supplier-guide",
+    "argireline-peptide-cosmetic-formulation",
+  ]);
   const featuredProducts = featuredProductSlugs
     .map((slug) => products.find((product) => product.slug === slug))
     .filter((product): product is (typeof products)[number] => product !== undefined)
@@ -115,6 +159,57 @@ export default function BlogPage() {
 
       <section className="section-space pt-10">
         <div className="site-container">
+          <div className="mb-8 grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+            <article className="surface-card p-6 sm:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+                Start Here
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold text-[var(--brand-navy)]">
+                Buyer Guides for Sourcing, COA Review, and Catalog Navigation
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                New buyers should start with the pillar guides before moving into
+                individual product articles. These pages explain how Atlas
+                BioLabs thinks about product selection, documentation
+                expectations, MOQ planning, batch transparency, and quote-led
+                commercial communication.
+              </p>
+              <div className="mt-5 grid gap-3">
+                {startHereLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="rounded-xl border border-border/70 bg-white p-4 text-sm font-medium text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+                  >
+                    {link.title}
+                  </Link>
+                ))}
+              </div>
+            </article>
+
+            <article className="surface-card p-6 sm:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+                Featured Pillar Guides
+              </p>
+              <div className="mt-5 grid gap-3 md:grid-cols-2">
+                {pillarGuideLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="rounded-xl border border-border/70 bg-white p-4 hover:border-[var(--brand-blue)]"
+                  >
+                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--brand-blue)]">
+                      {link.eyebrow}
+                    </span>
+                    <span className="mt-2 block text-sm font-semibold text-[var(--brand-navy)]">
+                      {link.title}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </article>
+          </div>
+
           {posts.length === 0 ? (
             <article className="surface-card p-8 text-center">
               <h2 className="text-2xl font-semibold text-[var(--brand-navy)]">
@@ -133,6 +228,27 @@ export default function BlogPage() {
           )}
         </div>
       </section>
+
+      <ResourceLinksPanel
+        eyebrow="Trending Now"
+        title="Trending and Emerging Peptide Buyer Guides"
+        description="These guides help buyers evaluate fast-moving peptide discussions with sourcing discipline, documentation expectations, and quote-ready context."
+        links={trendingNowLinks}
+      />
+
+      <ResourceLinksPanel
+        eyebrow="Documentation and Quality"
+        title="COA, Purity, Batch, and Supplier Evaluation Guides"
+        description="Use these resources to understand lot-specific documentation, HPLC/MS context, packaging, storage, and supplier questions before shipment."
+        links={documentationLinks}
+      />
+
+      <ResourceLinksPanel
+        eyebrow="Cosmetic Peptide Sourcing"
+        title="Guides for Formulation Teams and Ingredient Buyers"
+        description="Compare cosmetic peptide categories, product pages, and documentation expectations before asking for MOQ, bulk pack, or private-label support."
+        links={cosmeticLinks}
+      />
 
       <ResourceLinksPanel
         eyebrow="Featured Topics"

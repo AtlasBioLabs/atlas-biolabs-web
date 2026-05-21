@@ -52,6 +52,28 @@ export async function generateMetadata({
   });
 }
 
+function getCategoryBuyerIntro(
+  category: (typeof blogCategories)[number],
+  relatedProducts: typeof products,
+  relatedProductCategories: typeof productCategories
+) {
+  const productNames = relatedProducts
+    .slice(0, 3)
+    .map((product) => product.name)
+    .join(", ");
+  const categoryNames = relatedProductCategories
+    .slice(0, 2)
+    .map((productCategory) => productCategory.label)
+    .join(" and ");
+
+  return [
+    `${category.name} is organized as a practical buyer path, not a thin article archive. The goal is to help qualified B2B buyers move from research context into clearer commercial sourcing decisions with enough detail to compare products, documentation expectations, MOQ, lead time, and quote readiness. Atlas BioLabs uses this category to connect editorial guidance with product pages and category pages that buyers can review before opening a commercial conversation.`,
+    `Readers in this section are often trying to understand what a professional supplier should provide, where documentation questions belong in the workflow, and how to avoid vague quote requests. Related products such as ${productNames || "Atlas BioLabs catalog SKUs"} give the category a concrete product path, while related product categories such as ${categoryNames || "the core peptide catalog categories"} help buyers compare adjacent sourcing options without relying on filter-only URLs or disconnected product mentions.`,
+    `A strong buyer workflow usually starts with article review, moves into product comparison, and then becomes a quote request with specific quantity, pack size, destination, timeline, and document expectations. That is why this page links articles, products, product categories, and quote actions together. It supports procurement teams, formulation teams, and research supply buyers who need more than generic peptide content before they can make a sourcing decision.`,
+    `Use this category as a working library. Start with the most relevant article, compare the linked product pages, review the documentation language, and keep notes on questions for the supplier. When the request is specific enough, Atlas BioLabs can help clarify MOQ, pack-size options, batch transparency support, lead-time assumptions, and documentation expectations before the buyer moves deeper into commercial follow-up.`,
+  ];
+}
+
 export default async function BlogCategoryPage({ params }: BlogCategoryPageProps) {
   const { slug } = await params;
   const category = getBlogCategoryBySlug(slug);
@@ -101,6 +123,15 @@ export default async function BlogCategoryPage({ params }: BlogCategoryPageProps
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">
             {category.intro}
           </p>
+          <div className="mt-6 grid gap-4 text-sm leading-relaxed text-muted-foreground lg:grid-cols-2">
+            {getCategoryBuyerIntro(
+              category,
+              relatedProducts,
+              relatedProductCategories
+            ).map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
         </div>
       </section>
 

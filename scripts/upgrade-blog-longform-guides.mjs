@@ -164,6 +164,16 @@ function sentenceTopic(title) {
   return title.replace(/\s+/g, " ").replace(/[?.!]+$/, "");
 }
 
+function readableTopic(title) {
+  return sentenceTopic(title)
+    .split(":")[0]
+    .replace(/^Why\s+/i, "")
+    .replace(/^How\s+/i, "")
+    .replace(/^What\s+/i, "")
+    .replace(/\s+Explained$/i, "")
+    .trim();
+}
+
 function compactDescription(title) {
   const topic = sentenceTopic(title).split(":")[0];
   const shortTopic = topic.length > 72 ? `${topic.slice(0, 69).trim()}...` : topic;
@@ -225,6 +235,29 @@ function getCluster(category) {
   return "commercial peptide sourcing";
 }
 
+function clusterGuidance(category, topic, productLinks, categoryLinks) {
+  const guidance = {
+    "cosmetic-peptides":
+      `For cosmetic formulation teams, ${topic} is usually evaluated through ingredient positioning, supplier consistency, documentation fit, and the practical realities of formulation-ready supply. Buyers often need to compare INCI-facing naming conventions, appearance expectations, storage notes, and whether the supplier can support private-label or bulk ingredient conversations without overstating cosmetic outcomes. The right sourcing discussion connects ${productLinks} with ${categoryLinks}, then turns that context into a clear quote brief.`,
+    "quality-documentation":
+      `For documentation-heavy buyers, ${topic} is less about broad product interest and more about evidence discipline. Procurement teams want to know which records exist, which records are batch-specific, and which records are still pending. A useful supplier should help the buyer connect product identity, COA status, HPLC or MS references where applicable, packaging notes, and lot-specific documentation before the order is treated as commercially ready.`,
+    "peptide-pricing":
+      `For pricing and MOQ conversations, ${topic} should be evaluated through quantity, pack format, lead time, document scope, and dispatch expectations together. A low price without MOQ detail can be misleading; a high MOQ without documentation clarity can slow internal approval. Serious buyers use ${productLinks} and ${categoryLinks} to define the request before they ask for a firm quote.`,
+    "trending-peptides":
+      `For trend-driven products, ${topic} needs extra care because market attention can move faster than procurement discipline. Buyers may hear about a product before they understand its category, documentation expectations, or supply constraints. Atlas BioLabs keeps the discussion anchored in product pages, category context, MOQ, and batch transparency so interest in ${productLinks} can become a structured sourcing conversation instead of a speculative one.`,
+    "wholesale-supply":
+      `For wholesale buyers, ${topic} becomes meaningful when it connects recurring quantity, packaging format, shipment timing, documentation, and supplier communication. A wholesale plan is rarely just one product page. It is a repeatable workflow that connects product selection, category planning, lot-specific records, and commercial terms before the buyer commits to a larger schedule.`,
+    "custom-peptides":
+      `For custom sourcing teams, ${topic} usually starts with feasibility. Buyers need to clarify sequence or product requirements, target purity, quantity, documentation expectations, and whether the request fits catalog, custom, or partner-sourced supply. This is where quote-led communication matters: the supplier needs enough technical and commercial detail to respond responsibly.`,
+    "compliance":
+      `For compliance-sensitive buyers, ${topic} should reduce ambiguity. The most useful content avoids unsupported claims, keeps product language tied to sourcing and documentation, and helps buyers ask better questions before shipment. A professional supplier should be clear about batch status, document scope, category fit, and what is not being claimed.`,
+    "peptide-sourcing":
+      `For general sourcing teams, ${topic} is a practical way to organize buyer intent. The useful questions are not only "is this product available?" but also "what quantity, pack size, documentation, category context, and lead time does this request require?" That structure helps buyers move from research into a quote-ready conversation with fewer gaps.`,
+  };
+
+  return guidance[category] ?? guidance["peptide-sourcing"];
+}
+
 function productLink(slug) {
   return `[${productNames[slug] ?? slug}](/shop/${slug})`;
 }
@@ -255,7 +288,6 @@ function findRelatedArticles(post, allPosts) {
 
 function buyerComparisonTable(productSlugs) {
   const rows = productSlugs.slice(0, 4).map((slug) => {
-    const name = productNames[slug] ?? slug;
     return `| ${productLink(slug)} | Product-level sourcing review | COA, HPLC/MS where applicable, SDS or safety documentation on request | Confirm pack size, MOQ, destination, and desired document pack |`;
   });
 
@@ -327,6 +359,8 @@ function bodyFor(post, allPosts) {
   const slug = data.slug;
   const category = inferCategory(data);
   const cluster = getCluster(category);
+  const topic = readableTopic(title);
+  const lowerTopic = topic.toLowerCase();
   const productSlugs = unique(inferProducts(data)).slice(0, 4);
   const categorySlugs = unique(inferCategories(data)).slice(0, 2);
   const relatedArticleSlugs = findRelatedArticles(post, allPosts);
@@ -337,13 +371,13 @@ function bodyFor(post, allPosts) {
     .map((articleSlug) => `[${articleSlug.replace(/-/g, " ")}](/blog/${articleSlug})`)
     .join(", ");
 
-  return `${title} matters because peptide buyers are no longer evaluating catalog pages as isolated product listings. Procurement teams, formulation teams, and research supply buyers are comparing product identity, documentation support, MOQ planning, packaging expectations, lead time, and supplier communication in one workflow. Atlas BioLabs approaches this topic as a commercial sourcing guide: practical enough for buyer review, detailed enough for internal discussion, and careful enough to avoid turning sourcing content into medical or consumer advice.
+  return `${topic} matters because peptide buyers are no longer evaluating catalog pages as isolated product listings. Procurement teams, formulation teams, and research supply buyers are comparing product identity, documentation support, MOQ planning, packaging expectations, lead time, and supplier communication in one workflow. Atlas BioLabs approaches this topic as a commercial sourcing guide: practical enough for buyer review, detailed enough for internal discussion, and careful enough to avoid turning sourcing content into medical or consumer advice.
 
 The strongest buyers use articles like this to prepare better questions before they request a quote. They review the product page, compare the category, decide which records matter, and then ask for clear next steps around MOQ, pack size, shipping conditions, and batch transparency. That is where a supplier can be genuinely helpful. A cleaner request creates a cleaner quote, and a cleaner quote gives both sides fewer surprises before shipment.
 
 ## Quick Summary for Buyers
 
-- Treat ${sentenceTopic(title)} as a ${cluster} topic connected to sourcing decisions, not as a standalone keyword.
+- Treat ${topic} as a ${cluster} topic connected to sourcing decisions, not as a standalone keyword.
 - Review product-level pages such as ${productsText} before asking for price or availability.
 - Compare category context through ${categoriesText} so product selection is not separated from buyer intent.
 - Ask about COA, batch or lot number, appearance, purity, HPLC/MS where applicable, packaging, storage context, and lead time.
@@ -354,19 +388,20 @@ ${isPillar ? `## Table of Contents
 
 - [What this topic means in commercial sourcing](#what-this-topic-means-in-commercial-sourcing)
 - [Why buyers are discussing it now](#why-buyers-are-discussing-it-now)
+- [Category-specific buyer context](#category-specific-buyer-context)
 - [What buyers usually compare](#what-buyers-usually-compare)
 - [Documentation expectations](#documentation-expectations)
 - [MOQ and pack-size planning](#moq-and-pack-size-planning)
 - [Supplier evaluation](#supplier-evaluation)
 - [Practical buyer checklist](#practical-buyer-checklist)
 - [Atlas BioLabs sourcing workflow](#atlas-biolabs-sourcing-workflow)
-- [FAQ](#faq)
+- [Frequently Asked Questions](#frequently-asked-questions)
 ` : ""}
 ## What this topic means in commercial sourcing
 
 ### What it is
 
-In a commercial sourcing context, ${sentenceTopic(title).toLowerCase()} is best understood as a decision-support topic. It helps buyers decide what to compare, which product pages to review, and what information should be shared before a quote. For Atlas BioLabs, the conversation usually connects product selection, category fit, MOQ, documentation, and buyer workflow rather than isolated claims about a peptide.
+In a commercial sourcing context, ${lowerTopic} is best understood as a decision-support topic. It helps buyers decide what to compare, which product pages to review, and what information should be shared before a quote. For Atlas BioLabs, the conversation usually connects product selection, category fit, MOQ, documentation, and buyer workflow rather than isolated claims about a peptide.
 
 That distinction matters. A product page can show the SKU, catalog code, category, short overview, pack sizes, MOQ, lead time, and documentation support. A buyer guide can explain how to use that information. The two should work together. When buyers read this guide and then review ${productsText}, they can move into the quote process with a more organized view of what they need.
 
@@ -375,6 +410,10 @@ That distinction matters. A product page can show the SKU, catalog code, categor
 Peptide sourcing is becoming more structured. Buyers are asking for clearer documentation, more transparent batch references, cleaner quote workflows, and better category explanations. Cosmetic formulation teams want ingredient context. Procurement teams want MOQ and packaging clarity. Research supply buyers want to understand what documents may be available before the order advances. Those needs make ${cluster} content more valuable than a thin product mention.
 
 Market interest also moves quickly. Newer peptides, blends, cosmetic ingredients, and documentation practices can become visible before buyers fully understand the sourcing implications. Helpful content should slow the process down just enough to make decisions better. It should explain what to compare, what to ask, and where a buyer can get stuck.
+
+## Category-specific buyer context
+
+${clusterGuidance(category, lowerTopic, productsText, categoriesText)}
 
 ## What buyers usually compare
 
@@ -390,7 +429,7 @@ Documentation is where many buyer conversations become serious. A professional s
 
 ${coaTable()}
 
-For ${sentenceTopic(title).toLowerCase()}, documentation may include a COA, batch or lot number, appearance review, purity report, HPLC or MS where appropriate, packaging notes, storage context, lead time, and document-pack expectations. The exact document set depends on the product, supplier workflow, and buyer requirements, so it should be clarified before the order is treated as ready.
+For ${lowerTopic}, documentation may include a COA, batch or lot number, appearance review, purity report, HPLC or MS where appropriate, packaging notes, storage context, lead time, and document-pack expectations. The exact document set depends on the product, supplier workflow, and buyer requirements, so it should be clarified before the order is treated as ready.
 
 ## MOQ and pack-size planning
 
@@ -439,7 +478,7 @@ Another mistake is allowing hype to outrun supplier evaluation. Helpful sourcing
 
 Atlas BioLabs helps buyers keep the process structured from product selection through quote review. The workflow starts with product and category review, then moves into MOQ clarification, pack-size planning, documentation expectations, batch transparency, and commercial communication. That structure helps buyers avoid vague requests and gives the Atlas BioLabs team enough context to respond usefully.
 
-For a buyer reviewing ${sentenceTopic(title).toLowerCase()}, the next step is usually simple: compare the relevant products in the [Atlas BioLabs catalog](/shop), review the related category page, and submit a [quote request](/request-quote) with the target quantity, packaging preference, destination, timeline, and document expectations. Atlas BioLabs can then align sourcing notes, MOQ, lead time, and documentation support around the actual request.
+For a buyer reviewing ${lowerTopic}, the next step is usually simple: compare the relevant products in the [Atlas BioLabs catalog](/shop), review the related category page, and submit a [quote request](/request-quote) with the target quantity, packaging preference, destination, timeline, and document expectations. Atlas BioLabs can then align sourcing notes, MOQ, lead time, and documentation support around the actual request.
 
 ${isPillar ? pillarExtra({ title, productSlugs, categorySlugs, relatedArticleSlugs }) : ""}
 ## Frequently Asked Questions
