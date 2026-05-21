@@ -114,6 +114,11 @@ export type CoaVerificationEditorData = {
   analyticalRecords: CoaAnalyticalRecordDraftRow[];
 };
 
+export type DuplicateCoaVerificationResult = {
+  record: CoaVerificationRow;
+  warnings: string[];
+};
+
 type CoaVerificationMutationPayload = Omit<
   CoaVerificationRow,
   "id" | "created_at" | "updated_at"
@@ -394,6 +399,20 @@ export function buildCoaNumberFromVerificationCode(verificationCode: string) {
   return parts.length >= 4
     ? `COA-${parts.slice(0, 4).join("-")}`
     : `COA-${normalizedCode}`;
+}
+
+function buildDuplicateCoaNumber(
+  verificationCode: string,
+  sourceCoaNumber?: string | null
+) {
+  const baseCoaNumber = buildCoaNumberFromVerificationCode(verificationCode);
+  const suffix = verificationCode.trim().toUpperCase().split("-").at(-1) ?? "COPY";
+
+  if (sourceCoaNumber?.trim() && sourceCoaNumber.trim() !== baseCoaNumber) {
+    return baseCoaNumber;
+  }
+
+  return `${baseCoaNumber}-${suffix}`;
 }
 
 export function buildDuplicateBatchLotNo(batchLotNo: string) {
@@ -760,48 +779,128 @@ export async function updateCoaVerificationRecord(
 export async function duplicateCoaVerificationRecord(
   supabase: SupabaseClient,
   id: string
-) {
+): Promise<DuplicateCoaVerificationResult> {
   const source = await getCoaVerificationEditorData(supabase, id);
 
   if (!source) {
     throw new Error("The source COA record could not be found.");
   }
 
-  const nextVerificationCode = await generateVerificationCode({
-    supabase,
-    catalogCode: source.values.catalog_code,
-  });
+  const warnings: string[] = [];
+  const testRowsSupported = await detectAnalyticalTestResultsSupport(supabase);
+  const recordRowsSupported = await detectAnalyticalRecordsSupport(supabase);
+  const childRowsCopied = testRowsSupported || recordRowsSupported;
 
-  const duplicatedValues = syncSummaryFieldsFromAnalyticalTables(
-    {
-      ...source.values,
-      coa_number: buildCoaNumberFromVerificationCode(nextVerificationCode),
-      verification_code: nextVerificationCode,
-      verification_url: buildVerificationUrl(nextVerificationCode),
-      batch_lot_no: buildDuplicateBatchLotNo(source.values.batch_lot_no),
-      verification_status: "Draft",
-      release_decision: "Pending QA Review",
-      verification_message:
-        "This COA has not yet been released for customer verification.",
-      coa_pdf_url: "",
-      qr_code_url: "",
-      approved_by: "",
-      approved_at: "",
-    },
-    source.analyticalResults.map((row) => ({
-      ...row,
-      status:
-        row.batch_result.trim().toLowerCase().includes("pending")
-          ? "Pending"
-          : row.status,
-    })),
-    source.analyticalRecords.map((row) => ({ ...row }))
-  );
+  if (!testRowsSupported || !recordRowsSupported) {
+    warnings.push(
+      "The fixed analytical child tables are not fully available yet. The main COA record was duplicated and any missing analytical rows were recreated from defaults."
+    );
+  }
 
-  return createCoaVerificationRecord(supabase, duplicatedValues, {
-    analyticalResults: source.analyticalResults.map((row) => ({ ...row })),
-    analyticalRecords: source.analyticalRecords.map((row) => ({ ...row })),
-  });
+  const analyticalResults =
+    source.analyticalResults.length > 0
+      ? source.analyticalResults.map((row) => ({
+          ...row,
+          status:
+            row.batch_result.trim().toLowerCase().includes("pending")
+              ? "Pending"
+              : row.status,
+        }))
+      : buildDefaultAnalyticalTestRows(source.values);
+  const analyticalRecords =
+    source.analyticalRecords.length > 0
+      ? source.analyticalRecords.map((row) => ({ ...row }))
+      : buildDefaultAnalyticalRecordRows(source.values);
+
+  if (source.analyticalResults.length === 0 || source.analyticalRecords.length === 0) {
+    warnings.push(
+      "One or more fixed analytical row sets were missing on the source COA and were recreated from defaults during duplication."
+    );
+  }
+
+  let lastError: unknown = null;
+  let generatedVerificationCode = "";
+  let generatedCoaNumber = "";
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    generatedVerificationCode = await generateVerificationCode({
+      supabase,
+      catalogCode: source.values.catalog_code,
+    });
+    generatedCoaNumber = buildDuplicateCoaNumber(
+      generatedVerificationCode,
+      source.values.coa_number
+    );
+
+    const duplicatedValues = syncSummaryFieldsFromAnalyticalTables(
+      {
+        ...source.values,
+        coa_number: generatedCoaNumber,
+        verification_code: generatedVerificationCode,
+        verification_url: buildVerificationUrl(generatedVerificationCode),
+        batch_lot_no: buildDuplicateBatchLotNo(source.values.batch_lot_no),
+        verification_status: "Pending QA Review",
+        release_decision: "Pending QA Review",
+        verification_message:
+          "This COA has not yet been released for customer verification.",
+        coa_pdf_url: "",
+        qr_code_url: "",
+        approved_by: "",
+        approved_at: "",
+      },
+      analyticalResults,
+      analyticalRecords
+    );
+
+    try {
+      const createdRecord = await createCoaVerificationRecord(supabase, duplicatedValues, {
+        analyticalResults,
+        analyticalRecords,
+      });
+
+      if (!createdRecord) {
+        throw new Error("The duplicated COA record was not returned after creation.");
+      }
+
+      return {
+        record: createdRecord,
+        warnings,
+      };
+    } catch (error) {
+      lastError = error;
+
+      const structuredError =
+        typeof error === "object" && error !== null
+          ? {
+              code: "code" in error ? String(error.code) : undefined,
+              message: "message" in error ? String(error.message) : "Unknown error",
+              details: "details" in error ? String(error.details) : undefined,
+              hint: "hint" in error ? String(error.hint) : undefined,
+            }
+          : { message: String(error) };
+
+      console.error("COA duplication failed.", {
+        sourceCoaId: id,
+        generatedCoaNumber,
+        generatedVerificationCode,
+        supabaseError: structuredError,
+        childRowsCopied,
+        childRowsSkipped: !childRowsCopied,
+      });
+
+      if (attempt === 0 && isUniqueViolationError(error)) {
+        continue;
+      }
+
+      break;
+    }
+  }
+
+  if (lastError instanceof Error) {
+    throw new Error(lastError.message);
+  }
+
+  throw new Error("The COA record could not be duplicated.");
 }
 
 export async function generateVerificationCode({
@@ -1135,4 +1234,15 @@ function isMissingRelationError(error: { code?: string; message?: string }) {
     /Could not find the table/i.test(error.message ?? "") ||
     /relation .* does not exist/i.test(error.message ?? "")
   );
+}
+
+function isUniqueViolationError(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const code = "code" in error ? String(error.code) : "";
+  const message = "message" in error ? String(error.message) : "";
+
+  return code === "23505" || /duplicate key|unique constraint/i.test(message);
 }

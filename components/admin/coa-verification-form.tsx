@@ -401,11 +401,15 @@ export function CoaVerificationForm({
     try {
       const duplicatedRecord = await duplicateCoaVerificationRecord(supabase, recordId);
 
-      if (!duplicatedRecord) {
+      if (!duplicatedRecord.record) {
         throw new Error("The duplicated COA record was not returned after creation.");
       }
 
-      router.push(`/admin/coa-verifications/${duplicatedRecord.id}/edit?duplicated=1`);
+      if (duplicatedRecord.warnings.length > 0) {
+        window.alert(duplicatedRecord.warnings.join("\n\n"));
+      }
+
+      router.push(`/admin/coa-verifications/${duplicatedRecord.record.id}/edit?duplicated=1`);
       router.refresh();
     } catch (error) {
       setFormError(

@@ -276,41 +276,64 @@
     color: var(--brand-navy);
   }
 
-  .coa-print-page {
-    border: 1px solid rgb(10 26 47 / 14%);
-    border-radius: 0.5rem;
-    padding: 0.8rem;
-    box-shadow: 0 18px 46px -38px rgb(10 26 47 / 35%);
+  .coa-print-document {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    align-items: center;
+    background: #eef3f9;
+    padding: 1rem 0;
   }
 
-  .coa-print-page section,
+  .coa-page {
+    width: 8.5in;
+    min-height: 11in;
+    background: #fff;
+    border: 1px solid rgb(10 26 47 / 16%);
+    box-shadow: 0 18px 46px -38px rgb(10 26 47 / 35%);
+    padding: 0.32in;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .coa-page section,
   .coa-print-table,
   .coa-print-table tr,
   .coa-print-table td,
-  .coa-print-table th {
+  .coa-print-table th,
+  .coa-fixed-table {
     break-inside: avoid;
     page-break-inside: avoid;
-  }
-
-  .coa-print-break {
-    break-after: page;
-    page-break-after: always;
-    height: 0;
   }
 }
 
 @page {
-  size: A4;
-  margin: 12mm;
+  size: letter;
+  margin: 0;
 }
 
 @media print {
-  html,
-  body {
-    background: #fff !important;
+  @page {
+    size: letter;
+    margin: 0;
   }
 
-  [data-admin-print-actions] {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  [data-admin-shell-header],
+  [data-admin-print-actions],
+  .admin-shell,
+  .site-header,
+  .site-footer,
+  .coa-print-actions,
+  nav,
+  header,
+  footer {
     display: none !important;
   }
 
@@ -323,25 +346,46 @@
     padding-inline: 0 !important;
   }
 
-  .surface-card,
-  .coa-print-page {
+  .surface-card {
     box-shadow: none !important;
   }
 
-  .coa-print-page {
-    width: 100% !important;
-    max-width: none !important;
-    border-radius: 0 !important;
+  .coa-print-document {
+    display: block !important;
+    background: white !important;
+    padding: 0 !important;
     margin: 0 !important;
-    padding: 7mm !important;
-    break-inside: avoid;
-    page-break-inside: avoid;
+  }
+
+  .coa-page {
+    width: 8.5in !important;
+    height: 11in !important;
+    min-height: 11in !important;
+    max-height: 11in !important;
+    padding: 0.32in !important;
+    box-sizing: border-box !important;
+    page-break-after: always;
+    break-after: page;
+    overflow: hidden !important;
+    background: white !important;
+    border: 1px solid #0a1a2f !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+
+  .coa-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
   }
 
   table,
   tr,
   td,
-  th {
+  th,
+  .coa-fixed-table,
+  .coa-fixed-table tbody,
+  .coa-fixed-table thead {
     break-inside: avoid;
     page-break-inside: avoid;
   }

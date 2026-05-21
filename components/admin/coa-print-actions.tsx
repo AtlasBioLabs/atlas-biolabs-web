@@ -30,7 +30,7 @@ export function CoaPrintActions({
   }
 
   return (
-    <div data-admin-print-actions className="space-y-4 print:hidden">
+    <div data-admin-print-actions className="coa-print-actions space-y-4 print:hidden">
       {warnings.length > 0 ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
           <p className="font-semibold">Review before issuing</p>
