@@ -6,11 +6,13 @@ import { BlogCard } from "@/components/site/blog-card";
 import { JsonLd } from "@/components/site/json-ld";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
 import { getAllBlogPosts } from "@/lib/blog";
+import { blogCategories } from "@/lib/blog-categories";
 import {
   createPageMetadata,
   getBreadcrumbSchema,
   getStaticBreadcrumbItems,
 } from "@/lib/seo";
+import { collectionPageJsonLd } from "@/lib/schema";
 import {
   featuredProductSlugs,
   productCategories,
@@ -49,10 +51,17 @@ export default function BlogPage() {
 
   const breadcrumbItems = getStaticBreadcrumbItems("blog");
   const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
+  const collectionSchema = collectionPageJsonLd({
+    name: "Atlas BioLabs Peptide Supply Blog",
+    description:
+      "Atlas BioLabs articles on peptide sourcing, quality documentation, pricing, compliance, wholesale supply, and custom peptide requests.",
+    url: "https://www.atlasbiolabs.co/blog",
+  });
 
   return (
     <>
       <JsonLd id="blog-breadcrumb-schema" data={breadcrumbSchema} />
+      <JsonLd id="blog-collection-schema" data={collectionSchema} />
 
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container">
@@ -67,6 +76,15 @@ export default function BlogPage() {
             We publish practical articles on peptide sourcing, peptide supplier evaluation, wholesale peptides, documentation workflows, pricing, custom peptide sourcing, and category planning for commercial buyers who want stronger context around peptide research, formulation strategy, and health-adjacent market conversations in the U.S. and international markets.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
+            {blogCategories.map((category) => (
+              <Link
+                key={category.slug}
+                href={`/blog/category/${category.slug}`}
+                className="rounded-full border border-border/70 bg-white px-3 py-1.5 text-xs font-medium text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+              >
+                {category.name}
+              </Link>
+            ))}
             <Link
               href="/shop"
               className="rounded-full border border-border/70 bg-white px-3 py-1.5 text-xs font-medium text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"

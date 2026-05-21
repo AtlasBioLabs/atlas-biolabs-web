@@ -12,6 +12,7 @@ import {
   getBreadcrumbSchema,
   getStaticBreadcrumbItems,
 } from "@/lib/seo";
+import { collectionPageJsonLd, itemListJsonLd } from "@/lib/schema";
 import {
   productCategories,
   products,
@@ -20,10 +21,10 @@ import {
 } from "@/lib/site-content";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Shop Peptides",
+  title: "Peptide Catalog",
   path: "/shop",
   description:
-    "Shop peptides from Atlas BioLabs by category, product, and commercial supply context with documentation support, batch transparency, and inquiry-led ordering for U.S. and international buyers.",
+    "Browse Atlas BioLabs peptide catalog for commercial sourcing, MOQ support, documentation, batch transparency, and quote-led B2B supply.",
   keywords: [
     "shop peptides",
     "peptide product catalog",
@@ -34,6 +35,41 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 const shopSupportLinks = [
+  {
+    title: "All Product Categories",
+    href: "/categories",
+    description:
+      "Compare every product category as an indexable sourcing landing page with product counts and buyer guidance.",
+    eyebrow: "Category Hub",
+  },
+  {
+    title: "Peptide Supply Blog",
+    href: "/blog",
+    description:
+      "Read sourcing, quality, pricing, compliance, and category guides for commercial peptide buyers.",
+    eyebrow: "Blog",
+  },
+  {
+    title: "Wholesale Peptide Supply",
+    href: "/wholesale",
+    description:
+      "Review quote-led wholesale peptide supply support for recurring and volume-based B2B programs.",
+    eyebrow: "Wholesale",
+  },
+  {
+    title: "Quality Assurance",
+    href: "/quality-assurance",
+    description:
+      "See how Atlas Labs supports documentation review, batch transparency, and quality-context workflows.",
+    eyebrow: "Quality",
+  },
+  {
+    title: "Request Quote",
+    href: "/request-quote",
+    description:
+      "Share target products, quantity, destination, and documentation needs for direct commercial support.",
+    eyebrow: "Quote",
+  },
   {
     title: "Signal Peptides",
     href: "/categories/signal-peptides",
@@ -93,10 +129,25 @@ const shopSupportLinks = [
 export default function ShopPage() {
   const breadcrumbItems = getStaticBreadcrumbItems("shop");
   const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
+  const shopCollectionSchema = collectionPageJsonLd({
+    name: "Peptide Catalog",
+    description:
+      "Atlas BioLabs peptide catalog for commercial sourcing, MOQ support, documentation, batch transparency, and quote-led B2B supply.",
+    url: "https://www.atlasbiolabs.co/shop",
+  });
+  const shopItemListSchema = itemListJsonLd(
+    products.map((product, index) => ({
+      name: product.name,
+      url: product.canonicalUrl,
+      position: index + 1,
+    }))
+  );
 
   return (
     <>
       <JsonLd id="shop-breadcrumb-schema" data={breadcrumbSchema} />
+      <JsonLd id="shop-collection-schema" data={shopCollectionSchema} />
+      <JsonLd id="shop-item-list-schema" data={shopItemListSchema} />
 
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container">
@@ -141,6 +192,35 @@ export default function ShopPage() {
             ))}
           </div>
           <ShopCatalogClient products={products} categories={productCategories} />
+        </div>
+      </section>
+
+      <section className="section-space pt-0">
+        <div className="site-container">
+          <article className="surface-card p-6 sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-2xl font-semibold text-[var(--brand-navy)]">
+                Complete Product Index
+              </h2>
+              <Link
+                href="/categories"
+                className="text-sm font-medium text-[var(--brand-blue)] hover:underline"
+              >
+                View category hub
+              </Link>
+            </div>
+            <div className="mt-5 grid gap-x-5 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+              {products.map((product) => (
+                <Link
+                  key={product.slug}
+                  href={`/shop/${product.slug}`}
+                  className="rounded-lg border border-border/70 bg-white px-3 py-2 text-sm font-medium text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+                >
+                  {product.name}
+                </Link>
+              ))}
+            </div>
+          </article>
         </div>
       </section>
 

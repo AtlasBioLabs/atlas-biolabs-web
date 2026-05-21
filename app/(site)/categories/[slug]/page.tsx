@@ -13,6 +13,7 @@ import {
   getCategorySeoCopy,
   mergeKeywords,
 } from "@/lib/seo";
+import { collectionPageJsonLd, itemListJsonLd } from "@/lib/schema";
 import {
   productCategories,
   products,
@@ -76,10 +77,44 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const relatedBlogPosts = getRelevantBlogPostsForCategory(category.id, 4);
   const breadcrumbItems = getCategoryBreadcrumbItems(category);
   const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
+  const itemListSchema = itemListJsonLd(
+    categoryProducts.map((product, index) => ({
+      name: product.name,
+      url: product.canonicalUrl,
+      position: index + 1,
+    }))
+  );
+  const collectionSchema = collectionPageJsonLd({
+    name: category.label,
+    description: `${category.label} product listings from Atlas BioLabs with MOQ, pack-size, documentation, and quote-led sourcing context.`,
+    url: `https://www.atlasbiolabs.co/categories/${category.id}`,
+  });
+  const siblingCategories = productCategories.filter(
+    (entry) => entry.id !== category.id
+  );
+  const categoryFaqs = [
+    {
+      question: `What should buyers compare on ${category.label} pages?`,
+      answer:
+        "Compare product role, MOQ, pack sizes, documentation availability, lead time, and how the peptide fits a research, formulation, or B2B sourcing context.",
+    },
+    {
+      question: "Are pack-size variations separate indexable pages?",
+      answer:
+        "Pack sizes stay on the main product page so buyers and search engines have one canonical product URL with clear variant context.",
+    },
+    {
+      question: "How does Atlas BioLabs support documentation review?",
+      answer:
+        "Atlas BioLabs supports quote-led sourcing with documentation available on request, batch transparency support, and Atlas Labs quality review language for qualified commercial buyers.",
+    },
+  ];
 
   return (
     <>
       <JsonLd id={`category-breadcrumb-${category.id}`} data={breadcrumbSchema} />
+      <JsonLd id={`category-collection-${category.id}`} data={collectionSchema} />
+      <JsonLd id={`category-item-list-${category.id}`} data={itemListSchema} />
 
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container">
@@ -161,6 +196,65 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
       <section className="section-space pt-0">
         <div className="site-container">
+          <article className="surface-card overflow-hidden p-6 sm:p-8">
+            <h2 className="text-2xl font-semibold text-[var(--brand-navy)]">
+              {category.label} Product Comparison
+            </h2>
+            <div className="mt-5 overflow-x-auto">
+              <table className="min-w-[760px] w-full border-collapse text-left text-sm">
+                <thead className="bg-[#f8fbff] text-[var(--brand-navy)]">
+                  <tr>
+                    <th className="border border-border/70 px-3 py-3 font-semibold">
+                      Product
+                    </th>
+                    <th className="border border-border/70 px-3 py-3 font-semibold">
+                      MOQ
+                    </th>
+                    <th className="border border-border/70 px-3 py-3 font-semibold">
+                      Pack Sizes
+                    </th>
+                    <th className="border border-border/70 px-3 py-3 font-semibold">
+                      Lead Time
+                    </th>
+                    <th className="border border-border/70 px-3 py-3 font-semibold">
+                      Documentation
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categoryProducts.map((product) => (
+                    <tr key={product.slug}>
+                      <td className="border border-border/70 px-3 py-3 font-medium text-[var(--brand-navy)]">
+                        <Link
+                          href={`/shop/${product.slug}`}
+                          className="hover:text-[var(--brand-blue)] hover:underline"
+                        >
+                          {product.name}
+                        </Link>
+                      </td>
+                      <td className="border border-border/70 px-3 py-3 text-muted-foreground">
+                        {product.moq} units
+                      </td>
+                      <td className="border border-border/70 px-3 py-3 text-muted-foreground">
+                        {product.packSizes.join(", ")}
+                      </td>
+                      <td className="border border-border/70 px-3 py-3 text-muted-foreground">
+                        {product.leadTime}
+                      </td>
+                      <td className="border border-border/70 px-3 py-3 text-muted-foreground">
+                        {product.documentation}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="section-space pt-0">
+        <div className="site-container">
           <article className="surface-card p-6 sm:p-8">
             <h2 className="text-2xl font-semibold text-[var(--brand-navy)]">
               Related Blog Reading
@@ -178,6 +272,48 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                   </h3>
                   <p className="mt-2 text-sm text-muted-foreground">{post.description}</p>
                 </article>
+              ))}
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="section-space pt-0">
+        <div className="site-container grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+          <article className="surface-card p-6 sm:p-8">
+            <h2 className="text-2xl font-semibold text-[var(--brand-navy)]">
+              {category.label} FAQ
+            </h2>
+            <div className="mt-5 space-y-3">
+              {categoryFaqs.map((faq) => (
+                <article
+                  key={faq.question}
+                  className="rounded-xl border border-border/70 bg-white p-4"
+                >
+                  <h3 className="text-base font-semibold text-[var(--brand-navy)]">
+                    {faq.question}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {faq.answer}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </article>
+
+          <article className="surface-card p-6 sm:p-8">
+            <h2 className="text-2xl font-semibold text-[var(--brand-navy)]">
+              Other Product Categories
+            </h2>
+            <div className="mt-5 grid gap-3">
+              {siblingCategories.slice(0, 5).map((siblingCategory) => (
+                <Link
+                  key={siblingCategory.id}
+                  href={`/categories/${siblingCategory.id}`}
+                  className="rounded-xl border border-border/70 bg-white p-4 text-sm font-medium text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+                >
+                  {siblingCategory.label}
+                </Link>
               ))}
             </div>
           </article>

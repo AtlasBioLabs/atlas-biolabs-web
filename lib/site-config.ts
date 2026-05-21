@@ -1,13 +1,9 @@
-const fallbackSiteUrl = "https://atlasbiolabs.co";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 export const siteConfig = {
-  name: "Atlas BioLabs",
+  name: SITE_NAME,
   tagline: "Global Peptide Supply & Sourcing",
-  url:
-    process.env.NEXT_PUBLIC_SITE_URL &&
-    process.env.NEXT_PUBLIC_SITE_URL.trim().length > 0
-      ? process.env.NEXT_PUBLIC_SITE_URL
-      : fallbackSiteUrl,
+  url: SITE_URL,
 };
 
 export function absoluteUrl(path: string) {

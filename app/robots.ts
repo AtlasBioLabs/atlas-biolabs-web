@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { absoluteUrl, siteConfig } from "@/lib/site-config";
+import { absoluteUrl } from "@/lib/site-config";
 
 
 export default function robots(): MetadataRoute.Robots {
@@ -10,12 +10,13 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         disallow: [
-          "/admin",
-          "/api",
-          "/dashboard",
-          "/internal",
+          "/admin/",
+          "/api/internal/",
+          "/api/",
+          "/dashboard/",
+          "/internal/",
           "/checkout",
-          "/account",
+          "/account/",
         ],
       },
     ],

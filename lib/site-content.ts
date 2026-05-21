@@ -1,4 +1,5 @@
 import { productScienceCopyByName } from "@/lib/product-science";
+import { SITE_URL } from "@/lib/site";
 
 export type NavItem = {
   label: string;
@@ -17,6 +18,7 @@ export type ProductCategoryId =
 
 export type ProductCategory = {
   id: ProductCategoryId;
+  slug: ProductCategoryId;
   label: string;
   description: string;
 };
@@ -26,12 +28,20 @@ export type ProductStatus = "Standard" | "Established" | "Emerging" | "Blend";
 export type Product = {
   slug: string;
   name: string;
+  sku: string;
+  catalogCode: string;
   category: ProductCategoryId;
+  categorySlug: ProductCategoryId;
   status: ProductStatus;
   image: string;
+  imageAlt: string;
   shortDescription: string;
   summary: string;
   overview: string;
+  longDescription: string;
+  seoTitle: string;
+  metaDescription: string;
+  canonicalUrl: string;
   functionalRole: string[];
   mechanismInsight: string;
   commonApplications: string[];
@@ -39,12 +49,20 @@ export type Product = {
   associatedUses: string[];
   packSizes: string[];
   moq: number;
+  startingPrice: number;
   priceFrom: number;
+  priceCurrency: "USD";
+  priceRangeText: string;
   priceRange: string;
+  availability: string;
+  documentation: string;
   purityDocumentation: string[];
   contentBenefits: string[];
   storageHandling: string[];
   leadTime: string;
+  relatedProductSlugs: string[];
+  relatedArticleSlugs: string[];
+  complianceNote: string;
   intendedBuyerType: string[];
   trustSupport: string[];
 };
@@ -155,35 +173,51 @@ export const primaryNavCta = {
 };
 
 export const productCategories: ProductCategory[] = [
-  { id: "signal-peptides", label: "Signal Peptides", description: "Anti-aging / collagen" },
-  { id: "carrier-peptides", label: "Carrier Peptides", description: "Repair / mineral delivery" },
+  {
+    id: "signal-peptides",
+    slug: "signal-peptides",
+    label: "Signal Peptides",
+    description: "Anti-aging / collagen",
+  },
+  {
+    id: "carrier-peptides",
+    slug: "carrier-peptides",
+    label: "Carrier Peptides",
+    description: "Repair / mineral delivery",
+  },
   {
     id: "neurotransmitter-peptides",
+    slug: "neurotransmitter-peptides",
     label: "Neurotransmitter Peptides",
     description: "Wrinkle reduction",
   },
   {
     id: "enzyme-inhibitor-peptides",
+    slug: "enzyme-inhibitor-peptides",
     label: "Enzyme Inhibitor Peptides",
     description: "Anti-aging control",
   },
   {
     id: "antimicrobial-peptides",
+    slug: "antimicrobial-peptides",
     label: "Antimicrobial Peptides",
     description: "Skin protection",
   },
   {
     id: "growth-repair-peptides",
+    slug: "growth-repair-peptides",
     label: "Growth Peptides",
     description: "Regeneration",
   },
   {
     id: "metabolic-advanced-peptides",
+    slug: "metabolic-advanced-peptides",
     label: "Metabolic Peptides",
     description: "Performance / trending",
   },
   {
     id: "trending-emerging-peptides",
+    slug: "trending-emerging-peptides",
     label: "Trending & Emerging Peptides",
     description: "Current demand / emerging blends",
   },
@@ -435,6 +469,56 @@ function toSlug(value: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+function toCatalogCode(value: string) {
+  return `ATL-${value
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "")
+    .slice(0, 28)}`;
+}
+
+const relatedArticleSlugsByCategory: Record<ProductCategoryId, string[]> = {
+  "signal-peptides": [
+    "types-of-peptides",
+    "peptide-supplier-guide",
+    "peptide-quality-purity-coa",
+  ],
+  "carrier-peptides": [
+    "peptide-quality-purity-coa",
+    "custom-peptide-sourcing",
+    "peptide-supplier-guide",
+  ],
+  "neurotransmitter-peptides": [
+    "types-of-peptides",
+    "peptide-market-trends",
+    "how-to-buy-peptides",
+  ],
+  "enzyme-inhibitor-peptides": [
+    "types-of-peptides",
+    "peptide-quality-purity-coa",
+    "peptide-supplier-guide",
+  ],
+  "antimicrobial-peptides": [
+    "peptide-regulations-legal-landscape",
+    "peptide-quality-purity-coa",
+    "peptide-sourcing-risks",
+  ],
+  "growth-repair-peptides": [
+    "top-peptides-in-demand",
+    "peptide-supplier-guide",
+    "peptide-supply-chain-logistics",
+  ],
+  "metabolic-advanced-peptides": [
+    "top-peptides-in-demand",
+    "peptide-market-trends",
+    "peptide-pricing-explained",
+  ],
+  "trending-emerging-peptides": [
+    "top-peptides-in-demand",
+    "peptide-market-trends",
+    "how-to-buy-peptides",
+  ],
+};
 
 const productSeeds: ProductSeed[] = [
   {
@@ -863,7 +947,7 @@ const productSeeds: ProductSeed[] = [
   },
 ];
 
-export const products: Product[] = productSeeds.map((seed) => {
+const baseProducts = productSeeds.map((seed) => {
   const slug = toSlug(seed.name);
   const template = categoryTemplates[seed.category];
   const scienceCopy = productScienceCopyByName[seed.name];
@@ -873,16 +957,29 @@ export const products: Product[] = productSeeds.map((seed) => {
   }
 
   const moq = seed.moq;
+  const catalogCode = toCatalogCode(seed.name);
+  const categoryLabel =
+    productCategories.find((category) => category.id === seed.category)?.label ??
+    seed.category;
+  const longDescription = `${scienceCopy.overview} ${scienceCopy.mechanismInsight} Atlas BioLabs supports ${seed.name} commercial sourcing with MOQ clarity, batch documentation, quote-led supply support, and compliance-safe research and formulation context for qualified B2B buyers.`;
 
   return {
     slug,
     name: seed.name,
+    sku: catalogCode,
+    catalogCode,
     category: seed.category,
+    categorySlug: seed.category,
     status: seed.status ?? "Standard",
     image: `/products/${slug}.svg`,
+    imageAlt: `${seed.name} peptide catalog image for ${categoryLabel} sourcing at Atlas BioLabs`,
     shortDescription: scienceCopy.overview,
     summary: scienceCopy.overview,
     overview: scienceCopy.overview,
+    longDescription,
+    seoTitle: `${seed.name} Peptide Supplier | Atlas BioLabs`,
+    metaDescription: `Source ${seed.name} through Atlas BioLabs with MOQ support, batch documentation, quote-led B2B supply, and compliance-safe research and formulation context.`,
+    canonicalUrl: `${SITE_URL.replace(/\/$/, "")}/shop/${slug}`,
     functionalRole: [...scienceCopy.functionalRole],
     mechanismInsight: scienceCopy.mechanismInsight,
     commonApplications: [...scienceCopy.commonApplications],
@@ -890,8 +987,13 @@ export const products: Product[] = productSeeds.map((seed) => {
     associatedUses: [...scienceCopy.functionalRole],
     packSizes: seed.packSizes,
     moq,
+    startingPrice: seed.priceFrom,
     priceFrom: seed.priceFrom,
+    priceCurrency: "USD" as const,
+    priceRangeText: seed.priceRange,
     priceRange: seed.priceRange,
+    availability: "https://schema.org/InStock",
+    documentation: "COA, HPLC, MS/LC-MS, SDS on request",
     purityDocumentation: [
       ...template.purityDocumentation,
       "We use Atlas Labs to review incoming documentation checks and batch transparency records before commercial supply support.",
@@ -899,6 +1001,10 @@ export const products: Product[] = productSeeds.map((seed) => {
     contentBenefits: [...scienceCopy.commonApplications],
     storageHandling: [...template.storageHandling],
     leadTime: seed.leadTime,
+    relatedProductSlugs: [],
+    relatedArticleSlugs: relatedArticleSlugsByCategory[seed.category],
+    complianceNote:
+      "Atlas BioLabs supplies this product for qualified B2B sourcing, research, formulation, and documentation review contexts only. We do not provide dosing, treatment, diagnostic, veterinary, or human-use guidance.",
     intendedBuyerType: [...template.intendedBuyerType],
     trustSupport: [
       ...template.trustSupport,
@@ -906,6 +1012,17 @@ export const products: Product[] = productSeeds.map((seed) => {
     ],
   };
 });
+
+export const products: Product[] = baseProducts.map((product) => ({
+  ...product,
+  relatedProductSlugs: baseProducts
+    .filter(
+      (candidate) =>
+        candidate.slug !== product.slug && candidate.category === product.category
+    )
+    .slice(0, 4)
+    .map((candidate) => candidate.slug),
+}));
 
 export const catalogProductSlugsByCategory: Record<ProductCategoryId, string[]> =
   productCategories.reduce((accumulator, category) => {

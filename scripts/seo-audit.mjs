@@ -9,7 +9,7 @@ const nextBin = join(rootDir, "node_modules", "next", "dist", "bin", "next");
 const buildIdPath = join(rootDir, ".next", "BUILD_ID");
 const port = Number(process.env.SEO_AUDIT_PORT || "3111");
 const baseUrl = `http://127.0.0.1:${port}`;
-const canonicalOrigin = "https://atlasbiolabs.co";
+const canonicalOrigin = "https://www.atlasbiolabs.co";
 
 const auditedRoutes = [
   {
@@ -23,14 +23,14 @@ const auditedRoutes = [
     label: "Shop",
     path: "/shop",
     expectedCanonical: `${canonicalOrigin}/shop`,
-    expectedTypes: ["BreadcrumbList"],
+    expectedTypes: ["BreadcrumbList", "CollectionPage", "ItemList"],
     expectBreadcrumb: true,
   },
   {
     label: "Category",
     path: "/categories/signal-peptides",
     expectedCanonical: `${canonicalOrigin}/categories/signal-peptides`,
-    expectedTypes: ["BreadcrumbList"],
+    expectedTypes: ["BreadcrumbList", "CollectionPage", "ItemList"],
     expectBreadcrumb: true,
   },
   {
@@ -73,7 +73,14 @@ const auditedRoutes = [
     label: "Blog Index",
     path: "/blog",
     expectedCanonical: `${canonicalOrigin}/blog`,
-    expectedTypes: ["BreadcrumbList"],
+    expectedTypes: ["BreadcrumbList", "CollectionPage"],
+    expectBreadcrumb: true,
+  },
+  {
+    label: "Blog Category",
+    path: "/blog/category/peptide-sourcing",
+    expectedCanonical: `${canonicalOrigin}/blog/category/peptide-sourcing`,
+    expectedTypes: ["BreadcrumbList", "CollectionPage"],
     expectBreadcrumb: true,
   },
   {
@@ -275,7 +282,7 @@ async function run() {
 
     const robots = await fetchText("/robots.txt");
     assert(robots.response.ok, "robots.txt: expected 200");
-    assert(/Sitemap:\s*https:\/\/atlasbiolabs\.co\/sitemap\.xml/i.test(robots.text), "robots.txt: missing sitemap reference");
+    assert(/Sitemap:\s*https:\/\/www\.atlasbiolabs\.co\/sitemap\.xml/i.test(robots.text), "robots.txt: missing sitemap reference");
     assert(/Disallow:\s*\/api\/internal\//i.test(robots.text), "robots.txt: missing /api/internal/ disallow");
 
     const sitemap = await fetchText("/sitemap.xml");
@@ -295,8 +302,12 @@ async function run() {
       "sitemap.xml: missing trending category canonical"
     );
     assert(sitemap.text.includes(`${canonicalOrigin}/blog/peptide-supplier-guide`), "sitemap.xml: missing blog canonical");
+    assert(
+      sitemap.text.includes(`${canonicalOrigin}/blog/category/peptide-sourcing`),
+      "sitemap.xml: missing blog category canonical"
+    );
 
-    const productMatches = sitemap.text.match(/<loc>https:\/\/atlasbiolabs\.co\/shop\/[^<]+<\/loc>/g) ?? [];
+    const productMatches = sitemap.text.match(/<loc>https:\/\/www\.atlasbiolabs\.co\/shop\/[^<]+<\/loc>/g) ?? [];
     assert(productMatches.length === 41, `sitemap.xml: expected 41 product URLs, found ${productMatches.length}`);
 
     console.log("# SEO Audit");

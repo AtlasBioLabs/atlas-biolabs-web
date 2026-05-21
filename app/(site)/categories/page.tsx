@@ -7,9 +7,11 @@ import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
 import { getAllBlogPosts } from "@/lib/blog";
 import {
   createPageMetadata,
+  categoryCanonical,
   getBreadcrumbSchema,
   getStaticBreadcrumbItems,
 } from "@/lib/seo";
+import { collectionPageJsonLd, itemListJsonLd } from "@/lib/schema";
 import { catalogProductSlugsByCategory, productCategories } from "@/lib/site-content";
 
 export const metadata: Metadata = createPageMetadata({
@@ -42,10 +44,25 @@ export default function CategoryIndexPage() {
 
   const breadcrumbItems = getStaticBreadcrumbItems("categories");
   const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
+  const collectionSchema = collectionPageJsonLd({
+    name: "Peptide Categories",
+    description:
+      "Atlas BioLabs peptide category hub for product discovery, commercial sourcing context, and documentation-backed B2B quote planning.",
+    url: categoryCanonical("").replace(/\/$/, ""),
+  });
+  const categoryItemListSchema = itemListJsonLd(
+    productCategories.map((category, index) => ({
+      name: category.label,
+      url: categoryCanonical(category.id),
+      position: index + 1,
+    }))
+  );
 
   return (
     <>
       <JsonLd id="categories-breadcrumb-schema" data={breadcrumbSchema} />
+      <JsonLd id="categories-collection-schema" data={collectionSchema} />
+      <JsonLd id="categories-item-list-schema" data={categoryItemListSchema} />
 
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f8fbff] to-white">
         <div className="site-container">

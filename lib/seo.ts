@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import type { BlogPost } from "contentlayer/generated";
 
-import { absoluteUrl, siteConfig } from "@/lib/site-config";
+import { DEFAULT_OG_IMAGE, SITE_NAME } from "@/lib/site";
+import { absoluteUrl as resolveAbsoluteUrl, siteConfig } from "@/lib/site-config";
 import {
   contactDetails,
   type Product,
@@ -44,6 +45,26 @@ type PageMetadataInput = {
   noIndex?: boolean;
 };
 
+export function absoluteUrl(path: string) {
+  return resolveAbsoluteUrl(path);
+}
+
+export function productCanonical(slug: string) {
+  return absoluteUrl(`/shop/${slug}`);
+}
+
+export function categoryCanonical(slug: string) {
+  return absoluteUrl(`/categories/${slug}`);
+}
+
+export function blogCanonical(slug: string) {
+  return absoluteUrl(`/blog/${slug}`);
+}
+
+export function blogCategoryCanonical(slug: string) {
+  return absoluteUrl(`/blog/category/${slug}`);
+}
+
 export function mergeKeywords(...groups: Array<string[] | undefined>) {
   return Array.from(
     new Set(
@@ -63,7 +84,7 @@ export function createPageMetadata({
   path,
   keywords,
   type = "website",
-  image = "/og-default.svg",
+  image = DEFAULT_OG_IMAGE,
   imageAlt = `${siteConfig.name} peptide supply and sourcing website preview`,
   publishedTime,
   authors,
@@ -118,6 +139,8 @@ export function createPageMetadata({
     },
   };
 }
+
+export const buildPageMetadata = createPageMetadata;
 
 export function getProductIntro(productName: string) {
   return `${productName} is a peptide supplied for commercial sourcing, research applications, and formulation development. Atlas BioLabs provides structured sourcing support with documentation, batch transparency, and scalable supply options for ${productName} peptide buyers.`;
@@ -311,15 +334,15 @@ export function getProductSchema(product: Product, categoryLabel: string) {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: getProductIntro(product.name),
+    description: product.shortDescription || getProductIntro(product.name),
     image: [absoluteUrl(product.image)],
     url: productUrl,
-    sku: product.slug,
-    productID: product.slug,
+    sku: product.sku,
+    productID: product.catalogCode,
     category: categoryLabel,
     brand: {
       "@type": "Brand",
-      name: siteConfig.name,
+      name: SITE_NAME,
     },
     manufacturer: {
       "@type": "Organization",
@@ -327,15 +350,72 @@ export function getProductSchema(product: Product, categoryLabel: string) {
     },
     offers: {
       "@type": "Offer",
-      priceCurrency: "USD",
-      price: String(product.priceFrom),
-      availability: "https://schema.org/InStock",
+      priceCurrency: product.priceCurrency,
+      price: String(product.startingPrice),
+      availability: product.availability,
       url: productUrl,
       seller: {
         "@type": "Organization",
-        name: siteConfig.name,
+        name: SITE_NAME,
       },
     },
+    additionalProperty: [
+      {
+        "@type": "PropertyValue",
+        name: "MOQ",
+        value: `${product.moq} units`,
+      },
+      {
+        "@type": "PropertyValue",
+        name: "Lead time",
+        value: product.leadTime,
+      },
+      {
+        "@type": "PropertyValue",
+        name: "Documentation",
+        value: product.documentation,
+      },
+    ],
+  };
+}
+
+export function getProductGroupSchema(product: Product) {
+  if (product.packSizes.length < 2) {
+    return null;
+  }
+
+  const productUrl = absoluteUrl(`/shop/${product.slug}`);
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProductGroup",
+    name: product.name,
+    productGroupID: product.catalogCode,
+    description: product.shortDescription,
+    url: productUrl,
+    brand: {
+      "@type": "Brand",
+      name: SITE_NAME,
+    },
+    variesBy: ["https://schema.org/size"],
+    hasVariant: product.packSizes.map((packSize, index) => ({
+      "@type": "Product",
+      name: `${product.name} ${packSize}`,
+      sku: `${product.sku}-${index + 1}`,
+      size: packSize,
+      image: absoluteUrl(product.image),
+      isVariantOf: {
+        "@type": "ProductGroup",
+        productGroupID: product.catalogCode,
+      },
+      offers: {
+        "@type": "Offer",
+        priceCurrency: product.priceCurrency,
+        price: String(product.startingPrice),
+        availability: product.availability,
+        url: productUrl,
+      },
+    })),
   };
 }
 

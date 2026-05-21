@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { blogCategories } from "@/lib/blog-categories";
 import { getAllBlogPosts, getBlogPostModifiedDate } from "@/lib/blog";
 import { absoluteUrl } from "@/lib/site-config";
 import { productCategories, products } from "@/lib/site-content";
@@ -99,5 +100,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     images: [absoluteUrl(post.image)],
   }));
 
-  return [...staticPages, ...categoryPages, ...productPages, ...blogPages];
+  const blogCategoryPages: MetadataRoute.Sitemap = blogCategories.map((category) => ({
+    url: absoluteUrl(`/blog/category/${category.slug}`),
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.68,
+  }));
+
+  return [
+    ...staticPages,
+    ...categoryPages,
+    ...productPages,
+    ...blogPages,
+    ...blogCategoryPages,
+  ];
 }

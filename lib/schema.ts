@@ -1,3 +1,9 @@
+import type { BlogPost } from "contentlayer/generated";
+
+import { absoluteUrl } from "@/lib/site-config";
+import type { Product } from "@/lib/site-content";
+import { DEFAULT_DESCRIPTION, SITE_NAME } from "@/lib/site";
+
 export function itemListJsonLd(
   items: Array<{ name: string; url: string; position: number }>
 ) {
@@ -46,27 +52,31 @@ export function breadcrumbJsonLd(
   };
 }
 
-export function productJsonLd(product: any, siteUrl: string) {
+export function productJsonLd(product: Product, siteUrl = "") {
+  const productUrl = siteUrl
+    ? `${siteUrl.replace(/\/$/, "")}/shop/${product.slug}`
+    : absoluteUrl(`/shop/${product.slug}`);
+
   return {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    sku: product.sku || product.catalogCode,
+    sku: product.sku,
     brand: {
       "@type": "Brand",
-      name: "Atlas BioLabs",
+      name: SITE_NAME,
     },
     category: product.category,
     description: product.shortDescription || product.metaDescription,
-    image: product.image ? `${siteUrl}${product.image}` : undefined,
-    url: `${siteUrl}/shop/${product.slug}`,
+    image: product.image ? absoluteUrl(product.image) : undefined,
+    url: productUrl,
     offers: product.startingPrice
       ? {
           "@type": "Offer",
           priceCurrency: product.priceCurrency || "USD",
           price: String(product.startingPrice),
           availability: product.availability || "https://schema.org/InStock",
-          url: `${siteUrl}/shop/${product.slug}`,
+          url: productUrl,
         }
       : undefined,
     additionalProperty: [
@@ -89,8 +99,11 @@ export function productJsonLd(product: any, siteUrl: string) {
   };
 }
 
-export function productGroupJsonLd(product: any, siteUrl: string) {
+export function productGroupJsonLd(product: Product, siteUrl = "") {
   if (!product.packSizes || product.packSizes.length < 2) return null;
+  const productUrl = siteUrl
+    ? `${siteUrl.replace(/\/$/, "")}/shop/${product.slug}`
+    : absoluteUrl(`/shop/${product.slug}`);
 
   return {
     "@context": "https://schema.org",
@@ -102,7 +115,7 @@ export function productGroupJsonLd(product: any, siteUrl: string) {
       name: "Atlas BioLabs",
     },
     description: product.shortDescription || product.metaDescription,
-    url: `${siteUrl}/shop/${product.slug}`,
+    url: productUrl,
     variesBy: ["https://schema.org/size"],
     hasVariant: product.packSizes.map((size: string, index: number) => ({
       "@type": "Product",
@@ -120,9 +133,43 @@ export function productGroupJsonLd(product: any, siteUrl: string) {
             price: String(product.startingPrice),
             availability:
               product.availability || "https://schema.org/InStock",
-            url: `${siteUrl}/shop/${product.slug}`,
+            url: productUrl,
           }
         : undefined,
     })),
+  };
+}
+
+export function articleJsonLd(post: BlogPost) {
+  const modifiedDate = post.updated ?? post.date;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.description,
+    datePublished: post.date,
+    dateModified: modifiedDate,
+    image: [absoluteUrl(post.image)],
+    author: {
+      "@type": post.author.toLowerCase().includes("atlas biolabs")
+        ? "Organization"
+        : "Person",
+      name: post.author,
+    },
+    publisher: organizationJsonLd(),
+    mainEntityOfPage: absoluteUrl(`/blog/${post.slug}`),
+    url: absoluteUrl(`/blog/${post.slug}`),
+  };
+}
+
+export function organizationJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: absoluteUrl("/"),
+    logo: absoluteUrl("/atlas-biolabs-logo.svg"),
+    description: DEFAULT_DESCRIPTION,
   };
 }

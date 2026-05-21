@@ -9,6 +9,7 @@ import { BlogTableOfContents } from "@/components/site/blog-table-of-contents";
 import { JsonLd } from "@/components/site/json-ld";
 import { MdxContent } from "@/components/site/mdx-content";
 import { RelatedArticles } from "@/components/site/related-articles";
+import { blogCategories } from "@/lib/blog-categories";
 import {
   formatBlogDate,
   getBlogPostBySlug,
@@ -83,6 +84,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const relatedPosts = getRelatedBlogPosts(post, 3);
   const relatedProducts = getRelevantProductsForBlogPost(post, 3);
   const relatedCategories = getRelevantCategoriesForBlogPost(post, 3);
+  const relatedBlogCategories = blogCategories
+    .filter((category) =>
+      category.articleSlugs.includes(post.slug) ||
+      post.tags.some((tag) =>
+        category.name.toLowerCase().includes(tag.toLowerCase())
+      )
+    )
+    .slice(0, 3);
   const modifiedDate = getBlogPostModifiedDate(post);
   const breadcrumbItems = getBlogPostBreadcrumbItems(post);
   const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
@@ -193,6 +202,27 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               </Link>
             </div>
             <div className="mt-5 grid gap-3">
+              {relatedBlogCategories.map((category) => (
+                <article
+                  key={category.slug}
+                  className="rounded-xl border border-border/70 bg-white p-4"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--brand-blue)]">
+                    Blog Category
+                  </p>
+                  <h3 className="mt-2 text-base font-semibold text-[var(--brand-navy)]">
+                    <Link
+                      href={`/blog/category/${category.slug}`}
+                      className="hover:underline"
+                    >
+                      {category.name}
+                    </Link>
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {category.intro}
+                  </p>
+                </article>
+              ))}
               {relatedCategories.map((category) => (
                 <article
                   key={category.id}
@@ -217,6 +247,40 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       </section>
 
       <RelatedArticles posts={relatedPosts} />
+
+      <section className="section-space pt-0">
+        <div className="site-container">
+          <article className="surface-card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--brand-blue)]">
+                Commercial next step
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold text-[var(--brand-navy)]">
+                Compare products or request a quote
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                Keep the article as sourcing context, then move into product
+                review, MOQ planning, documentation requests, and quote-led B2B
+                supply support.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/shop"
+                className="inline-flex rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--brand-blue)]"
+              >
+                Browse Catalog
+              </Link>
+              <Link
+                href="/request-quote"
+                className="inline-flex rounded-lg border border-border/70 bg-white px-4 py-2 text-sm font-medium text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+              >
+                Request Quote
+              </Link>
+            </div>
+          </article>
+        </div>
+      </section>
     </>
   );
 }

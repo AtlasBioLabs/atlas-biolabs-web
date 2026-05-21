@@ -13,6 +13,7 @@ import {
   createPageMetadata,
   getBreadcrumbSchema,
   getProductBreadcrumbItems,
+  getProductGroupSchema,
   getProductIntro,
   getProductSchema,
   mergeKeywords,
@@ -66,7 +67,7 @@ export async function generateMetadata({
   return createPageMetadata({
     title: `${product.name} Peptide Supplier`,
     path: `/shop/${product.slug}`,
-    description: `Source ${product.name} through Atlas BioLabs with documentation support, batch transparency, and scalable commercial supply options.`,
+    description: product.metaDescription,
     keywords: mergeKeywords([
       product.name,
       `${product.name} peptide supplier`,
@@ -77,7 +78,7 @@ export async function generateMetadata({
       "commercial peptide supply",
     ]),
     image: product.image,
-    imageAlt: `${product.name} peptide product image from Atlas BioLabs`,
+    imageAlt: product.imageAlt,
   });
 }
 
@@ -101,6 +102,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
   const breadcrumbItems = getProductBreadcrumbItems(product, categoryLabel);
   const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
   const productSchema = getProductSchema(product, categoryLabel);
+  const productGroupSchema = getProductGroupSchema(product);
   const statusClasses = {
     Standard: "border-border/70 bg-white text-[var(--brand-navy)]",
     Established: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -111,6 +113,9 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
   return (
     <>
       <JsonLd id={`product-schema-${product.slug}`} data={productSchema} />
+      {productGroupSchema ? (
+        <JsonLd id={`product-group-schema-${product.slug}`} data={productGroupSchema} />
+      ) : null}
       <JsonLd id={`product-breadcrumb-${product.slug}`} data={breadcrumbSchema} />
 
       <section className="section-space border-b border-border/70 bg-gradient-to-b from-[#f7faff] to-white">
@@ -125,7 +130,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
             <div className="relative aspect-square overflow-hidden rounded-2xl border border-border/70 bg-[#f0f5ff]">
               <Image
                 src={product.image}
-                alt={`${product.name} peptide product image from Atlas BioLabs`}
+                alt={product.imageAlt}
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 45vw"
@@ -241,6 +246,14 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
                   value: product.status,
                 },
                 {
+                  label: "SKU",
+                  value: product.sku,
+                },
+                {
+                  label: "Catalog Code",
+                  value: product.catalogCode,
+                },
+                {
                   label: "Available Pack Sizes",
                   value: product.packSizes.join(", "),
                 },
@@ -254,7 +267,7 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
                 },
                 {
                   label: "Documentation",
-                  value: "Available on request",
+                  value: product.documentation,
                 },
               ].map((detail) => (
                 <article
@@ -386,6 +399,14 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
                 </li>
               ))}
             </ul>
+            <div className="mt-5 rounded-xl border border-border/70 bg-[#f8fbff] p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--brand-blue)]">
+                Compliance Note
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {product.complianceNote}
+              </p>
+            </div>
           </article>
         </div>
       </section>
