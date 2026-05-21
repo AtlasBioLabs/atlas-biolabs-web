@@ -37,14 +37,14 @@ const auditedRoutes = [
     label: "Trending Category",
     path: "/categories/trending-emerging-peptides",
     expectedCanonical: `${canonicalOrigin}/categories/trending-emerging-peptides`,
-    expectedTypes: ["BreadcrumbList"],
+    expectedTypes: ["BreadcrumbList", "CollectionPage", "ItemList"],
     expectBreadcrumb: true,
   },
   {
     label: "Product",
     path: "/shop/bpc-157",
     expectedCanonical: `${canonicalOrigin}/shop/bpc-157`,
-    expectedTypes: ["Product", "BreadcrumbList"],
+    expectedTypes: ["Product", "ProductGroup", "BreadcrumbList"],
     expectBreadcrumb: true,
     expectVisiblePrice: true,
     productSchemaChecks: true,
@@ -53,7 +53,7 @@ const auditedRoutes = [
     label: "Emerging Product",
     path: "/shop/retatrutide",
     expectedCanonical: `${canonicalOrigin}/shop/retatrutide`,
-    expectedTypes: ["Product", "BreadcrumbList"],
+    expectedTypes: ["Product", "ProductGroup", "BreadcrumbList"],
     expectBreadcrumb: true,
     expectVisiblePrice: true,
     productSchemaChecks: true,
@@ -63,7 +63,7 @@ const auditedRoutes = [
     label: "Blend Product",
     path: "/shop/klow-glow-blend",
     expectedCanonical: `${canonicalOrigin}/shop/klow-glow-blend`,
-    expectedTypes: ["Product", "BreadcrumbList"],
+    expectedTypes: ["Product", "ProductGroup", "BreadcrumbList"],
     expectBreadcrumb: true,
     expectVisiblePrice: true,
     productSchemaChecks: true,
@@ -87,6 +87,14 @@ const auditedRoutes = [
     label: "Blog Post",
     path: "/blog/peptide-supplier-guide",
     expectedCanonical: `${canonicalOrigin}/blog/peptide-supplier-guide`,
+    expectedTypes: ["Article", "BreadcrumbList"],
+    expectBreadcrumb: true,
+    articleSchemaChecks: true,
+  },
+  {
+    label: "Generated Blog Post",
+    path: "/blog/retatrutide-peptide-commercial-sourcing",
+    expectedCanonical: `${canonicalOrigin}/blog/retatrutide-peptide-commercial-sourcing`,
     expectedTypes: ["Article", "BreadcrumbList"],
     expectBreadcrumb: true,
     articleSchemaChecks: true,
@@ -272,6 +280,19 @@ async function run() {
         assert(/<img[^>]+alt=["'][^"']+["']/i.test(text), `${route.label}: no image alt text found`);
       }
 
+      if (route.path === "/shop") {
+        for (const expectedHref of [
+          "/shop/bpc-157",
+          "/shop/retatrutide",
+          "/shop/bremelanotide-pt-141",
+          "/categories/signal-peptides",
+          "/categories/growth-repair-peptides",
+          "/categories/trending-emerging-peptides",
+        ]) {
+          assert(text.includes(`href="${expectedHref}"`), `${route.label}: missing crawlable link to ${expectedHref}`);
+        }
+      }
+
       results.push({
         route: route.path,
         title,
@@ -303,12 +324,24 @@ async function run() {
     );
     assert(sitemap.text.includes(`${canonicalOrigin}/blog/peptide-supplier-guide`), "sitemap.xml: missing blog canonical");
     assert(
+      sitemap.text.includes(`${canonicalOrigin}/blog/retatrutide-peptide-commercial-sourcing`),
+      "sitemap.xml: missing generated blog canonical"
+    );
+    assert(
       sitemap.text.includes(`${canonicalOrigin}/blog/category/peptide-sourcing`),
       "sitemap.xml: missing blog category canonical"
     );
 
     const productMatches = sitemap.text.match(/<loc>https:\/\/www\.atlasbiolabs\.co\/shop\/[^<]+<\/loc>/g) ?? [];
     assert(productMatches.length === 41, `sitemap.xml: expected 41 product URLs, found ${productMatches.length}`);
+    const blogMatches = sitemap.text.match(/<loc>https:\/\/www\.atlasbiolabs\.co\/blog\/(?!category\/)[^<]+<\/loc>/g) ?? [];
+    assert(blogMatches.length >= 61, `sitemap.xml: expected at least 61 blog URLs, found ${blogMatches.length}`);
+    const blogCategoryMatches =
+      sitemap.text.match(/<loc>https:\/\/www\.atlasbiolabs\.co\/blog\/category\/[^<]+<\/loc>/g) ?? [];
+    assert(
+      blogCategoryMatches.length === 8,
+      `sitemap.xml: expected 8 blog category URLs, found ${blogCategoryMatches.length}`
+    );
 
     console.log("# SEO Audit");
     console.log("");
@@ -318,7 +351,7 @@ async function run() {
       console.log(`- PASS ${result.route} -> ${result.types.join(", ")}`);
     }
     console.log(`- PASS /robots.txt -> sitemap and crawl rules present`);
-    console.log(`- PASS /sitemap.xml -> canonical URLs present, 41 product URLs detected`);
+    console.log(`- PASS /sitemap.xml -> canonical URLs present, 41 product URLs and ${blogMatches.length} blog URLs detected`);
   } finally {
     if (!server.killed) {
       server.kill("SIGTERM");

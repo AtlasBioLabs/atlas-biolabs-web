@@ -141,13 +141,13 @@ export function productGroupJsonLd(product: Product, siteUrl = "") {
 }
 
 export function articleJsonLd(post: BlogPost) {
-  const modifiedDate = post.updated ?? post.date;
+  const modifiedDate = post.updatedAt ?? post.updated ?? post.date;
 
   return {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
-    description: post.description,
+    description: post.metaDescription ?? post.description,
     datePublished: post.date,
     dateModified: modifiedDate,
     image: [absoluteUrl(post.image)],

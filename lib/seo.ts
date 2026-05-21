@@ -289,7 +289,17 @@ export function getBreadcrumbSchema(items: BreadcrumbItem[]) {
 }
 
 export function getArticleSchema(
-  post: Pick<BlogPost, "author" | "date" | "description" | "image" | "slug" | "tags" | "title">,
+  post: Pick<
+    BlogPost,
+    | "author"
+    | "date"
+    | "description"
+    | "image"
+    | "metaDescription"
+    | "slug"
+    | "tags"
+    | "title"
+  >,
   modifiedDate: string
 ) {
   const articleAuthor =
@@ -307,7 +317,7 @@ export function getArticleSchema(
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
-    description: post.description,
+    description: post.metaDescription ?? post.description,
     datePublished: post.date,
     dateModified: modifiedDate,
     author: articleAuthor,

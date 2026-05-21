@@ -54,9 +54,9 @@ export async function generateMetadata({
   }
 
   return createPageMetadata({
-    title: post.title,
+    title: post.seoTitle ?? post.title,
     path: `/blog/${post.slug}`,
-    description: post.description,
+    description: post.metaDescription ?? post.description,
     keywords: mergeKeywords(post.tags, [
       post.title,
       "peptide supplier guide",
@@ -87,6 +87,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const relatedBlogCategories = blogCategories
     .filter((category) =>
       category.articleSlugs.includes(post.slug) ||
+      post.category === category.slug ||
       post.tags.some((tag) =>
         category.name.toLowerCase().includes(tag.toLowerCase())
       )
@@ -125,7 +126,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             ) : null}
           </div>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">
-            {post.description}
+            {post.excerpt ?? post.description}
           </p>
         </div>
       </section>

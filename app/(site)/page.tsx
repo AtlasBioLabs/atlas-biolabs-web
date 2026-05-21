@@ -62,6 +62,17 @@ const homeBlogLinks = homeFeaturedPosts.map((post) => ({
   description: post.description,
   eyebrow: post.tags[0],
 }));
+const priorityHomeLinks = [
+  { href: "/shop", label: "Peptide catalog" },
+  { href: "/categories/signal-peptides", label: "Signal peptides" },
+  { href: "/categories/growth-repair-peptides", label: "Growth peptides" },
+  { href: "/categories/trending-emerging-peptides", label: "Trending peptides" },
+  { href: "/shop/bpc-157", label: "BPC-157 sourcing" },
+  { href: "/shop/retatrutide", label: "Retatrutide sourcing" },
+  { href: "/shop/copper-tripeptide-1-ghk-cu", label: "GHK-Cu sourcing" },
+  { href: "/request-quote", label: "Request a quote" },
+  { href: "/blog", label: "Peptide sourcing blog" },
+];
 
 export default function HomePage() {
   return (
@@ -110,6 +121,17 @@ export default function HomePage() {
               <Button asChild size="sm" variant="outline">
                 <Link href="/custom-requests">Custom Peptide Request</Link>
               </Button>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+              {priorityHomeLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="font-medium text-[var(--brand-blue)] hover:underline"
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
           </article>
         </div>

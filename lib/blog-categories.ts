@@ -195,9 +195,17 @@ export function getBlogCategoryBySlug(slug: string) {
 
 export function getBlogPostsForCategory(category: BlogCategory): BlogPost[] {
   const posts = getAllBlogPosts();
-  const selectedPosts = category.articleSlugs
+  const explicitlySelectedPosts = category.articleSlugs
     .map((slug) => posts.find((post) => post.slug === slug))
     .filter((post): post is BlogPost => post !== undefined);
+  const frontmatterSelectedPosts = posts.filter(
+    (post) => post.category === category.slug
+  );
+  const selectedPosts = [...explicitlySelectedPosts, ...frontmatterSelectedPosts]
+    .filter(
+      (post, index, allPosts) =>
+        allPosts.findIndex((entry) => entry.slug === post.slug) === index
+    );
 
   if (selectedPosts.length > 0) {
     return selectedPosts;
