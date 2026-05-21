@@ -9,6 +9,10 @@ import {
   type CoaAnalyticalTestDraftRow,
   type CoaAnalyticalTestRowKey,
 } from "@/lib/coa-fixed-rows";
+export {
+  releaseDecisionOptions,
+  verificationStatusOptions,
+} from "@/lib/coa-select-options";
 import type {
   CoaReleaseDecision,
   CoaVerificationRecord,
@@ -177,24 +181,6 @@ const legacyCoaVerificationColumns = new Set([
 let extendedCoaSchemaSupport: boolean | null = null;
 let analyticalTestResultsSupport: boolean | null = null;
 let analyticalRecordsSupport: boolean | null = null;
-
-export const verificationStatusOptions: CoaVerificationStatus[] = [
-  "Draft",
-  "Pending QA Review",
-  "Released / Verified",
-  "Superseded",
-  "Revoked",
-  "Expired",
-  "Rejected / Non-Conforming",
-];
-
-export const releaseDecisionOptions: CoaReleaseDecision[] = [
-  "Pending QA Review",
-  "Released / Conforms",
-  "Released with Deviation",
-  "Rejected / Non-Conforming",
-  "Not Applicable",
-];
 
 export function formatReadableDate(date: Date) {
   return new Intl.DateTimeFormat("en-GB", {

@@ -1,3 +1,11 @@
+export {
+  analyticalBatchResultPresets,
+  analyticalMethodPresets,
+  analyticalRecordAvailabilityPresets,
+  analyticalSpecificationPresets,
+  analyticalStatusPresets,
+} from "@/lib/coa-select-options";
+
 export type CoaAnalyticalTestRowKey =
   | "appearance"
   | "identity"
@@ -52,70 +60,6 @@ type CoaSummarySource = Partial<{
   sds_file_name: string;
   raw_data_archive_ref: string;
 }>;
-
-export const analyticalStatusPresets = [
-  "Pending",
-  "Pass",
-  "Fail",
-  "N/A",
-  "Not included unless ordered",
-  "Conforms",
-  "Does not conform",
-  "Requires review",
-] as const;
-
-export const analyticalMethodPresets = [
-  "Visual inspection",
-  "LC-MS / MS",
-  "RP-HPLC",
-  "UV / HPLC calculation",
-  "Karl Fischer",
-  "Ion chromatography / declaration",
-  "GC / ICH-oriented screening",
-  "ICP-MS screen",
-  "USP/EP-oriented screen",
-  "LAL / sterility test",
-  "Assay / potency method",
-  "Supplier identity record",
-  "Not included unless ordered",
-] as const;
-
-export const analyticalSpecificationPresets = [
-  "White to off-white powder",
-  "Consistent with reference MW / sequence",
-  ">= 98.0% by area normalization",
-  "Report result",
-  "<= 5.0%",
-  "Meets internal limit",
-  "<= 10 ppm total",
-  "As requested / applicable",
-  "Not standard unless requested",
-  "Not included unless ordered",
-  "Per final product specification",
-] as const;
-
-export const analyticalBatchResultPresets = [
-  "Pending QA check",
-  "Pending LC-MS report",
-  "Pending HPLC report",
-  "Pending batch calculation",
-  "Pending KF result",
-  "Acetate - to be confirmed",
-  "Pending GC report",
-  "Pending ICP-MS report",
-  "Not included unless ordered",
-  "Conforms",
-  "To be attached to released batch COA",
-] as const;
-
-export const analyticalRecordAvailabilityPresets = [
-  "Batch-specific",
-  "On request",
-  "Controlled access",
-  "Not included unless ordered",
-  "Attached",
-  "Pending upload",
-] as const;
 
 export const fixedAnalyticalTestRowDefinitions: Array<
   Omit<CoaAnalyticalTestDraftRow, "batch_result" | "status">
@@ -282,7 +226,7 @@ export function buildDefaultAnalyticalTestRows(
         batchResult = source.water_content ?? "Pending KF result";
         break;
       case "counter_ion":
-        batchResult = source.counter_ion_result ?? "To be confirmed";
+        batchResult = source.counter_ion_result ?? "Acetate - to be confirmed";
         break;
       case "residual_solvents":
         batchResult = source.residual_solvents_result ?? "Pending GC report";
