@@ -74,7 +74,9 @@ export type CoaVerificationFormValues = {
   coa_pdf_url: string;
   qr_code_url: string;
   created_by: string;
+  prepared_at: string;
   reviewed_by: string;
+  reviewed_at: string;
   approved_by: string;
   approved_at: string;
 };
@@ -160,7 +162,9 @@ const legacyCoaVerificationColumns = new Set([
   "coa_pdf_url",
   "qr_code_url",
   "created_by",
+  "prepared_at",
   "reviewed_by",
+  "reviewed_at",
   "approved_by",
   "approved_at",
 ]);
@@ -252,7 +256,9 @@ export function getDefaultCoaFormValues(): CoaVerificationFormValues {
     coa_pdf_url: "",
     qr_code_url: "",
     created_by: "Atlas Labs QA Documentation Officer",
+    prepared_at: formatReadableDate(new Date()),
     reviewed_by: "Quality Assurance Manager",
+    reviewed_at: formatReadableDate(new Date()),
     approved_by: "",
     approved_at: "",
   };
@@ -310,7 +316,9 @@ export function mapRowToFormValues(row: CoaVerificationRow): CoaVerificationForm
     coa_pdf_url: row.coa_pdf_url ?? "",
     qr_code_url: row.qr_code_url ?? "",
     created_by: row.created_by ?? "",
+    prepared_at: row.prepared_at ?? "",
     reviewed_by: row.reviewed_by ?? "",
+    reviewed_at: row.reviewed_at ?? "",
     approved_by: row.approved_by ?? "",
     approved_at: row.approved_at ?? "",
   };
@@ -889,7 +897,9 @@ function toMutationPayload(
     coa_pdf_url: emptyToNull(values.coa_pdf_url),
     qr_code_url: emptyToNull(values.qr_code_url),
     created_by: emptyToNull(values.created_by),
+    prepared_at: emptyToNull(values.prepared_at),
     reviewed_by: emptyToNull(values.reviewed_by),
+    reviewed_at: emptyToNull(values.reviewed_at),
     approved_by: emptyToNull(values.approved_by),
     approved_at: emptyToNull(values.approved_at),
   };

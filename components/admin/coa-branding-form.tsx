@@ -160,6 +160,50 @@ export function CoaBrandingForm({ supabase }: CoaBrandingFormProps) {
               />
             </div>
             <div className="space-y-2">
+              <label className="text-sm font-medium text-[var(--brand-navy)]" htmlFor="controlled_document_label">
+                Controlled Document Label
+              </label>
+              <Input
+                id="controlled_document_label"
+                value={values.controlled_document_label}
+                onChange={(event) => updateField("controlled_document_label", event.target.value)}
+                className={inputClassName}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[var(--brand-navy)]" htmlFor="document_type">
+                Document Type
+              </label>
+              <Input
+                id="document_type"
+                value={values.document_type}
+                onChange={(event) => updateField("document_type", event.target.value)}
+                className={inputClassName}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium text-[var(--brand-navy)]" htmlFor="certificate_title">
+                Certificate Title
+              </label>
+              <Input
+                id="certificate_title"
+                value={values.certificate_title}
+                onChange={(event) => updateField("certificate_title", event.target.value)}
+                className={inputClassName}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium text-[var(--brand-navy)]" htmlFor="certificate_subtitle">
+                Certificate Subtitle
+              </label>
+              <textarea
+                id="certificate_subtitle"
+                value={values.certificate_subtitle}
+                onChange={(event) => updateField("certificate_subtitle", event.target.value)}
+                className={textareaClassName}
+              />
+            </div>
+            <div className="space-y-2">
               <label className="text-sm font-medium text-[var(--brand-navy)]" htmlFor="logo_url">
                 Logo URL
               </label>
@@ -182,6 +226,17 @@ export function CoaBrandingForm({ supabase }: CoaBrandingFormProps) {
               />
             </div>
             <div className="space-y-2">
+              <label className="text-sm font-medium text-[var(--brand-navy)]" htmlFor="seal_text">
+                Company Seal Text
+              </label>
+              <Input
+                id="seal_text"
+                value={values.seal_text}
+                onChange={(event) => updateField("seal_text", event.target.value)}
+                className={inputClassName}
+              />
+            </div>
+            <div className="space-y-2">
               <label className="text-sm font-medium text-[var(--brand-navy)]" htmlFor="verification_base_url">
                 Verification Base URL
               </label>
@@ -200,6 +255,39 @@ export function CoaBrandingForm({ supabase }: CoaBrandingFormProps) {
                 id="document_class"
                 value={values.document_class}
                 onChange={(event) => updateField("document_class", event.target.value)}
+                className={inputClassName}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium text-[var(--brand-navy)]" htmlFor="document_note">
+                Document Note
+              </label>
+              <textarea
+                id="document_note"
+                value={values.document_note}
+                onChange={(event) => updateField("document_note", event.target.value)}
+                className={textareaClassName}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium text-[var(--brand-navy)]" htmlFor="certification_statement">
+                Certification Statement
+              </label>
+              <textarea
+                id="certification_statement"
+                value={values.certification_statement}
+                onChange={(event) => updateField("certification_statement", event.target.value)}
+                className={textareaClassName}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium text-[var(--brand-navy)]" htmlFor="authorized_signature_text">
+                Authorized Signature Text
+              </label>
+              <Input
+                id="authorized_signature_text"
+                value={values.authorized_signature_text}
+                onChange={(event) => updateField("authorized_signature_text", event.target.value)}
                 className={inputClassName}
               />
             </div>

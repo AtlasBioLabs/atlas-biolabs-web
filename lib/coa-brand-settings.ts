@@ -5,6 +5,14 @@ export type CoaBrandSettings = {
   company_name: string;
   quality_unit_name: string;
   tagline: string;
+  controlled_document_label: string;
+  document_type: string;
+  certificate_title: string;
+  certificate_subtitle: string;
+  document_note: string;
+  certification_statement: string;
+  authorized_signature_text: string;
+  seal_text: string;
   logo_url: string;
   seal_url: string;
   footer_text: string;
@@ -20,6 +28,14 @@ type CoaBrandSettingsRow = {
   company_name: string;
   quality_unit_name: string;
   tagline: string;
+  controlled_document_label: string | null;
+  document_type: string | null;
+  certificate_title: string | null;
+  certificate_subtitle: string | null;
+  document_note: string | null;
+  certification_statement: string | null;
+  authorized_signature_text: string | null;
+  seal_text: string | null;
   logo_url: string | null;
   seal_url: string | null;
   footer_text: string;
@@ -36,6 +52,17 @@ export function getDefaultCoaBrandSettings(): CoaBrandSettings {
     quality_unit_name: "Quality Documentation Unit",
     tagline:
       "Precision Research Compounds - Batch Documentation - Analytical Traceability",
+    controlled_document_label: "Controlled Document",
+    document_type: "Certificate of Analysis",
+    certificate_title: "CERTIFICATE OF ANALYSIS",
+    certificate_subtitle:
+      "Batch-specific quality documentation for qualified B2B sourcing review",
+    document_note:
+      "This COA record is prepared for buyer review and must be matched to the final batch-specific HPLC, MS/LC-MS and QA release records before commercial shipment.",
+    certification_statement:
+      "Atlas Labs confirms that the product identity, specifications and release status listed in this document apply only to the batch/lot number referenced above. Final certification requires completed batch-specific analytical records and authorized signature. This document does not provide dosage, treatment, medical, diagnostic, veterinary or human-use instructions.",
+    authorized_signature_text: "Authorized QA release signature required",
+    seal_text: "Atlas Labs Seal / Stamp",
     logo_url: "",
     seal_url: "",
     footer_text:
@@ -52,6 +79,22 @@ function mapRow(row: CoaBrandSettingsRow): CoaBrandSettings {
     company_name: row.company_name,
     quality_unit_name: row.quality_unit_name,
     tagline: row.tagline,
+    controlled_document_label:
+      row.controlled_document_label ?? "Controlled Document",
+    document_type: row.document_type ?? "Certificate of Analysis",
+    certificate_title: row.certificate_title ?? "CERTIFICATE OF ANALYSIS",
+    certificate_subtitle:
+      row.certificate_subtitle ??
+      "Batch-specific quality documentation for qualified B2B sourcing review",
+    document_note:
+      row.document_note ??
+      "This COA record is prepared for buyer review and must be matched to the final batch-specific HPLC, MS/LC-MS and QA release records before commercial shipment.",
+    certification_statement:
+      row.certification_statement ??
+      "Atlas Labs confirms that the product identity, specifications and release status listed in this document apply only to the batch/lot number referenced above. Final certification requires completed batch-specific analytical records and authorized signature. This document does not provide dosage, treatment, medical, diagnostic, veterinary or human-use instructions.",
+    authorized_signature_text:
+      row.authorized_signature_text ?? "Authorized QA release signature required",
+    seal_text: row.seal_text ?? "Atlas Labs Seal / Stamp",
     logo_url: row.logo_url ?? "",
     seal_url: row.seal_url ?? "",
     footer_text: row.footer_text,
@@ -94,6 +137,14 @@ export async function saveCoaBrandSettings(
     company_name: values.company_name.trim(),
     quality_unit_name: values.quality_unit_name.trim(),
     tagline: values.tagline.trim(),
+    controlled_document_label: values.controlled_document_label.trim(),
+    document_type: values.document_type.trim(),
+    certificate_title: values.certificate_title.trim(),
+    certificate_subtitle: values.certificate_subtitle.trim(),
+    document_note: values.document_note.trim(),
+    certification_statement: values.certification_statement.trim(),
+    authorized_signature_text: values.authorized_signature_text.trim(),
+    seal_text: values.seal_text.trim(),
     logo_url: values.logo_url.trim() || null,
     seal_url: values.seal_url.trim() || null,
     footer_text: values.footer_text.trim(),

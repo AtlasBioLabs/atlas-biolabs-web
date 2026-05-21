@@ -67,7 +67,9 @@ export type CoaVerificationRecord = {
   coaPdfUrl: string | null;
   qrCodeUrl: string | null;
   createdBy: string | null;
+  preparedAt: string | null;
   reviewedBy: string | null;
+  reviewedAt: string | null;
   approvedBy: string | null;
   approvedAt: string | null;
   createdAt: string | null;
@@ -126,7 +128,9 @@ export type CoaVerificationRow = {
   coa_pdf_url: string | null;
   qr_code_url: string | null;
   created_by: string | null;
+  prepared_at: string | null;
   reviewed_by: string | null;
+  reviewed_at: string | null;
   approved_by: string | null;
   approved_at: string | null;
   created_at: string | null;
@@ -188,7 +192,9 @@ const mockCoaVerificationRows: CoaVerificationRow[] = [
     coa_pdf_url: null,
     qr_code_url: null,
     created_by: "atlas.qc.mock",
+    prepared_at: "20 May 2026",
     reviewed_by: "atlas.qa.mock",
+    reviewed_at: "20 May 2026",
     approved_by: "atlas.qa.lead.mock",
     approved_at: "2026-05-20T11:45:00Z",
     created_at: "2026-05-20T09:00:00Z",
@@ -249,7 +255,9 @@ const mockCoaVerificationRows: CoaVerificationRow[] = [
     coa_pdf_url: null,
     qr_code_url: null,
     created_by: "atlas.qc.mock",
+    prepared_at: "20 May 2026",
     reviewed_by: null,
+    reviewed_at: null,
     approved_by: null,
     approved_at: null,
     created_at: "2026-05-20T10:15:00Z",
@@ -309,7 +317,9 @@ const mockCoaVerificationRows: CoaVerificationRow[] = [
     coa_pdf_url: null,
     qr_code_url: null,
     created_by: "atlas.qc.mock",
+    prepared_at: "20 May 2026",
     reviewed_by: "atlas.qa.mock",
+    reviewed_at: "20 May 2026",
     approved_by: "atlas.qa.lead.mock",
     approved_at: "2026-05-20T14:10:00Z",
     created_at: "2026-05-20T12:05:00Z",
@@ -371,7 +381,9 @@ export function mapCoaVerificationRowToRecord(
     coaPdfUrl: row.coa_pdf_url,
     qrCodeUrl: row.qr_code_url,
     createdBy: row.created_by,
+    preparedAt: row.prepared_at,
     reviewedBy: row.reviewed_by,
+    reviewedAt: row.reviewed_at,
     approvedBy: row.approved_by,
     approvedAt: row.approved_at,
     createdAt: row.created_at,

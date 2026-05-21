@@ -133,10 +133,10 @@ function CoaHeader({
           </p>
         </div>
       </div>
-      <div className="min-w-[220px] border border-[#cad5e4] bg-[#f8fbff] px-4 py-3 text-[11px] text-[var(--brand-navy)]">
-        <p className="font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
-          Controlled Document
-        </p>
+        <div className="min-w-[220px] border border-[#cad5e4] bg-[#f8fbff] px-4 py-3 text-[11px] text-[var(--brand-navy)]">
+          <p className="font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+            {branding.controlled_document_label}
+          </p>
         <dl className="mt-2 space-y-1.5">
           <div className="flex justify-between gap-3">
             <dt className="text-slate-600">COA Number</dt>
@@ -219,10 +219,10 @@ export function CoaDocumentTemplate({
         <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_220px]">
           <div className="space-y-2">
             <h2 className="text-[28px] font-semibold tracking-tight text-[var(--brand-navy)]">
-              CERTIFICATE OF ANALYSIS
+              {branding.certificate_title}
             </h2>
             <p className="text-[11px] leading-relaxed text-slate-600">
-              Batch-specific quality documentation for qualified B2B sourcing review
+              {branding.certificate_subtitle}
             </p>
           </div>
           <div className={`border px-4 py-4 text-center ${statusTone}`}>
@@ -234,8 +234,7 @@ export function CoaDocumentTemplate({
         </div>
 
         <div className="mt-4 border border-[#cad5e4] bg-[#f8fbff] px-4 py-3 text-[11px] text-slate-700">
-          This COA record is prepared for buyer review and must be matched to the final
-          batch-specific HPLC, MS/LC-MS and QA release records before commercial shipment.
+          {branding.document_note}
         </div>
 
         <div className="mt-5 space-y-5">
@@ -247,7 +246,7 @@ export function CoaDocumentTemplate({
                 { label: "Issue Date", value: coa.issueDate },
                 { label: "Client / Recipient", value: coa.clientRecipient },
                 { label: "Prepared By", value: coa.createdBy },
-                { label: "Document Type", value: "Certificate of Analysis" },
+                { label: "Document Type", value: branding.document_type },
                 { label: "Revision", value: coa.revision },
               ]}
             />
@@ -421,12 +420,7 @@ export function CoaDocumentTemplate({
           <section className="space-y-2.5">
             <SectionHeading title="Certification Statement" />
             <div className="border border-[#cad5e4] bg-[#f8fbff] px-4 py-3 text-[11px] leading-relaxed text-slate-700">
-              Atlas Labs confirms that the product identity, specifications and release
-              status listed in this document apply only to the batch/lot number
-              referenced above. Final certification requires completed batch-specific
-              analytical records and authorized signature. This document does not
-              provide dosage, treatment, medical, diagnostic, veterinary or human-use
-              instructions.
+              {branding.certification_statement}
             </div>
           </section>
 
@@ -438,16 +432,18 @@ export function CoaDocumentTemplate({
                   <tbody>
                     {[
                       { label: "Prepared By", value: coa.createdBy },
+                      { label: "Prepared Date", value: coa.preparedAt || coa.issueDate },
                       { label: "Reviewed By", value: coa.reviewedBy },
+                      { label: "Review Date", value: coa.reviewedAt || coa.issueDate },
                       { label: "Approved By", value: coa.approvedBy },
-                      { label: "Date", value: coa.approvedAt || coa.issueDate },
+                      { label: "Approved Date", value: coa.approvedAt || coa.issueDate },
                       {
                         label: "Authorized Signature",
-                        value: "Authorized QA release signature required",
+                        value: branding.authorized_signature_text,
                       },
                       {
                         label: "Company Seal",
-                        value: branding.seal_url ? "See seal image" : "Atlas Labs Seal / Stamp",
+                        value: branding.seal_url ? "See seal image" : branding.seal_text,
                       },
                     ].map((row) => (
                       <tr key={row.label}>
@@ -473,7 +469,7 @@ export function CoaDocumentTemplate({
                     />
                   ) : (
                     <div className="flex h-20 items-center justify-center border border-dashed border-[#9eb8ff] bg-white text-center text-[11px] font-medium text-[var(--brand-navy)]">
-                      Atlas Labs Seal / Stamp
+                      {branding.seal_text}
                     </div>
                   )}
                   <div>

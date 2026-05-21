@@ -157,7 +157,9 @@ const formSections: FormSection[] = [
     description: "Internal preparation, review, and approval references displayed in the certification block.",
     fields: [
       { name: "created_by", label: "Prepared / Created By" },
+      { name: "prepared_at", label: "Prepared Date" },
       { name: "reviewed_by", label: "Reviewed By" },
+      { name: "reviewed_at", label: "Review Date" },
       { name: "approved_by", label: "Approved By" },
       { name: "approved_at", label: "Approved At" },
       { name: "coa_pdf_url", label: "COA PDF URL" },
