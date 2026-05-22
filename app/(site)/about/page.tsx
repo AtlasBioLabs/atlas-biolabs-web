@@ -28,10 +28,10 @@ import {
 } from "@/lib/site-content";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "About Atlas BioLabs",
+  title: "About Atlas BioLabs | Commercial Peptide Sourcing & Documentation Support",
   path: "/about",
   description:
-    "Learn how Atlas BioLabs was founded in 2024 by Dr. Guy Citrin, how our qualified sourcing network in China supports supply, and how Atlas Labs strengthens documentation and batch transparency for U.S. and international buyers.",
+    "Atlas BioLabs supports qualified B2B buyers with peptide sourcing, MOQ guidance, batch documentation, quality communication, and operations in the United States and China.",
   keywords: [
     "about Atlas BioLabs",
     "Dr. Guy Citrin",
@@ -39,6 +39,8 @@ export const metadata: Metadata = createPageMetadata({
     "founded in 2024",
     "peptide supplier company",
     "commercial peptide supply",
+    "peptide sourcing company",
+    "batch documentation support",
   ],
 });
 
@@ -240,6 +242,50 @@ export default function AboutPage() {
               </p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="section-space pt-0">
+        <div className="site-container">
+          <div className="mb-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+              Where We Operate
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold text-[var(--brand-navy)]">
+              Atlas BioLabs Global Presence
+            </h2>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            <article className="surface-card h-full p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+                {COMPANY_INFO.usOffice.label}
+              </p>
+              <h3 className="mt-2 text-xl font-semibold text-[var(--brand-navy)]">
+                Union City, California
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {COMPANY_INFO.usOffice.formatted}
+              </p>
+              <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
+                Our headquarters in Union City, California serves as the central hub for Atlas BioLabs, coordinating commercial quote workflows, documentation support, and buyer guidance for international and U.S.-based accounts.
+              </p>
+            </article>
+
+            <article className="surface-card h-full p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">
+                {COMPANY_INFO.chinaOffice.label}
+              </p>
+              <h3 className="mt-2 text-xl font-semibold text-[var(--brand-navy)]">
+                Shanghai, China
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {COMPANY_INFO.chinaOffice.formatted}
+              </p>
+              <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
+                Our sourcing and operations office in Shanghai manages qualified manufacturing partnerships, supply coordination, batch documentation, and quality review processes that support our commercial supply workflows.
+              </p>
+            </article>
+          </div>
         </div>
       </section>
 
