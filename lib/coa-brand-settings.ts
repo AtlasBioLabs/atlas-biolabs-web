@@ -48,7 +48,7 @@ type CoaBrandSettingsRow = {
 
 export function getDefaultCoaBrandSettings(): CoaBrandSettings {
   return {
-    company_name: "Atlas Labs",
+    company_name: "Atlas BioLabs",
     quality_unit_name: "Quality Documentation Unit",
     tagline:
       "Precision Research Compounds - Batch Documentation - Analytical Traceability",
@@ -60,13 +60,13 @@ export function getDefaultCoaBrandSettings(): CoaBrandSettings {
     document_note:
       "This COA record is prepared for buyer review and must be matched to the final batch-specific HPLC, MS/LC-MS and QA release records before commercial shipment.",
     certification_statement:
-      "Atlas Labs confirms that the product identity, specifications and release status listed in this document apply only to the batch/lot number referenced above. Final certification requires completed batch-specific analytical records and authorized signature. This document does not provide dosage, treatment, medical, diagnostic, veterinary or human-use instructions.",
+      "Atlas BioLabs confirms that the product identity, specifications and release status listed in this document apply only to the batch/lot number referenced above. Final certification requires completed batch-specific analytical records and authorized signature. This document does not provide dosage, treatment, medical, diagnostic, veterinary or human-use instructions.",
     authorized_signature_text: "Authorized QA release signature required",
-    seal_text: "Atlas Labs Seal / Stamp",
+    seal_text: "Atlas BioLabs Seal / Stamp",
     logo_url: "",
     seal_url: "",
     footer_text:
-      "Atlas BioLabs / Atlas Labs - Batch documentation. Final release requires authorized signature and batch-specific analytical records.",
+      "Atlas BioLabs | Phone: +1 805 941 0541 | US Office: 29520 Kohoutek Way, Union City, CA 94587 | China Operations: No.333 Guiping Road, Shanghai, China | Batch documentation. Final release requires authorized signature and batch-specific analytical records.",
     verification_base_url: "https://www.atlasbiolabs.co/verify",
     document_class: "Batch QA record",
     is_active: true,

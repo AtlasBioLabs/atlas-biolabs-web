@@ -5,6 +5,7 @@ import { ContactForm } from "@/components/site/contact-form";
 import { CtaSection } from "@/components/site/cta-section";
 import { JsonLd } from "@/components/site/json-ld";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
+import { COMPANY_INFO } from "@/lib/company";
 import {
   createPageMetadata,
   getBreadcrumbSchema,
@@ -13,14 +14,16 @@ import {
 import { contactCta, contactDetails } from "@/lib/site-content";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Contact Atlas BioLabs",
+  title: "Contact Atlas BioLabs | Peptide Sourcing & Documentation Support",
   path: "/contact",
   description:
-    "Contact Atlas BioLabs for peptide sourcing support, MOQ planning, documentation guidance, and quote request follow-up for U.S. and international commercial buyers.",
+    "Contact Atlas BioLabs for commercial peptide sourcing, MOQ support, quote requests, batch documentation, and product information. Offices in Union City, California and Shanghai, China.",
   keywords: [
     "contact peptide supplier",
     "request peptide quote",
     "Atlas BioLabs sales",
+    "peptide documentation support",
+    "peptide sourcing contact",
   ],
 });
 
@@ -39,26 +42,43 @@ export default function ContactPage() {
             Contact
           </p>
           <h1 className="mt-3 max-w-4xl text-4xl font-semibold text-[var(--brand-navy)]">
-            Talk with our sales team
+            Contact Atlas BioLabs
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">
-            Share your peptide targets, quantity needs, and timeline. We will guide you through the right sourcing and quote process, including documentation and batch transparency support where needed.
+            For quote requests, product documentation, MOQ support, batch information, or commercial sourcing inquiries, contact Atlas BioLabs using the information below.
           </p>
         </div>
       </section>
 
       <section className="section-space">
         <div className="site-container grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <article className="surface-card space-y-4 p-6 sm:p-7">
-            <h2 className="text-xl font-semibold text-[var(--brand-navy)]">
-              Sales Contact
-            </h2>
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <p>
-                <span className="font-medium text-[var(--brand-navy)]">Email: </span>
-                {contactDetails.recipientEmail}
-              </p>
+          <article className="surface-card space-y-6 p-6 sm:p-7">
+            <div>
+              <h2 className="text-xl font-semibold text-[var(--brand-navy)]">
+                Contact Information
+              </h2>
             </div>
+            
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-[var(--brand-navy)]">Phone</p>
+              <p className="text-sm text-muted-foreground">{COMPANY_INFO.phoneDisplay}</p>
+            </div>
+
+            <div className="space-y-2 border-t border-border/30 pt-4">
+              <p className="text-sm font-medium text-[var(--brand-navy)]">{COMPANY_INFO.usOffice.label}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{COMPANY_INFO.usOffice.formatted}</p>
+            </div>
+
+            <div className="space-y-2 border-t border-border/30 pt-4">
+              <p className="text-sm font-medium text-[var(--brand-navy)]">{COMPANY_INFO.chinaOffice.label}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{COMPANY_INFO.chinaOffice.formatted}</p>
+            </div>
+
+            <div className="space-y-2 border-t border-border/30 pt-4">
+              <p className="text-sm font-medium text-[var(--brand-navy)]">Email</p>
+              <p className="text-sm text-muted-foreground">{contactDetails.recipientEmail}</p>
+            </div>
+
             <p className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
               {contactDetails.detailsNotice}
             </p>

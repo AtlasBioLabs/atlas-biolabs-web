@@ -7,6 +7,7 @@ import { CtaSection } from "@/components/site/cta-section";
 import { JsonLd } from "@/components/site/json-ld";
 import { OperationsEvidenceGrid } from "@/components/site/operations-evidence-grid";
 import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
+import { COMPANY_INFO } from "@/lib/company";
 import {
   companyProofFacts,
   operationsEvidenceItems,

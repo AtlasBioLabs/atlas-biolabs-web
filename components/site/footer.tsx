@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { COMPANY_INFO } from "@/lib/company";
 import { companyProofFacts } from "@/lib/site-proof";
 import { brand, contactDetails, navItems } from "@/lib/site-content";
 
@@ -43,11 +44,18 @@ export function Footer() {
               Contact
             </h3>
             <div className="space-y-2 text-sm text-white/75">
-              <p>{contactDetails.recipientEmail}</p>
+              <p>
+                <span className="font-medium text-white">Phone:</span> {COMPANY_INFO.phoneDisplay}
+              </p>
+              <p className="text-xs text-white/70">
+                <span className="font-medium text-white block mb-1">{COMPANY_INFO.usOffice.label}:</span>
+                {COMPANY_INFO.usOffice.formatted}
+              </p>
+              <p className="text-xs text-white/70">
+                <span className="font-medium text-white block mb-1">{COMPANY_INFO.chinaOffice.label}:</span>
+                {COMPANY_INFO.chinaOffice.formatted}
+              </p>
             </div>
-            <p className="text-xs text-white/55">
-              {contactDetails.detailsNotice}
-            </p>
           </div>
 
           <div className="space-y-3">

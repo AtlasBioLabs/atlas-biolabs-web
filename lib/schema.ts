@@ -190,11 +190,36 @@ export function organizationJsonLd() {
     url: absoluteUrl("/"),
     logo: absoluteUrl("/atlas-biolabs-logo.svg"),
     description: DEFAULT_DESCRIPTION,
+    telephone: "+18059410541",
+    address: [
+      {
+        "@type": "PostalAddress",
+        streetAddress: "29520 Kohoutek Way",
+        addressLocality: "Union City",
+        addressRegion: "CA",
+        postalCode: "94587",
+        addressCountry: "US",
+      },
+      {
+        "@type": "PostalAddress",
+        streetAddress: "No.333 Guiping Road",
+        addressLocality: "Shanghai",
+        addressCountry: "CN",
+      },
+    ],
     contactPoint: [
       {
         "@type": "ContactPoint",
         contactType: "sales",
-        email: contactDetails.recipientEmail,
+        telephone: "+18059410541",
+        areaServed: ["US", "CN", "International"],
+        availableLanguage: ["English"],
+      },
+      {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        telephone: "+18059410541",
+        areaServed: ["US", "CN", "International"],
         availableLanguage: ["English"],
       },
     ],
