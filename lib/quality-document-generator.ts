@@ -187,7 +187,7 @@ export async function createSdsDraft(
     section8ExposureControls:
       "Use appropriate personal protective equipment (lab coat, gloves, eye protection)",
     section9PhysicalChemical:
-      `Physical form: ${product.physicalForm || "Solid"}\nAppearance: ${product.appearanceSpec || "White to off-white solid"}`,
+      `Physical form: ${product.status || "Solid"}\nAppearance: ${product.summary || "White to off-white solid"}`,
     section10StabilityReactivity:
       "Stable under normal storage conditions. Avoid heat, light, and moisture.",
     section11Toxicological: "Toxicological data to be provided upon request.",
