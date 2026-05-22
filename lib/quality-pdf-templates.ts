@@ -429,12 +429,6 @@ export function generateCoaPdfHtml(
             <div class="footer-section">
               <span class="footer-label">Company:</span> ${options.brandSettings.company_name}
             </div>
-            <div class="footer-section">
-              <span class="footer-label">Phone:</span> ${options.brandSettings.phone}
-            </div>
-            <div class="footer-section">
-              <span class="footer-label">Email:</span> ${options.brandSettings.email}
-            </div>
             <div style="width: 100%; margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd;">
               <p style="font-size: 9px; color: #666;">
                 ${options.brandSettings.footer_text}
@@ -462,9 +456,9 @@ export function generateHplcPdfHtml(
       : "DRAFT — DOCUMENT NOT YET APPROVED";
 
   const resultColor =
-    hplc.pass_fail_decision === "pass"
+    hplc.passFailDecision === "pass"
       ? "#4CAF50"
-      : hplc.pass_fail_decision === "fail"
+      : hplc.passFailDecision === "fail"
         ? "#f44336"
         : "#ff9800";
 
@@ -474,7 +468,7 @@ export function generateHplcPdfHtml(
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>HPLC Purity Report - ${hplc.document_number}</title>
+      <title>HPLC Purity Report - ${hplc.documentNumber}</title>
       <style>
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
@@ -621,7 +615,7 @@ export function generateHplcPdfHtml(
             <h1>${options.brandSettings.company_name}</h1>
             <h2 style="margin-top: 0;">HPLC Purity Analysis Report</h2>
             <div style="text-align: right; font-size: 11px;">
-              <strong>Document #:</strong> ${hplc.document_number}
+              <strong>Document #:</strong> ${hplc.documentNumber}
             </div>
           </div>
           
@@ -633,11 +627,11 @@ export function generateHplcPdfHtml(
             </div>
             <div class="info-item">
               <div class="info-label">Batch ID</div>
-              <div class="info-value">${String(hplc.batch_id).slice(0, 8)}...</div>
+              <div class="info-value">${String(hplc.batchId).slice(0, 8)}...</div>
             </div>
             <div class="info-item">
               <div class="info-label">Issue Date</div>
-              <div class="info-value">${hplc.issue_date}</div>
+              <div class="info-value">${hplc.issueDate}</div>
             </div>
             <div class="info-item">
               <div class="info-label">Revision</div>
@@ -649,53 +643,53 @@ export function generateHplcPdfHtml(
           <div class="info-grid">
             <div class="info-item">
               <div class="info-label">Method Name</div>
-              <div class="info-value">${hplc.method_name}</div>
+              <div class="info-value">${hplc.methodName}</div>
             </div>
             <div class="info-item">
               <div class="info-label">Instrument</div>
-              <div class="info-value">${hplc.instrument_name}</div>
+              <div class="info-value">${hplc.instrumentName}</div>
             </div>
             <div class="info-item">
               <div class="info-label">Column Type</div>
-              <div class="info-value">${hplc.column_type}</div>
+              <div class="info-value">${hplc.columnType}</div>
             </div>
             <div class="info-item">
               <div class="info-label">Detection Wavelength</div>
-              <div class="info-value">${hplc.detection_wavelength} nm</div>
+              <div class="info-value">${hplc.detectionWavelength} nm</div>
             </div>
             <div class="info-item">
               <div class="info-label">Mobile Phase</div>
-              <div class="info-value">${hplc.mobile_phase}</div>
+              <div class="info-value">${hplc.mobilePhase}</div>
             </div>
             <div class="info-item">
               <div class="info-label">Flow Rate</div>
-              <div class="info-value">${hplc.flow_rate} mL/min</div>
+              <div class="info-value">${hplc.flowRate} mL/min</div>
             </div>
           </div>
           
           <h2>Results</h2>
           <div class="result-box">
             <div style="font-size: 12px; color: #333;">Purity Result</div>
-            <div class="result-value">${hplc.purity_percent.toFixed(2)}%</div>
+            <div class="result-value">${hplc.purityPercent.toFixed(2)}%</div>
             <div style="font-size: 10px; color: #666; margin-top: 6px;">
-              Acceptance Criteria: ${hplc.acceptance_criteria}
+              Acceptance Criteria: ${hplc.acceptanceCriteria}
             </div>
           </div>
           
           <h3>Result Summary</h3>
           <p style="font-size: 11px; line-height: 1.5; background-color: #f9f9f9; padding: 8px; border-radius: 4px;">
-            ${hplc.result_summary}
+            ${hplc.resultSummary}
           </p>
           
           <h3>Analyst Information</h3>
           <p style="font-size: 10px;">
-            <strong>Analyst:</strong> ${hplc.analyst_name}<br/>
-            ${hplc.reviewer_name ? `<strong>Reviewer:</strong> ${hplc.reviewer_name}` : ""}
+            <strong>Analyst:</strong> ${hplc.analystName}<br/>
+            ${hplc.reviewerName ? `<strong>Reviewer:</strong> ${hplc.reviewerName}` : ""}
           </p>
           
           <div class="signature-block">
             <div class="signature-line"></div>
-            <div><strong>${hplc.analyst_name}</strong></div>
+            <div><strong>${hplc.analystName}</strong></div>
             <div style="color: #666;">Analyst</div>
           </div>
           

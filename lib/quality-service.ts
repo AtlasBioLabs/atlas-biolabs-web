@@ -140,7 +140,7 @@ export function validateHplcForRelease(
     });
   }
 
-  if (!hplc.analytName) {
+  if (!hplc.analystName) {
     errors.push({
       field: "analystName",
       message: "Analyst name is required",
@@ -195,7 +195,7 @@ export function validateMsForRelease(ms: MsReport): DocumentValidationResult {
     });
   }
 
-  if (!ms.analytName) {
+  if (!ms.analystName) {
     errors.push({
       field: "analystName",
       message: "Analyst name is required",
