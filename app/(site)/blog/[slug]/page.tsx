@@ -9,6 +9,7 @@ import { BlogTableOfContents } from "@/components/site/blog-table-of-contents";
 import { JsonLd } from "@/components/site/json-ld";
 import { MdxContent } from "@/components/site/mdx-content";
 import { RelatedArticles } from "@/components/site/related-articles";
+import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
 import { blogCategories } from "@/lib/blog-categories";
 import {
   formatBlogDate,
@@ -20,6 +21,7 @@ import {
   getRelevantCategoriesForBlogPost,
   getRelevantProductsForBlogPost,
 } from "@/lib/blog";
+import { getBlogSupportLinks } from "@/lib/seo-resource-data";
 import {
   createPageMetadata,
   getArticleSchema,
@@ -246,6 +248,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </article>
         </div>
       </section>
+
+      <ResourceLinksPanel
+        eyebrow="Relevant Landing Pages"
+        title="Buyer Resources Connected to This Article"
+        description="These pages help readers move from blog context into product review, documentation questions, and quote-led commercial follow-up."
+        links={getBlogSupportLinks(post.category)}
+      />
 
       <RelatedArticles posts={relatedPosts} />
 

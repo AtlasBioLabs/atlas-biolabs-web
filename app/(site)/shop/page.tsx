@@ -51,10 +51,17 @@ const shopSupportLinks = [
   },
   {
     title: "Wholesale Peptide Supply",
-    href: "/wholesale",
+    href: "/wholesale-peptides",
     description:
       "Review quote-led wholesale peptide supply support for recurring and volume-based B2B programs.",
     eyebrow: "Wholesale",
+  },
+  {
+    title: "Peptide Documentation",
+    href: "/peptide-documentation",
+    description:
+      "Understand COA context, batch transparency, packaging notes, and the documentation questions buyers should prepare early.",
+    eyebrow: "Documentation",
   },
   {
     title: "Quality Assurance",
@@ -69,6 +76,27 @@ const shopSupportLinks = [
     description:
       "Share target products, quantity, destination, and documentation needs for direct commercial support.",
     eyebrow: "Quote",
+  },
+  {
+    title: "Custom Peptide Sourcing",
+    href: "/custom-peptide-sourcing",
+    description:
+      "Use the custom sourcing landing page to understand how non-catalog and quote-led peptide requests are handled.",
+    eyebrow: "Custom",
+  },
+  {
+    title: "Cosmetic Peptide Supplier",
+    href: "/cosmetic-peptide-supplier",
+    description:
+      "Review the sourcing page created for formulation teams, cosmetic ingredient buyers, and skincare labs.",
+    eyebrow: "Landing Page",
+  },
+  {
+    title: "Research Peptide Supplier",
+    href: "/research-peptide-supplier",
+    description:
+      "Read how Atlas BioLabs supports research supply buyers with documentation-aware procurement and batch transparency support.",
+    eyebrow: "Landing Page",
   },
   {
     title: "Signal Peptides",

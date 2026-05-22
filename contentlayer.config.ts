@@ -83,6 +83,7 @@ export const BlogPost = defineDocumentType(() => ({
     canonical: { type: "string", required: false },
     excerpt: { type: "string", required: false },
     image: { type: "string", required: true },
+    complianceNote: { type: "string", required: false },
   },
   computedFields: {
     url: {

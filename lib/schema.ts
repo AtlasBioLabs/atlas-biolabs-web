@@ -2,6 +2,7 @@ import type { BlogPost } from "contentlayer/generated";
 
 import { absoluteUrl } from "@/lib/site-config";
 import type { Product } from "@/lib/site-content";
+import { contactDetails } from "@/lib/site-content";
 import { DEFAULT_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
 export function itemListJsonLd(
@@ -140,6 +141,24 @@ export function productGroupJsonLd(product: Product, siteUrl = "") {
   };
 }
 
+export function webPageJsonLd({
+  name,
+  description,
+  url,
+}: {
+  name: string;
+  description: string;
+  url: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name,
+    description,
+    url,
+  };
+}
+
 export function articleJsonLd(post: BlogPost) {
   const modifiedDate = post.updatedAt ?? post.updated ?? post.date;
 
@@ -171,5 +190,13 @@ export function organizationJsonLd() {
     url: absoluteUrl("/"),
     logo: absoluteUrl("/atlas-biolabs-logo.svg"),
     description: DEFAULT_DESCRIPTION,
+    contactPoint: [
+      {
+        "@type": "ContactPoint",
+        contactType: "sales",
+        email: contactDetails.recipientEmail,
+        availableLanguage: ["English"],
+      },
+    ],
   };
 }

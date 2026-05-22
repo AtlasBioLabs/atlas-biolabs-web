@@ -68,6 +68,37 @@ export default function ContactPage() {
         </div>
       </section>
 
+      <section className="section-space pt-0">
+        <div className="site-container grid gap-5 md:grid-cols-3">
+          {[
+            {
+              title: "Who should contact Atlas BioLabs",
+              description:
+                "This route is intended for qualified B2B buyers, procurement teams, formulation groups, and research-facing commercial accounts preparing a real sourcing discussion.",
+            },
+            {
+              title: "What to include in your message",
+              description:
+                "Mention product targets, expected quantity, destination market, timeline, and any documentation or batch-transparency questions that should be addressed during quote review.",
+            },
+            {
+              title: "What we do not provide here",
+              description:
+                "Atlas BioLabs contact workflows are for sourcing and documentation support, not for medical, dosing, diagnostic, veterinary, or human-use guidance.",
+            },
+          ].map((item) => (
+            <article key={item.title} className="surface-card h-full p-6">
+              <h2 className="text-xl font-semibold text-[var(--brand-navy)]">
+                {item.title}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {item.description}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <ResourceLinksPanel
         eyebrow="Need More Context?"
         title="Review the Pages Buyers Usually Open Before Contacting Us"

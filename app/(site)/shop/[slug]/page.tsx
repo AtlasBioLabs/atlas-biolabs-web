@@ -7,8 +7,10 @@ import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { JsonLd } from "@/components/site/json-ld";
 import { ProductInlineQuoteForm } from "@/components/site/product-inline-quote-form";
 import { ProductPurchaseActions } from "@/components/site/product-purchase-actions";
+import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
 import { Button } from "@/components/ui/button";
 import { getRelevantBlogPostsForProduct } from "@/lib/blog";
+import { getProductSupportLinks } from "@/lib/seo-resource-data";
 import {
   createPageMetadata,
   getBreadcrumbSchema,
@@ -456,6 +458,13 @@ export default async function ShopDetailPage({ params }: ShopDetailPageProps) {
           </article>
         </div>
       </section>
+
+      <ResourceLinksPanel
+        eyebrow="Commercial Resources"
+        title={`Pages That Help Buyers Evaluate ${product.name}`}
+        description="Use these links to move from the product page into category comparison, documentation review, and the most relevant sourcing next steps."
+        links={getProductSupportLinks(product.category)}
+      />
 
       <section className="section-space pt-0">
         <div className="site-container">

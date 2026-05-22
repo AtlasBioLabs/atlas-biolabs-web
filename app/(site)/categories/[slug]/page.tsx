@@ -5,7 +5,9 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { JsonLd } from "@/components/site/json-ld";
 import { ProductCard } from "@/components/site/product-card";
+import { ResourceLinksPanel } from "@/components/site/resource-links-panel";
 import { getRelevantBlogPostsForCategory } from "@/lib/blog";
+import { getCategorySupportLinks } from "@/lib/seo-resource-data";
 import {
   getCategoryBreadcrumbItems,
   createPageMetadata,
@@ -277,6 +279,13 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           </article>
         </div>
       </section>
+
+      <ResourceLinksPanel
+        eyebrow="Buyer Resources"
+        title={`Planning Resources for ${category.label} Buyers`}
+        description="These landing pages help turn category research into a more structured commercial request with documentation, MOQ, and sourcing context already aligned."
+        links={getCategorySupportLinks(category.id)}
+      />
 
       <section className="section-space pt-0">
         <div className="site-container grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">

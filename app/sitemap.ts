@@ -3,6 +3,13 @@ import type { MetadataRoute } from "next";
 import { blogCategories } from "@/lib/blog-categories";
 import { getAllBlogPosts, getBlogPostModifiedDate } from "@/lib/blog";
 import { absoluteUrl } from "@/lib/site-config";
+import {
+  blogStartHerePage,
+  comparisonPages,
+  downloadGuides,
+  glossaryEntries,
+  topLevelSeoPages,
+} from "@/lib/seo-resource-data";
 import { productCategories, products } from "@/lib/site-content";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -75,6 +82,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.55,
     },
+    {
+      url: absoluteUrl("/compare"),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.66,
+    },
+    {
+      url: absoluteUrl("/glossary"),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.66,
+    },
+    {
+      url: absoluteUrl("/downloads"),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
+      url: absoluteUrl(blogStartHerePage.path),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.72,
+    },
   ];
 
   const productPages: MetadataRoute.Sitemap = products.map((product) => ({
@@ -107,8 +138,48 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.68,
   }));
 
+  const landingPages: MetadataRoute.Sitemap = Object.values(topLevelSeoPages).map(
+    (page) => ({
+      url: absoluteUrl(page.path),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    })
+  );
+
+  const comparisonEntries: MetadataRoute.Sitemap = Object.values(comparisonPages).map(
+    (page) => ({
+      url: absoluteUrl(page.path),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.64,
+    })
+  );
+
+  const glossaryPages: MetadataRoute.Sitemap = Object.values(glossaryEntries).map(
+    (entry) => ({
+      url: absoluteUrl(`/glossary/${entry.slug}`),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.58,
+    })
+  );
+
+  const downloadPages: MetadataRoute.Sitemap = Object.values(downloadGuides).map(
+    (guide) => ({
+      url: absoluteUrl(`/downloads/${guide.slug}`),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.55,
+    })
+  );
+
   return [
     ...staticPages,
+    ...landingPages,
+    ...comparisonEntries,
+    ...glossaryPages,
+    ...downloadPages,
     ...categoryPages,
     ...productPages,
     ...blogPages,

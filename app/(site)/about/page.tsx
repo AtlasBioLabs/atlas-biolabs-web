@@ -143,6 +143,42 @@ export default function AboutPage() {
       />
 
       <section className="section-space pt-0">
+        <div className="site-container grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            {
+              title: "Who We Serve",
+              description:
+                "Atlas BioLabs serves qualified B2B buyers, procurement teams, formulation groups, and research-facing commercial accounts that need structured peptide sourcing support.",
+            },
+            {
+              title: "What We Do",
+              description:
+                "We connect product pages, category pages, documentation review, quote support, and Atlas Labs quality language into one clearer commercial workflow.",
+            },
+            {
+              title: "What We Do Not Claim",
+              description:
+                "Our public pages do not make medical, dosing, treatment, cure, prevention, or personal-use claims. We keep the site focused on sourcing, documentation, and buyer support.",
+            },
+            {
+              title: "How Buyers Request Documentation",
+              description:
+                "Buyers can review the documentation and quality pages first, then request batch-related support during quote follow-up when the commercial discussion becomes specific.",
+            },
+          ].map((item) => (
+            <article key={item.title} className="surface-card h-full p-6">
+              <h2 className="text-xl font-semibold text-[var(--brand-navy)]">
+                {item.title}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {item.description}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="section-space pt-0">
         <div className="site-container">
           <div className="mb-5">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-blue)]">

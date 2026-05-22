@@ -115,6 +115,37 @@ export default function QualityAssurancePage() {
       </section>
 
       <section className="section-space pt-0">
+        <div className="site-container grid gap-5 md:grid-cols-3">
+          {[
+            {
+              title: "Who this page helps",
+              description:
+                "This page is for qualified B2B buyers, procurement reviewers, and documentation-sensitive teams that need to understand how Atlas BioLabs describes quality workflows.",
+            },
+            {
+              title: "What documentation means here",
+              description:
+                "Quality assurance content explains review structure, batch transparency support, and record discipline. It is intended to support commercial evaluation, not replace batch-specific review.",
+            },
+            {
+              title: "What this page does not claim",
+              description:
+                "Atlas BioLabs quality pages do not make public medical, dosing, treatment, or human-use claims. The content stays focused on sourcing, documentation, and operational clarity.",
+            },
+          ].map((item) => (
+            <article key={item.title} className="surface-card h-full p-6">
+              <h2 className="text-xl font-semibold text-[var(--brand-navy)]">
+                {item.title}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {item.description}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="section-space pt-0">
         <div className="site-container">
           <article className="surface-card overflow-hidden p-6 sm:p-8">
             <div className="grid gap-6 lg:grid-cols-[1.02fr_0.98fr] lg:items-center">
