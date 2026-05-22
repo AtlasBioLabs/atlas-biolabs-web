@@ -156,7 +156,7 @@ export default function AboutPage() {
             {
               title: "What We Do",
               description:
-                "We connect product pages, category pages, documentation review, quote support, and Atlas Labs quality language into one clearer commercial workflow.",
+                "We connect product pages, category pages, documentation review, quote support, and Atlas BioLabs quality language into one clearer commercial workflow.",
             },
             {
               title: "What We Do Not Claim",
@@ -191,7 +191,7 @@ export default function AboutPage() {
               The People Behind Atlas BioLabs
             </h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              Alongside our founder, we coordinate commercial quotes, Atlas Labs documentation workflows, partner sourcing alignment, and account support so every conversation stays informed and responsive.
+              Alongside our founder, we coordinate commercial quotes, Atlas BioLabs documentation workflows, partner sourcing alignment, and account support so every conversation stays informed and responsive.
             </p>
           </div>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -326,7 +326,7 @@ export default function AboutPage() {
             title: "Quality Assurance",
             href: "/quality-assurance",
             description:
-              "See how Atlas Labs reviews documentation, lot traceability, and batch transparency before supply moves forward.",
+              "See how Atlas BioLabs reviews documentation, lot traceability, and batch transparency before supply moves forward.",
             eyebrow: "Documentation",
           },
         ]}

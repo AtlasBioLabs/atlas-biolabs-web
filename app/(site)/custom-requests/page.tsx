@@ -21,7 +21,7 @@ export const metadata: Metadata = createPageMetadata({
   title: "Custom Peptide Request",
   path: "/custom-requests",
   description:
-    "Submit a custom peptide request to Atlas BioLabs for sequence feasibility, MOQ planning, Atlas Labs documentation review support, and commercial quote handling.",
+    "Submit a custom peptide request to Atlas BioLabs for sequence feasibility, MOQ planning, Atlas BioLabs documentation review support, and commercial quote handling.",
   keywords: [
     "custom peptide request",
     "custom sequence peptide supplier",
@@ -111,10 +111,10 @@ export default function CustomRequestsPage() {
             eyebrow: "Categories",
           },
           {
-            title: "Atlas Labs Research",
+            title: "Atlas BioLabs Research",
             href: "/research",
             description:
-              "Understand how Atlas Labs supports classification, documentation review, and commercial handoff.",
+              "Understand how Atlas BioLabs supports classification, documentation review, and commercial handoff.",
             eyebrow: "Research",
           },
           {

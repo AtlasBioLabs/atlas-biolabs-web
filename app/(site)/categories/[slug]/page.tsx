@@ -108,7 +108,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     {
       question: "How does Atlas BioLabs support documentation review?",
       answer:
-        "Atlas BioLabs supports quote-led sourcing with documentation available on request, batch transparency support, and Atlas Labs quality review language for qualified commercial buyers.",
+        "Atlas BioLabs supports quote-led sourcing with documentation available on request, batch transparency support, and Atlas BioLabs quality review language for qualified commercial buyers.",
     },
   ];
 

@@ -30,7 +30,7 @@ export const metadata: Metadata = createPageMetadata({
   title: "Home",
   path: "/",
   description:
-    "Atlas BioLabs is a peptide supplier and sourcing company supporting peptide sourcing, wholesale peptides, and custom peptide sourcing for U.S. and international buyers through qualified manufacturing partners in China, Atlas Labs documentation review, and quote-based commercial ordering.",
+    "Atlas BioLabs is a peptide supplier and sourcing company supporting peptide sourcing, wholesale peptides, and custom peptide sourcing for U.S. and international buyers through qualified manufacturing partners in China, Atlas BioLabs documentation review, and quote-based commercial ordering.",
   keywords: [
     "Atlas BioLabs peptides",
     "peptide supplier homepage",
@@ -91,7 +91,7 @@ export default function HomePage() {
             <p className="mt-3 max-w-4xl text-sm leading-relaxed text-muted-foreground">
               Atlas BioLabs operates as a premium peptide supplier for commercial
               buyers who need structured peptide sourcing, wholesale peptide
-              supply, custom peptide sourcing, Atlas Labs documentation review,
+              supply, custom peptide sourcing, Atlas BioLabs documentation review,
               batch transparency support, and a cleaner path from category
               discovery into quote-ready commercial planning.
             </p>
@@ -294,7 +294,7 @@ export default function HomePage() {
                   Quality Assurance
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold text-[var(--brand-navy)] sm:text-3xl">
-                  Atlas Labs Quality Review and Documentation Support
+                  Atlas BioLabs Quality Review and Documentation Support
                 </h2>
               </div>
               <Button asChild variant="outline" className="w-full md:w-auto">

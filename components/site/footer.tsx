@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { COMPANY_INFO } from "@/lib/company";
 import { companyProofFacts } from "@/lib/site-proof";
-import { brand, contactDetails, navItems } from "@/lib/site-content";
+import { brand, navItems } from "@/lib/site-content";
 
 export function Footer() {
   const year = new Date().getFullYear();
