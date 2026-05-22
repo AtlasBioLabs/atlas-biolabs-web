@@ -123,8 +123,8 @@ export default async function SdsDocumentsPage() {
         <p className="font-semibold">SDS Management Guide</p>
         <ul className="mt-2 space-y-1 text-xs">
           <li>• Each product should have an active SDS</li>
-          <li>• Mark old SDS as "superseded" when creating a new revision</li>
-          <li>• Only one "active" SDS per product is allowed</li>
+          <li>• Mark old SDS as &quot;superseded&quot; when creating a new revision</li>
+          <li>• Only one &quot;active&quot; SDS per product is allowed</li>
           <li>• COA documents reference the active SDS for the product</li>
         </ul>
       </div>

@@ -159,7 +159,7 @@ export default async function DocumentBundlesPage() {
         <p className="font-semibold">Documentation Bundle Guide</p>
         <ul className="mt-2 space-y-1 text-xs">
           <li>• A bundle links a COA with supporting HPLC, MS, and SDS documents</li>
-          <li>• Status "incomplete" means some supporting documents are missing</li>
+          <li>• Status &quot;incomplete&quot; means some supporting documents are missing</li>
           <li>• All documents must be approved before releasing the bundle</li>
           <li>• Released bundles cannot be edited; create a new revision instead</li>
         </ul>

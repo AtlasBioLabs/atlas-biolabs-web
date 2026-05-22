@@ -6,8 +6,6 @@
 import type {
   CoaDocument,
   HplcReport,
-  MsReport,
-  SDS,
 } from "@/lib/quality-types";
 import type { CoaBrandSettings } from "@/lib/coa-brand-settings";
 
@@ -27,13 +25,6 @@ export function generateCoaPdfHtml(
   batchInfo: { batchNumber: string; manufacturingDate: string; expiryDate: string },
   options: PdfGenerationOptions
 ): string {
-  const watermarkClass =
-    options.watermarkMode === "sample"
-      ? "bg-red-100"
-      : options.watermarkMode === "draft"
-        ? "bg-yellow-100"
-        : "";
-
   const watermarkText =
     options.watermarkMode === "sample"
       ? "SAMPLE / DEMO — NOT FOR RELEASE OR CUSTOMER USE"

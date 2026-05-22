@@ -3,7 +3,7 @@
  * Provides components for displaying watermarks and using consistent branding across all documents
  */
 
-import React from "react";
+import Image from "next/image";
 
 interface WatermarkProps {
   mode: "none" | "draft" | "sample";
@@ -66,9 +66,11 @@ export function DocumentHeader({
     <div className="mb-8 flex items-start justify-between border-b-2 border-[var(--brand-navy)] pb-6">
       <div className="flex items-center gap-4">
         {logoUrl && (
-          <img
+          <Image
             src={logoUrl}
             alt="Atlas BioLabs Logo"
+            width={64}
+            height={64}
             className="h-16 w-auto"
           />
         )}
@@ -242,9 +244,11 @@ export function VerificationReference({
       </div>
       {qrCodeUrl && (
         <div className="ml-4">
-          <img
+          <Image
             src={qrCodeUrl}
             alt="QR Code"
+            width={96}
+            height={96}
             className="h-24 w-24 border border-gray-300"
           />
         </div>

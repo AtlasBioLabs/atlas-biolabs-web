@@ -13,8 +13,6 @@ import {
   type Batch,
   type DocumentValidationResult,
   type ReleaseValidationError,
-  type WatermarkMode,
-  type DocumentStatus,
 } from "@/lib/quality-types";
 
 /**
