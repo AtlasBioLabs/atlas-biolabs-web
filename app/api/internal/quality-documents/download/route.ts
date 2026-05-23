@@ -5,8 +5,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { getActiveCoaBrandSettings, type CoaBrandSettings } from "@/lib/coa-brand-settings";
+import { renderHtmlToPdfBuffer } from "@/lib/pdf-renderer";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 type DocumentType = "coa" | "hplc" | "ms" | "sds" | "bundle";
 
@@ -129,7 +131,7 @@ function writeUInt32(value: number) {
   return buffer;
 }
 
-function createZipBuffer(files: Array<{ name: string; content: string }>) {
+function createZipBuffer(files: Array<{ name: string; content: string | Buffer }>) {
   const localParts: Buffer[] = [];
   const centralParts: Buffer[] = [];
   let offset = 0;
@@ -138,7 +140,7 @@ function createZipBuffer(files: Array<{ name: string; content: string }>) {
   for (const file of files) {
     const safeName = file.name.replace(/^\/+/, "");
     const nameBuffer = Buffer.from(safeName, "utf8");
-    const contentBuffer = Buffer.from(file.content, "utf8");
+    const contentBuffer = Buffer.isBuffer(file.content) ? file.content : Buffer.from(file.content, "utf8");
     const checksum = crc32(contentBuffer);
 
     const localHeader = Buffer.concat([
@@ -778,8 +780,7 @@ function sdsHtml(sds: DbRecord, brandSettings: CoaBrandSettings) {
 
 
 async function bundleZip(supabase: SupabaseClient, bundle: BundleRecord, brandSettings: CoaBrandSettings) {
-  const [coa, batch, hplc, ms, sds, linkedCoaRecord] = await Promise.all([
-    maybeById<DbRecord>(supabase, "coa_documents", bundle.coa_id),
+  const [batch, hplc, ms, sds, linkedCoaRecord] = await Promise.all([
     maybeById<DbRecord>(supabase, "batches", bundle.batch_id),
     maybeById<DbRecord>(supabase, "hplc_reports", bundle.hplc_report_id),
     maybeById<DbRecord>(supabase, "ms_reports", bundle.ms_report_id),
@@ -799,30 +800,37 @@ async function bundleZip(supabase: SupabaseClient, bundle: BundleRecord, brandSe
   }
 
   const { results, records } = await getCoaAnalyticalRows(supabase, linkedCoaRecord?.id);
-
   const baseName = fileSafe(linkedCoaRecord?.coa_number || bundle.bundle_number || bundle.id);
+
+  const linkedCoaPdf = await renderHtmlToPdfBuffer(
+    linkedCoaHtml({
+      coaRecord: linkedCoaRecord as DbRecord,
+      analyticalResults: results,
+      analyticalRecords: records,
+      brandSettings,
+    })
+  );
+
+  const hplcPdf = await renderHtmlToPdfBuffer(hplcHtml(hplc as DbRecord, batch, brandSettings));
+  const msPdf = await renderHtmlToPdfBuffer(msHtml(ms as DbRecord, batch, brandSettings));
+  const sdsPdf = await renderHtmlToPdfBuffer(sdsHtml(sds as DbRecord, brandSettings));
 
   return createZipBuffer([
     {
-      name: `01-Linked-COA-${fileSafe(linkedCoaRecord?.coa_number || linkedCoaRecord?.id)}.html`,
-      content: linkedCoaHtml({
-        coaRecord: linkedCoaRecord as DbRecord,
-        analyticalResults: results,
-        analyticalRecords: records,
-        brandSettings,
-      }),
+      name: `01-Linked-COA-${fileSafe(linkedCoaRecord?.coa_number || linkedCoaRecord?.id || baseName)}.pdf`,
+      content: linkedCoaPdf,
     },
     {
-      name: `02-HPLC-${fileSafe(hplc?.document_number || hplc?.id)}.html`,
-      content: hplcHtml(hplc as DbRecord, batch, brandSettings),
+      name: `02-HPLC-${fileSafe(hplc?.document_number || hplc?.id)}.pdf`,
+      content: hplcPdf,
     },
     {
-      name: `03-MS-LCMS-${fileSafe(ms?.document_number || ms?.id)}.html`,
-      content: msHtml(ms as DbRecord, batch, brandSettings),
+      name: `03-MS-LCMS-${fileSafe(ms?.document_number || ms?.id)}.pdf`,
+      content: msPdf,
     },
     {
-      name: `04-SDS-${fileSafe(sds?.document_number || sds?.id)}.html`,
-      content: sdsHtml(sds as DbRecord, brandSettings),
+      name: `04-SDS-${fileSafe(sds?.document_number || sds?.id)}.pdf`,
+      content: sdsPdf,
     },
   ]);
 }
@@ -885,7 +893,7 @@ async function createResponse({
   format?: "html" | "pdf" | "zip";
 }) {
   let html = "";
-  let filename = "quality-document.html";
+  let filename = "quality-document.pdf";
 
   if (documentType === "bundle") {
     const bundle = await getById<BundleRecord>(supabase, "document_bundles", documentId);
@@ -894,7 +902,7 @@ async function createResponse({
       const zipBuffer = await bundleZip(supabase, bundle, brandSettings);
       filename = `Atlas-Documentation-Bundle-${fileSafe(bundle.bundle_number || bundle.id)}.zip`;
 
-      return new Response(zipBuffer, {
+      return new Response(new Uint8Array(zipBuffer), {
         headers: {
           "Content-Type": "application/zip",
           "Content-Disposition": `attachment; filename="${filename}"`,
@@ -904,7 +912,7 @@ async function createResponse({
     }
 
     html = await bundleHtml(supabase, bundle, brandSettings);
-    filename = `Atlas-Documentation-Bundle-${fileSafe(bundle.bundle_number || bundle.id)}.html`;
+    filename = `Atlas-Documentation-Bundle-${fileSafe(bundle.bundle_number || bundle.id)}.pdf`;
   } else if (documentType === "coa") {
     const coaDocument = await maybeById<DbRecord>(supabase, "coa_documents", documentId);
     const linkedCoaRecord = await getLinkedCoaRecordForCoaDocument(
@@ -921,11 +929,11 @@ async function createResponse({
         analyticalRecords: records,
         brandSettings,
       });
-      filename = `COA-${fileSafe(linkedCoaRecord.coa_number || linkedCoaRecord.id)}.html`;
+      filename = `COA-${fileSafe(linkedCoaRecord.coa_number || linkedCoaRecord.id)}.pdf`;
     } else if (coaDocument) {
       const batch = await maybeById<DbRecord>(supabase, "batches", text(coaDocument.batch_id, ""));
       html = coaHtml(coaDocument, batch, brandSettings);
-      filename = `COA-${fileSafe(coaDocument.coa_number || coaDocument.id)}.html`;
+      filename = `COA-${fileSafe(coaDocument.coa_number || coaDocument.id)}.pdf`;
     } else {
       throw new Error("Linked COA record was not found.");
     }
@@ -933,21 +941,35 @@ async function createResponse({
     const hplc = await getById<DbRecord>(supabase, "hplc_reports", documentId);
     const batch = await maybeById<DbRecord>(supabase, "batches", text(hplc.batch_id, ""));
     html = hplcHtml(hplc, batch, brandSettings);
-    filename = `HPLC-${fileSafe(hplc.document_number || hplc.id)}.html`;
+    filename = `HPLC-${fileSafe(hplc.document_number || hplc.id)}.pdf`;
   } else if (documentType === "ms") {
     const ms = await getById<DbRecord>(supabase, "ms_reports", documentId);
     const batch = await maybeById<DbRecord>(supabase, "batches", text(ms.batch_id, ""));
     html = msHtml(ms, batch, brandSettings);
-    filename = `MS-LCMS-${fileSafe(ms.document_number || ms.id)}.html`;
+    filename = `MS-LCMS-${fileSafe(ms.document_number || ms.id)}.pdf`;
   } else if (documentType === "sds") {
     const sds = await getById<DbRecord>(supabase, "sds_documents", documentId);
     html = sdsHtml(sds, brandSettings);
-    filename = `SDS-${fileSafe(sds.document_number || sds.id)}.html`;
+    filename = `SDS-${fileSafe(sds.document_number || sds.id)}.pdf`;
   }
 
-  return new Response(html, {
+  if (format === "html") {
+    const htmlFilename = filename.replace(/\.pdf$/i, ".html");
+
+    return new Response(html, {
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${htmlFilename}"`,
+        "X-Document-Filename": htmlFilename,
+      },
+    });
+  }
+
+  const pdfBuffer = await renderHtmlToPdfBuffer(html);
+
+  return new Response(new Uint8Array(pdfBuffer), {
     headers: {
-      "Content-Type": "text/html; charset=utf-8",
+      "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="${filename}"`,
       "X-Document-Filename": filename,
     },
