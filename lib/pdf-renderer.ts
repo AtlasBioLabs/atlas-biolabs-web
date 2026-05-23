@@ -1,4 +1,6 @@
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import chromium from "@sparticuz/chromium";
 import puppeteer, { type Browser, type Page } from "puppeteer-core";
 
@@ -21,6 +23,8 @@ type BrowserStorageItem = {
 };
 
 let sharedBrowserPromise: Promise<Browser> | null = null;
+let chromiumExecutablePathPromise: Promise<string> | null = null;
+let launchLock: Promise<void> = Promise.resolve();
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -48,45 +52,84 @@ async function getChromiumExecutablePath() {
     return localExecutablePath;
   }
 
-  return chromium.executablePath();
+  // On serverless hosts, @sparticuz/chromium extracts its binary to /tmp.
+  // Calling executablePath repeatedly during a cold start can leave the binary
+  // briefly locked, producing "spawn ETXTBSY". Cache the promise per runtime.
+  if (!chromiumExecutablePathPromise) {
+    chromiumExecutablePathPromise = chromium.executablePath();
+  }
+
+  return chromiumExecutablePathPromise;
 }
 
-async function launchBrowser() {
-  const executablePath = await getChromiumExecutablePath();
-  const isLocalChrome = chromeExecutableCandidates.some(
-    (candidate) => candidate && executablePath === candidate
-  );
+async function copyExecutableForSpawn(executablePath: string) {
+  const copyDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "atlas-chromium-"));
+  const copyPath = path.join(copyDir, path.basename(executablePath));
+  await fs.promises.copyFile(executablePath, copyPath);
+  await fs.promises.chmod(copyPath, 0o755);
+  return copyPath;
+}
 
+async function launchPuppeteerWithPath(executablePath: string, isLocalChrome: boolean) {
   const args = isLocalChrome
     ? ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
     : chromium.args;
 
-  let lastError: unknown;
+  return puppeteer.launch({
+    args,
+    defaultViewport: {
+      width: 1280,
+      height: 1600,
+      deviceScaleFactor: 1,
+    },
+    executablePath,
+    headless: true,
+  });
+}
 
-  for (let attempt = 1; attempt <= 6; attempt += 1) {
-    try {
-      return await puppeteer.launch({
-        args,
-        defaultViewport: {
-          width: 1280,
-          height: 1600,
-          deviceScaleFactor: 1,
-        },
-        executablePath,
-        headless: true,
-      });
-    } catch (error) {
-      lastError = error;
+async function launchBrowser() {
+  // Serialize live Chromium launches. This prevents two serverless requests from
+  // trying to spawn/copy the extracted binary at the same time in the same runtime.
+  let releaseLock!: () => void;
+  const previousLock = launchLock;
+  launchLock = new Promise<void>((resolve) => {
+    releaseLock = resolve;
+  });
 
-      if (!isTextFileBusyError(error) || attempt === 6) {
-        break;
+  await previousLock;
+
+  try {
+    const originalExecutablePath = await getChromiumExecutablePath();
+    const isLocalChrome = chromeExecutableCandidates.some(
+      (candidate) => candidate && originalExecutablePath === candidate
+    );
+
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= 7; attempt += 1) {
+      try {
+        const executablePath =
+          attempt === 1 || isLocalChrome
+            ? originalExecutablePath
+            : await copyExecutableForSpawn(originalExecutablePath);
+
+        return await launchPuppeteerWithPath(executablePath, isLocalChrome);
+      } catch (error) {
+        lastError = error;
+
+        if (!isTextFileBusyError(error) || attempt === 7) {
+          break;
+        }
+
+        // If the extracted binary is locked, wait and retry using a fresh copy.
+        await sleep(650 * attempt);
       }
-
-      await sleep(400 * attempt);
     }
-  }
 
-  throw lastError;
+    throw lastError;
+  } finally {
+    releaseLock();
+  }
 }
 
 async function getSharedBrowser() {
