@@ -9,10 +9,12 @@ import {
   PrinterIcon,
   SearchIcon,
   Settings2Icon,
+  FileTextIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { generateSupportingDocumentsFromCoaVerification } from "@/lib/quality-coa-bridge";
 
 import { AdminGuard } from "@/components/admin/admin-guard";
 import { CoaStatusBadge } from "@/components/admin/coa-status-badge";
@@ -71,6 +73,7 @@ function AdminCoaVerificationIndex({
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const [generatingRowId, setGeneratingRowId] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState<CoaVerificationStatus | "All">("All");
 
@@ -169,6 +172,77 @@ function AdminCoaVerificationIndex({
       );
     }
   }
+
+  async function handleGenerateSupportingDocuments(row: CoaVerificationRow) {
+  const alreadyGenerated =
+    row.document_bundle_id &&
+    row.hplc_report_id &&
+    row.ms_report_id &&
+    row.sds_id;
+
+  if (alreadyGenerated) {
+    router.push(`/admin/quality/document-bundles/${row.document_bundle_id}`);
+    return;
+  }
+
+  if (
+    !window.confirm(
+      `Generate HPLC, MS / LC-MS, SDS, and document bundle for ${row.coa_number}?`
+    )
+  ) {
+    return;
+  }
+
+  setGeneratingRowId(row.id);
+  setErrorMessage(null);
+  setCopyMessage(null);
+
+  try {
+    const generatedBy =
+      row.approved_by ||
+      row.reviewed_by ||
+      row.created_by ||
+      "Atlas Labs QA Documentation Officer";
+
+    const result = await generateSupportingDocumentsFromCoaVerification(
+      supabase,
+      row.id,
+      generatedBy
+    );
+
+    setRows((currentRows) =>
+      currentRows.map((currentRow) =>
+        currentRow.id === row.id
+          ? {
+              ...currentRow,
+              quality_batch_id: result.batchId,
+              quality_coa_document_id: result.coaDocumentId,
+              document_bundle_id: result.bundleId,
+              hplc_report_id: result.hplcReportId,
+              ms_report_id: result.msReportId,
+              sds_id: result.sdsId,
+              supporting_documents_status: "generated",
+              supporting_documents_generated_at: new Date().toISOString(),
+              supporting_documents_generated_by: generatedBy,
+              supporting_documents_error: null,
+              document_pack: "COA, HPLC, MS/LC-MS, SDS",
+            }
+          : currentRow
+      )
+    );
+
+    router.push(`/admin/quality/document-bundles/${result.bundleId}`);
+    router.refresh();
+  } catch (error) {
+    setErrorMessage(
+      error instanceof Error
+        ? error.message
+        : "Supporting documents could not be generated."
+    );
+  } finally {
+    setGeneratingRowId(null);
+  }
+}
 
   return (
     <div className="space-y-6">
@@ -289,6 +363,20 @@ function AdminCoaVerificationIndex({
                             Print COA
                           </Link>
                         </Button>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={generatingRowId === row.id}
+                            onClick={() => handleGenerateSupportingDocuments(row)}
+                            className="border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+                          >
+                            <FileTextIcon className="mr-1 size-3.5" />
+                            {row.document_bundle_id
+                              ? "View Docs"
+                              : generatingRowId === row.id
+                                ? "Generating..."
+                                : "Generate Docs"}
+                          </Button>
                         <Button asChild size="sm" variant="outline" className="border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]">
                           <Link
                             href={`/verify/${encodeURIComponent(row.verification_code)}`}

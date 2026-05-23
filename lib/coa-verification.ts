@@ -135,6 +135,16 @@ export type CoaVerificationRow = {
   approved_at: string | null;
   created_at: string | null;
   updated_at: string | null;
+  quality_batch_id?: string | null;
+  quality_coa_document_id?: string | null;
+  document_bundle_id?: string | null;
+  hplc_report_id?: string | null;
+  ms_report_id?: string | null;
+  sds_id?: string | null;
+  supporting_documents_status?: string | null;
+  supporting_documents_generated_at?: string | null;
+  supporting_documents_generated_by?: string | null;
+  supporting_documents_error?: string | null;
 };
 
 const mockCoaVerificationRows: CoaVerificationRow[] = [
