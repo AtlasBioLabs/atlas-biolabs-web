@@ -9,11 +9,12 @@ import { renderHtmlToPdfBuffer, renderUrlToPdfBuffer } from "@/lib/pdf-renderer"
 
 export const runtime = "nodejs";
 
-type DocumentType = "coa" | "hplc" | "ms" | "sds" | "bundle";
+type DocumentType = "coa" | "hplc" | "ms" | "sds" | "bundle" | "bundles";
 
 type DownloadRequest = {
   documentType?: DocumentType;
   documentId?: string;
+  bundleIds?: string[];
   format?: "html" | "pdf" | "zip";
 };
 
@@ -724,7 +725,32 @@ function sdsHtml(sds: DbRecord, brandSettings: CoaBrandSettings) {
 }
 
 
-async function bundleZip(supabase: SupabaseClient, bundle: BundleRecord, brandSettings: CoaBrandSettings, accessToken: string, origin: string) {
+type ZipFileEntry = {
+  name: string;
+  content: string | Buffer;
+};
+
+function getBundleFolderName(bundle: BundleRecord, linkedCoaRecord?: DbRecord | null) {
+  const coaNumber = text(linkedCoaRecord?.coa_number, "");
+  const bundleNumber = text(bundle.bundle_number, "");
+  return fileSafe(coaNumber || bundleNumber || bundle.id);
+}
+
+async function getBundlePdfFiles({
+  supabase,
+  bundle,
+  brandSettings,
+  accessToken,
+  origin,
+  folderPrefix = "",
+}: {
+  supabase: SupabaseClient;
+  bundle: BundleRecord;
+  brandSettings: CoaBrandSettings;
+  accessToken: string;
+  origin: string;
+  folderPrefix?: string;
+}): Promise<ZipFileEntry[]> {
   const [batch, hplc, ms, sds, linkedCoaRecord] = await Promise.all([
     maybeById<DbRecord>(supabase, "batches", bundle.batch_id),
     maybeById<DbRecord>(supabase, "hplc_reports", bundle.hplc_report_id),
@@ -741,7 +767,9 @@ async function bundleZip(supabase: SupabaseClient, bundle: BundleRecord, brandSe
   ].filter(Boolean);
 
   if (missingDocuments.length > 0) {
-    throw new Error(`The full pack cannot be prepared because these documents are missing: ${missingDocuments.join(", ")}.`);
+    throw new Error(
+      `${text(linkedCoaRecord?.coa_number || bundle.bundle_number || bundle.id)} is missing: ${missingDocuments.join(", ")}.`
+    );
   }
 
   const [coaPdf, hplcPdf, msPdf, sdsPdf] = await Promise.all([
@@ -756,24 +784,91 @@ async function bundleZip(supabase: SupabaseClient, bundle: BundleRecord, brandSe
     renderHtmlToPdfBuffer(sdsHtml(sds as DbRecord, brandSettings)),
   ]);
 
-  return createZipBuffer([
+  const prefix = folderPrefix ? `${folderPrefix.replace(/\/?$/, "/")}` : "";
+
+  return [
     {
-      name: `01-Linked-COA-${fileSafe(linkedCoaRecord?.coa_number || linkedCoaRecord?.id)}.pdf`,
+      name: `${prefix}01-Linked-COA-${fileSafe(linkedCoaRecord?.coa_number || linkedCoaRecord?.id)}.pdf`,
       content: coaPdf,
     },
     {
-      name: `02-HPLC-${fileSafe(hplc?.document_number || hplc?.id)}.pdf`,
+      name: `${prefix}02-HPLC-${fileSafe(hplc?.document_number || hplc?.id)}.pdf`,
       content: hplcPdf,
     },
     {
-      name: `03-MS-LCMS-${fileSafe(ms?.document_number || ms?.id)}.pdf`,
+      name: `${prefix}03-MS-LCMS-${fileSafe(ms?.document_number || ms?.id)}.pdf`,
       content: msPdf,
     },
     {
-      name: `04-SDS-${fileSafe(sds?.document_number || sds?.id)}.pdf`,
+      name: `${prefix}04-SDS-${fileSafe(sds?.document_number || sds?.id)}.pdf`,
       content: sdsPdf,
     },
-  ]);
+  ];
+}
+
+async function bundleZip(
+  supabase: SupabaseClient,
+  bundle: BundleRecord,
+  brandSettings: CoaBrandSettings,
+  accessToken: string,
+  origin: string
+) {
+  const files = await getBundlePdfFiles({
+    supabase,
+    bundle,
+    brandSettings,
+    accessToken,
+    origin,
+  });
+
+  return createZipBuffer(files);
+}
+
+async function selectedBundlesZip({
+  supabase,
+  bundleIds,
+  brandSettings,
+  accessToken,
+  origin,
+}: {
+  supabase: SupabaseClient;
+  bundleIds: string[];
+  brandSettings: CoaBrandSettings;
+  accessToken: string;
+  origin: string;
+}) {
+  const uniqueBundleIds = Array.from(
+    new Set(bundleIds.map((id) => String(id || "").trim()).filter(Boolean))
+  );
+
+  if (uniqueBundleIds.length === 0) {
+    throw new Error("Select at least one documentation bundle to download.");
+  }
+
+  if (uniqueBundleIds.length > 75) {
+    throw new Error("Please download 75 bundles or fewer at a time.");
+  }
+
+  const files: ZipFileEntry[] = [];
+
+  for (const bundleId of uniqueBundleIds) {
+    const bundle = await getById<BundleRecord>(supabase, "document_bundles", bundleId);
+    const linkedCoaRecord = await getLinkedCoaRecordForBundle(supabase, bundle);
+    const folderName = getBundleFolderName(bundle, linkedCoaRecord);
+
+    const bundleFiles = await getBundlePdfFiles({
+      supabase,
+      bundle,
+      brandSettings,
+      accessToken,
+      origin,
+      folderPrefix: folderName,
+    });
+
+    files.push(...bundleFiles);
+  }
+
+  return createZipBuffer(files);
 }
 
 async function bundleHtml(supabase: SupabaseClient, bundle: BundleRecord, brandSettings: CoaBrandSettings) {
@@ -926,20 +1021,58 @@ export async function POST(request: NextRequest) {
     }
 
     const body = (await request.json()) as DownloadRequest;
-    const { documentType, documentId, format } = body;
+    const { documentType, documentId, bundleIds, format } = body;
 
-    if (!documentType || !["coa", "hplc", "ms", "sds", "bundle"].includes(documentType)) {
+    if (
+      !documentType ||
+      !["coa", "hplc", "ms", "sds", "bundle", "bundles"].includes(documentType)
+    ) {
       return NextResponse.json({ error: "Unsupported or missing document type." }, { status: 400 });
+    }
+
+    const supabase = createAuthenticatedSupabaseClient(accessToken);
+    const brandSettings = await getActiveCoaBrandSettings(supabase);
+
+    if (documentType === "bundles") {
+      if (!Array.isArray(bundleIds) || bundleIds.length === 0) {
+        return NextResponse.json(
+          { error: "bundleIds must contain at least one bundle ID." },
+          { status: 400 }
+        );
+      }
+
+      const zipBuffer = await selectedBundlesZip({
+        supabase,
+        bundleIds,
+        brandSettings,
+        accessToken,
+        origin: request.nextUrl.origin,
+      });
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      const filename = `Atlas-Selected-Document-Bundles-${timestamp}.zip`;
+
+      return new Response(zipBuffer, {
+        headers: {
+          "Content-Type": "application/zip",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+          "X-Document-Filename": filename,
+        },
+      });
     }
 
     if (!documentId) {
       return NextResponse.json({ error: "documentId is required." }, { status: 400 });
     }
 
-    const supabase = createAuthenticatedSupabaseClient(accessToken);
-    const brandSettings = await getActiveCoaBrandSettings(supabase);
-
-    return await createResponse({ supabase, documentType, documentId, brandSettings, accessToken, origin: request.nextUrl.origin, format });
+    return await createResponse({
+      supabase,
+      documentType,
+      documentId,
+      brandSettings,
+      accessToken,
+      origin: request.nextUrl.origin,
+      format,
+    });
   } catch (error) {
     const message = getErrorMessage(error);
     console.error("Document download error:", error);
