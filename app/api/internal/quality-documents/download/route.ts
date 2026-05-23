@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
@@ -234,11 +237,44 @@ function getBrandValue(brandSettings: CoaBrandSettings, key: keyof CoaBrandSetti
   return typeof value === "string" && value.trim() ? value : fallback;
 }
 
+function getMimeType(filePath: string) {
+  const extension = path.extname(filePath).toLowerCase();
+
+  if (extension === ".svg") return "image/svg+xml";
+  if (extension === ".png") return "image/png";
+  if (extension === ".jpg" || extension === ".jpeg") return "image/jpeg";
+  if (extension === ".webp") return "image/webp";
+
+  return "application/octet-stream";
+}
+
+function tryResolvePublicAssetAsDataUri(value: string) {
+  if (!value.startsWith("/")) return "";
+
+  const publicPath = path.join(process.cwd(), "public", value.replace(/^\/+/, ""));
+
+  if (!fs.existsSync(publicPath)) return "";
+
+  const data = fs.readFileSync(publicPath);
+  return `data:${getMimeType(publicPath)};base64,${data.toString("base64")}`;
+}
+
 function resolveAssetUrl(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return "";
-  if (/^(https?:|data:|blob:)/i.test(trimmed)) return trimmed;
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  if (/^(data:|blob:)/i.test(trimmed)) return trimmed;
+
+  const embeddedPublicAsset = tryResolvePublicAssetAsDataUri(trimmed);
+  if (embeddedPublicAsset) return embeddedPublicAsset;
+
+  if (/^https?:/i.test(trimmed)) return trimmed;
+
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}` ||
+    "http://localhost:3000";
+
   if (trimmed.startsWith("/")) return `${baseUrl.replace(/\/$/, "")}${trimmed}`;
   return trimmed;
 }
@@ -359,6 +395,202 @@ function signatures(names: Array<{ label: string; name?: unknown }>) {
       (entry) => `<div class="signature"><div class="line"></div><strong>${htmlEscape(entry.name)}</strong><br/><span>${htmlEscape(entry.label)}</span></div>`
     )
     .join("")}</div>`;
+}
+
+
+async function getLinkedCoaRecordForBundle(supabase: SupabaseClient, bundle: BundleRecord) {
+  const { data, error } = await supabase
+    .from("coa_verifications")
+    .select("*")
+    .or(
+      [
+        `document_bundle_id.eq.${bundle.id}`,
+        `quality_coa_document_id.eq.${bundle.coa_id}`,
+        bundle.hplc_report_id ? `hplc_report_id.eq.${bundle.hplc_report_id}` : "",
+        bundle.ms_report_id ? `ms_report_id.eq.${bundle.ms_report_id}` : "",
+        bundle.sds_id ? `sds_id.eq.${bundle.sds_id}` : "",
+      ]
+        .filter(Boolean)
+        .join(",")
+    )
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return (data as DbRecord | null) || null;
+}
+
+async function getLinkedCoaRecordForCoaDocument(
+  supabase: SupabaseClient,
+  coaDocumentId: string,
+  coaDocument?: DbRecord | null
+) {
+  const { data: directRow, error: directError } = await supabase
+    .from("coa_verifications")
+    .select("*")
+    .eq("id", coaDocumentId)
+    .maybeSingle();
+
+  if (directError) throw new Error(directError.message);
+  if (directRow) return directRow as DbRecord;
+
+  const conditions = [`quality_coa_document_id.eq.${coaDocumentId}`];
+
+  if (coaDocument?.coa_number) {
+    conditions.push(`coa_number.eq.${coaDocument.coa_number}`);
+  }
+
+  if (coaDocument?.verification_code) {
+    conditions.push(`verification_code.eq.${coaDocument.verification_code}`);
+  }
+
+  const { data, error } = await supabase
+    .from("coa_verifications")
+    .select("*")
+    .or(conditions.join(","))
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return (data as DbRecord | null) || null;
+}
+
+async function getCoaAnalyticalRows(supabase: SupabaseClient, coaVerificationId?: unknown) {
+  if (!coaVerificationId) {
+    return { results: [] as DbRecord[], records: [] as DbRecord[] };
+  }
+
+  const [resultsResponse, recordsResponse] = await Promise.all([
+    supabase
+      .from("coa_analytical_test_results")
+      .select("*")
+      .eq("coa_verification_id", String(coaVerificationId))
+      .order("position", { ascending: true }),
+    supabase
+      .from("coa_analytical_records")
+      .select("*")
+      .eq("coa_verification_id", String(coaVerificationId))
+      .order("position", { ascending: true }),
+  ]);
+
+  if (resultsResponse.error) throw new Error(resultsResponse.error.message);
+  if (recordsResponse.error) throw new Error(recordsResponse.error.message);
+
+  return {
+    results: (resultsResponse.data as DbRecord[] | null) || [],
+    records: (recordsResponse.data as DbRecord[] | null) || [],
+  };
+}
+
+function getRecordValue(record: DbRecord, keys: string[], fallback = "—") {
+  for (const key of keys) {
+    const value = record[key];
+    if (value !== null && value !== undefined && String(value).trim() !== "") {
+      return value;
+    }
+  }
+
+  return fallback;
+}
+
+function linkedCoaHtml({
+  coaRecord,
+  analyticalResults,
+  analyticalRecords,
+  brandSettings,
+}: {
+  coaRecord: DbRecord;
+  analyticalResults: DbRecord[];
+  analyticalRecords: DbRecord[];
+  brandSettings: CoaBrandSettings;
+}) {
+  const resultRows = analyticalResults.length
+    ? analyticalResults
+        .map(
+          (row) => `<tr><td>${htmlEscape(getRecordValue(row, ["test_name", "name", "parameter", "record_type"]))}</td><td>${htmlEscape(getRecordValue(row, ["specification", "acceptance_criteria", "method"]))}</td><td>${htmlEscape(getRecordValue(row, ["result", "value", "measured_value"]))}</td><td>${htmlEscape(getRecordValue(row, ["unit", "decision", "status"]))}</td></tr>`
+        )
+        .join("")
+    : `<tr><td>Purity / HPLC</td><td>${htmlEscape(coaRecord.purity || coaRecord.hplc_purity || "Batch-specific result")}</td><td>${htmlEscape(coaRecord.hplc_purity || coaRecord.purity || "—")}</td><td>${htmlEscape(coaRecord.release_decision || "—")}</td></tr>`;
+
+  const referencedRows = analyticalRecords.length
+    ? analyticalRecords
+        .map(
+          (row) => `<tr><td>${htmlEscape(getRecordValue(row, ["record_type", "name", "document_type"]))}</td><td>${htmlEscape(getRecordValue(row, ["reference_file_name", "file_name", "document_number", "reference"]))}</td><td>${htmlEscape(getRecordValue(row, ["availability", "status", "notes"]))}</td></tr>`
+        )
+        .join("")
+    : `
+      <tr><td>HPLC chromatogram</td><td>${htmlEscape(coaRecord.hplc_file_name)}</td><td>${htmlEscape(coaRecord.hplc_file_name ? "Available for review" : "Pending upload")}</td></tr>
+      <tr><td>LC-MS identity report</td><td>${htmlEscape(coaRecord.lcms_file_name)}</td><td>${htmlEscape(coaRecord.lcms_file_name ? "Available for review" : "Pending upload")}</td></tr>
+      <tr><td>SDS / Safety Data Sheet</td><td>${htmlEscape(coaRecord.sds_file_name)}</td><td>${htmlEscape(coaRecord.sds_file_name ? "Available for review" : "On request")}</td></tr>
+      <tr><td>Raw data archive</td><td>${htmlEscape(coaRecord.raw_data_archive_ref || "Internal QA record folder")}</td><td>Controlled access</td></tr>
+    `;
+
+  const body = `
+    <h2>Document Information</h2>
+    <div class="grid">
+      ${kv("COA Number", coaRecord.coa_number)}
+      ${kv("Issue Date", coaRecord.issue_date)}
+      ${kv("Document Type", coaRecord.document_type)}
+      ${kv("Revision", coaRecord.revision)}
+      ${kv("Verification Code", coaRecord.verification_code)}
+      ${kv("Release Decision", coaRecord.release_decision)}
+      ${kv("Verification Status", coaRecord.verification_status)}
+      ${kv("Client / Recipient", coaRecord.client_recipient)}
+    </div>
+    <h2>Product Identification</h2>
+    <div class="grid">
+      ${kv("Product Name", coaRecord.product_name)}
+      ${kv("Catalog Code", coaRecord.catalog_code)}
+      ${kv("Batch / Lot No.", coaRecord.batch_lot_no)}
+      ${kv("Peptide Sequence", coaRecord.peptide_sequence)}
+      ${kv("Molecular Formula", coaRecord.molecular_formula)}
+      ${kv("Molecular Weight", coaRecord.molecular_weight)}
+      ${kv("Physical Form", coaRecord.physical_form)}
+      ${kv("Appearance", coaRecord.appearance)}
+    </div>
+    <h2>Batch and Manufacturing</h2>
+    <div class="grid">
+      ${kv("Manufacture Date", coaRecord.manufacture_date)}
+      ${kv("Retest / Expiry Date", coaRecord.retest_expiry_date || coaRecord.retest_period)}
+      ${kv("Country of Origin", coaRecord.country_of_origin)}
+      ${kv("Manufacturing Site", coaRecord.manufacturing_site)}
+      ${kv("Storage Condition", coaRecord.storage_condition)}
+      ${kv("Document Pack", coaRecord.document_pack)}
+    </div>
+    <h2>Analytical Summary</h2>
+    <div class="grid">
+      ${kv("Purity", coaRecord.purity || coaRecord.hplc_purity)}
+      ${kv("HPLC Purity", coaRecord.hplc_purity || coaRecord.purity)}
+      ${kv("Identity Result", coaRecord.identity_result)}
+      ${kv("Release Decision", coaRecord.release_decision)}
+    </div>
+    <h2>Analytical Test Results</h2>
+    <table><thead><tr><th>Test / Parameter</th><th>Specification / Method</th><th>Result</th><th>Unit / Decision</th></tr></thead><tbody>${resultRows}</tbody></table>
+    <h2>Analytical Records Referenced</h2>
+    <table><thead><tr><th>Record Type</th><th>Reference / File Name</th><th>Availability</th></tr></thead><tbody>${referencedRows}</tbody></table>
+    <h2>Notes</h2>
+    <div class="box">${htmlEscape(coaRecord.notes)}</div>
+    ${signatures([
+      { label: "Prepared By", name: coaRecord.prepared_by || coaRecord.created_by },
+      { label: "Reviewed By", name: coaRecord.reviewed_by },
+      { label: "Approved By", name: coaRecord.approved_by },
+    ])}`;
+
+  return baseHtml({
+    title: "Certificate of Analysis",
+    subtitle: text(coaRecord.coa_number),
+    brandSettings,
+    watermarkMode:
+      String(coaRecord.verification_status || coaRecord.release_decision || "")
+        .toLowerCase()
+        .includes("released") ||
+      String(coaRecord.release_decision || "").toLowerCase().includes("released")
+        ? "none"
+        : "draft",
+    body,
+  });
 }
 
 function coaHtml(coa: DbRecord, batch: DbRecord | null, brandSettings: CoaBrandSettings) {
@@ -546,68 +778,52 @@ function sdsHtml(sds: DbRecord, brandSettings: CoaBrandSettings) {
 
 
 async function bundleZip(supabase: SupabaseClient, bundle: BundleRecord, brandSettings: CoaBrandSettings) {
-  const [coa, batch, hplc, ms, sds] = await Promise.all([
+  const [coa, batch, hplc, ms, sds, linkedCoaRecord] = await Promise.all([
     maybeById<DbRecord>(supabase, "coa_documents", bundle.coa_id),
     maybeById<DbRecord>(supabase, "batches", bundle.batch_id),
     maybeById<DbRecord>(supabase, "hplc_reports", bundle.hplc_report_id),
     maybeById<DbRecord>(supabase, "ms_reports", bundle.ms_report_id),
     maybeById<DbRecord>(supabase, "sds_documents", bundle.sds_id),
+    getLinkedCoaRecordForBundle(supabase, bundle),
   ]);
 
-  const baseName = fileSafe(bundle.bundle_number || bundle.id);
-  const files: Array<{ name: string; content: string }> = [];
+  const missingDocuments = [
+    linkedCoaRecord ? "" : "Linked COA record",
+    hplc ? "" : "HPLC report",
+    ms ? "" : "MS / LC-MS report",
+    sds ? "" : "SDS document",
+  ].filter(Boolean);
 
-  if (coa) {
-    files.push({
-      name: `${baseName}/01-COA-${fileSafe(coa.coa_number || coa.id)}.html`,
-      content: coaHtml(coa, batch, brandSettings),
-    });
+  if (missingDocuments.length > 0) {
+    throw new Error(`The full pack cannot be prepared because these documents are missing: ${missingDocuments.join(", ")}.`);
   }
 
-  if (hplc) {
-    files.push({
-      name: `${baseName}/02-HPLC-${fileSafe(hplc.document_number || hplc.id)}.html`,
-      content: hplcHtml(hplc, batch, brandSettings),
-    });
-  }
+  const { results, records } = await getCoaAnalyticalRows(supabase, linkedCoaRecord?.id);
 
-  if (ms) {
-    files.push({
-      name: `${baseName}/03-MS-LCMS-${fileSafe(ms.document_number || ms.id)}.html`,
-      content: msHtml(ms, batch, brandSettings),
-    });
-  }
-
-  if (sds) {
-    files.push({
-      name: `${baseName}/04-SDS-${fileSafe(sds.document_number || sds.id)}.html`,
-      content: sdsHtml(sds, brandSettings),
-    });
-  }
-
-  const indexHtml = baseHtml({
-    title: "Quality Documentation Pack Index",
-    subtitle: text(bundle.bundle_number),
-    brandSettings,
-    watermarkMode: bundle.status === "released" ? "none" : "draft",
-    body: `
-      <h2>Included Documents</h2>
-      <table>
-        <thead><tr><th>Document</th><th>Reference</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>Certificate of Analysis</td><td>${htmlEscape(coa?.coa_number || bundle.coa_id)}</td><td>${htmlEscape(coa?.document_status || "Linked")}</td></tr>
-          <tr><td>HPLC Purity Report</td><td>${htmlEscape(hplc?.document_number || bundle.hplc_report_id || "Missing")}</td><td>${htmlEscape(hplc?.status || "Missing")}</td></tr>
-          <tr><td>MS / LC-MS Identity Report</td><td>${htmlEscape(ms?.document_number || bundle.ms_report_id || "Missing")}</td><td>${htmlEscape(ms?.status || "Missing")}</td></tr>
-          <tr><td>Safety Data Sheet / SDS</td><td>${htmlEscape(sds?.document_number || bundle.sds_id || "Missing")}</td><td>${htmlEscape(sds?.status || "Missing")}</td></tr>
-        </tbody>
-      </table>
-      <p class="box">Open each HTML file in a browser to print or save as PDF. The files use the same Atlas BioLabs branding settings as the COA document.</p>
-    `,
-  });
+  const baseName = fileSafe(linkedCoaRecord?.coa_number || bundle.bundle_number || bundle.id);
 
   return createZipBuffer([
-    { name: `${baseName}/00-README-INDEX.html`, content: indexHtml },
-    ...files,
+    {
+      name: `01-Linked-COA-${fileSafe(linkedCoaRecord?.coa_number || linkedCoaRecord?.id)}.html`,
+      content: linkedCoaHtml({
+        coaRecord: linkedCoaRecord as DbRecord,
+        analyticalResults: results,
+        analyticalRecords: records,
+        brandSettings,
+      }),
+    },
+    {
+      name: `02-HPLC-${fileSafe(hplc?.document_number || hplc?.id)}.html`,
+      content: hplcHtml(hplc as DbRecord, batch, brandSettings),
+    },
+    {
+      name: `03-MS-LCMS-${fileSafe(ms?.document_number || ms?.id)}.html`,
+      content: msHtml(ms as DbRecord, batch, brandSettings),
+    },
+    {
+      name: `04-SDS-${fileSafe(sds?.document_number || sds?.id)}.html`,
+      content: sdsHtml(sds as DbRecord, brandSettings),
+    },
   ]);
 }
 
@@ -690,10 +906,29 @@ async function createResponse({
     html = await bundleHtml(supabase, bundle, brandSettings);
     filename = `Atlas-Documentation-Bundle-${fileSafe(bundle.bundle_number || bundle.id)}.html`;
   } else if (documentType === "coa") {
-    const coa = await getById<DbRecord>(supabase, "coa_documents", documentId);
-    const batch = await maybeById<DbRecord>(supabase, "batches", text(coa.batch_id, ""));
-    html = coaHtml(coa, batch, brandSettings);
-    filename = `COA-${fileSafe(coa.coa_number || coa.id)}.html`;
+    const coaDocument = await maybeById<DbRecord>(supabase, "coa_documents", documentId);
+    const linkedCoaRecord = await getLinkedCoaRecordForCoaDocument(
+      supabase,
+      documentId,
+      coaDocument
+    );
+
+    if (linkedCoaRecord) {
+      const { results, records } = await getCoaAnalyticalRows(supabase, linkedCoaRecord.id);
+      html = linkedCoaHtml({
+        coaRecord: linkedCoaRecord,
+        analyticalResults: results,
+        analyticalRecords: records,
+        brandSettings,
+      });
+      filename = `COA-${fileSafe(linkedCoaRecord.coa_number || linkedCoaRecord.id)}.html`;
+    } else if (coaDocument) {
+      const batch = await maybeById<DbRecord>(supabase, "batches", text(coaDocument.batch_id, ""));
+      html = coaHtml(coaDocument, batch, brandSettings);
+      filename = `COA-${fileSafe(coaDocument.coa_number || coaDocument.id)}.html`;
+    } else {
+      throw new Error("Linked COA record was not found.");
+    }
   } else if (documentType === "hplc") {
     const hplc = await getById<DbRecord>(supabase, "hplc_reports", documentId);
     const batch = await maybeById<DbRecord>(supabase, "batches", text(hplc.batch_id, ""));
