@@ -27,6 +27,7 @@ import type {
   CoaVerificationStatus,
 } from "@/lib/coa-verification";
 import type { BreadcrumbItem } from "@/lib/seo";
+import { refreshDocumentBundleStatusForBundle } from "@/lib/quality-service";
 
 const breadcrumbItems: BreadcrumbItem[] = [
   { name: "Home", path: "/" },
@@ -73,6 +74,80 @@ const templateColumns = [
   "sds_file_name",
   "raw_data_archive_ref",
   "notes",
+  "hplc_document_number",
+  "hplc_status",
+  "hplc_issue_date",
+  "hplc_revision",
+  "hplc_method_name",
+  "hplc_method_code",
+  "hplc_instrument_name",
+  "hplc_column_type",
+  "hplc_mobile_phase",
+  "hplc_flow_rate",
+  "hplc_detection_wavelength",
+  "hplc_injection_volume",
+  "hplc_run_time",
+  "hplc_sample_concentration",
+  "hplc_retention_time",
+  "hplc_purity_percent",
+  "hplc_main_peak_area",
+  "hplc_total_peak_area",
+  "hplc_result_summary",
+  "hplc_pass_fail_decision",
+  "hplc_acceptance_criteria",
+  "hplc_analyst_name",
+  "hplc_reviewer_name",
+  "hplc_notes",
+  "hplc_watermark_mode",
+  "ms_document_number",
+  "ms_status",
+  "ms_issue_date",
+  "ms_revision",
+  "ms_method_name",
+  "ms_method_code",
+  "ms_instrument_name",
+  "ms_ionization_mode",
+  "ms_expected_molecular_weight",
+  "ms_observed_mass",
+  "ms_mass_error",
+  "ms_mass_error_ppm",
+  "ms_charge_state",
+  "ms_identity_conclusion",
+  "ms_pass_fail_decision",
+  "ms_acceptance_criteria",
+  "ms_analyst_name",
+  "ms_reviewer_name",
+  "ms_notes",
+  "ms_watermark_mode",
+  "sds_document_number",
+  "sds_status",
+  "sds_revision",
+  "sds_issue_date",
+  "sds_revision_date",
+  "sds_language",
+  "sds_jurisdiction",
+  "sds_signal_word",
+  "sds_prepared_by",
+  "sds_reviewed_by",
+  "sds_approved_by",
+  "sds_section_1_identification",
+  "sds_section_2_hazard_identification",
+  "sds_section_3_composition",
+  "sds_section_4_first_aid",
+  "sds_section_5_fire_fighting",
+  "sds_section_6_accidental_release",
+  "sds_section_7_handling_storage",
+  "sds_section_8_exposure_controls",
+  "sds_section_9_physical_chemical",
+  "sds_section_10_stability_reactivity",
+  "sds_section_11_toxicological",
+  "sds_section_12_ecological",
+  "sds_section_13_disposal",
+  "sds_section_14_transport",
+  "sds_section_15_regulatory",
+  "sds_section_16_other",
+  "bundle_number",
+  "bundle_status",
 ];
 
 const templateExample = [
@@ -114,6 +189,80 @@ const templateExample = [
   "",
   "Internal QA record folder",
   "Imported from CSV",
+  "",
+  "draft",
+  "",
+  "",
+  "HPLC - Purity Determination",
+  "HPLC-001",
+  "Analytical HPLC System",
+  "C18 Reverse Phase",
+  "Water / Acetonitrile + 0.1% TFA",
+  "1.0",
+  "215",
+  "10",
+  "30",
+  "",
+  "",
+  "99.21",
+  "",
+  "",
+  "Main peak conforms to acceptance criteria",
+  "pass",
+  "Purity ≥ 95%",
+  "Atlas Labs QA Documentation Officer",
+  "",
+  "",
+  "draft",
+  "",
+  "draft",
+  "",
+  "",
+  "LC-MS/MS - Identity Confirmation",
+  "LCMS-001",
+  "LC-MS/MS System",
+  "ESI+",
+  "1419.56",
+  "1419.62",
+  "0.06",
+  "",
+  "",
+  "Observed mass consistent with expected molecular weight",
+  "pass",
+  "Observed mass within method tolerance",
+  "Atlas Labs QA Documentation Officer",
+  "",
+  "",
+  "draft",
+  "",
+  "draft",
+  "1",
+  "",
+  "",
+  "en",
+  "US",
+  "Warning",
+  "Atlas Labs QA Documentation Officer",
+  "",
+  "",
+  "Product identification and supplier details",
+  "Hazard classification to be reviewed",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "No medical, dosing, or human-use claims are made.",
+  "",
+  "draft",
 ];
 
 type DuplicateMode = "skip" | "update";
@@ -441,6 +590,19 @@ function validatePreviewRow(values: CoaVerificationFormValues) {
   return missing;
 }
 
+type GeneratedDocsPayload = {
+  batchId?: string;
+  coaDocumentId?: string;
+  hplcReportId?: string;
+  msReportId?: string;
+  sdsId?: string;
+  bundleId?: string;
+  hplcDocumentNumber?: string;
+  msDocumentNumber?: string;
+  sdsDocumentNumber?: string;
+  error?: string;
+};
+
 async function generateSupportingDocsForImportedRecord(
   supabase: SupabaseClient,
   coaVerificationId: string,
@@ -464,12 +626,213 @@ async function generateSupportingDocsForImportedRecord(
     body: JSON.stringify({ coaVerificationId, generatedBy }),
   });
 
-  const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+  const payload = (await response.json().catch(() => null)) as GeneratedDocsPayload | null;
 
-  if (!response.ok) {
+  if (!response.ok || !payload) {
     throw new Error(payload?.error || "Supporting documents could not be generated.");
   }
+
+  return payload;
 }
+
+function hasAnyCsvValue(row: CsvRow, keys: string[]) {
+  return keys.some((key) => readValue(row, key).length > 0);
+}
+
+function hasDetailedSupportingDocumentFields(row: CsvRow) {
+  return hasAnyCsvValue(row, [
+    "hplc_document_number",
+    "hplc_status",
+    "hplc_method_name",
+    "hplc_purity_percent",
+    "ms_document_number",
+    "ms_status",
+    "ms_observed_mass",
+    "ms_identity_conclusion",
+    "sds_document_number",
+    "sds_status",
+    "sds_section_1_identification",
+    "sds_section_16_other",
+    "bundle_status",
+  ]);
+}
+
+function numberOrNull(value: string) {
+  if (!value.trim()) return undefined;
+  const normalized = value.replace(/,/g, "").replace(/%/g, "").trim();
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function integerOrNull(value: string) {
+  const parsed = numberOrNull(value);
+  return parsed === undefined ? undefined : Math.trunc(parsed);
+}
+
+function textOrNull(value: string) {
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function compactPayload(payload: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined)
+  );
+}
+
+async function maybeUpdateHplcFromCsv(
+  supabase: SupabaseClient,
+  hplcReportId: string | null | undefined,
+  row: CsvRow
+) {
+  if (!hplcReportId) return;
+
+  const payload = compactPayload({
+    document_number: textOrNull(readValue(row, "hplc_document_number")),
+    status: textOrNull(readValue(row, "hplc_status")),
+    issue_date: textOrNull(readValue(row, "hplc_issue_date")),
+    revision: integerOrNull(readValue(row, "hplc_revision")) ?? undefined,
+    method_name: textOrNull(readValue(row, "hplc_method_name")),
+    method_code: textOrNull(readValue(row, "hplc_method_code")),
+    instrument_name: textOrNull(readValue(row, "hplc_instrument_name")),
+    column_type: textOrNull(readValue(row, "hplc_column_type")),
+    mobile_phase: textOrNull(readValue(row, "hplc_mobile_phase")),
+    flow_rate: numberOrNull(readValue(row, "hplc_flow_rate")) ?? undefined,
+    detection_wavelength: numberOrNull(readValue(row, "hplc_detection_wavelength")) ?? undefined,
+    injection_volume: numberOrNull(readValue(row, "hplc_injection_volume")) ?? undefined,
+    run_time: numberOrNull(readValue(row, "hplc_run_time")) ?? undefined,
+    sample_concentration: textOrNull(readValue(row, "hplc_sample_concentration")),
+    retention_time: numberOrNull(readValue(row, "hplc_retention_time")),
+    purity_percent: numberOrNull(readValue(row, "hplc_purity_percent", "hplc_purity")) ?? undefined,
+    main_peak_area: numberOrNull(readValue(row, "hplc_main_peak_area")) ?? undefined,
+    total_peak_area: numberOrNull(readValue(row, "hplc_total_peak_area")) ?? undefined,
+    result_summary: textOrNull(readValue(row, "hplc_result_summary")),
+    pass_fail_decision: textOrNull(readValue(row, "hplc_pass_fail_decision")),
+    acceptance_criteria: textOrNull(readValue(row, "hplc_acceptance_criteria")),
+    analyst_name: textOrNull(readValue(row, "hplc_analyst_name")),
+    reviewer_name: textOrNull(readValue(row, "hplc_reviewer_name")),
+    notes: textOrNull(readValue(row, "hplc_notes")),
+    watermark_mode: textOrNull(readValue(row, "hplc_watermark_mode")),
+  });
+
+  if (Object.keys(payload).length === 0) return;
+
+  const { error } = await supabase.from("hplc_reports").update(payload).eq("id", hplcReportId);
+  if (error) throw error;
+}
+
+async function maybeUpdateMsFromCsv(
+  supabase: SupabaseClient,
+  msReportId: string | null | undefined,
+  row: CsvRow
+) {
+  if (!msReportId) return;
+
+  const payload = compactPayload({
+    document_number: textOrNull(readValue(row, "ms_document_number")),
+    status: textOrNull(readValue(row, "ms_status")),
+    issue_date: textOrNull(readValue(row, "ms_issue_date")),
+    revision: integerOrNull(readValue(row, "ms_revision")) ?? undefined,
+    method_name: textOrNull(readValue(row, "ms_method_name")),
+    method_code: textOrNull(readValue(row, "ms_method_code")),
+    instrument_name: textOrNull(readValue(row, "ms_instrument_name")),
+    ionization_mode: textOrNull(readValue(row, "ms_ionization_mode")),
+    expected_molecular_weight: numberOrNull(readValue(row, "ms_expected_molecular_weight")) ?? undefined,
+    observed_mass: numberOrNull(readValue(row, "ms_observed_mass")) ?? undefined,
+    mass_error: numberOrNull(readValue(row, "ms_mass_error")) ?? undefined,
+    mass_error_ppm: numberOrNull(readValue(row, "ms_mass_error_ppm")),
+    charge_state: integerOrNull(readValue(row, "ms_charge_state")),
+    identity_conclusion: textOrNull(readValue(row, "ms_identity_conclusion")),
+    pass_fail_decision: textOrNull(readValue(row, "ms_pass_fail_decision")),
+    acceptance_criteria: textOrNull(readValue(row, "ms_acceptance_criteria")),
+    analyst_name: textOrNull(readValue(row, "ms_analyst_name")),
+    reviewer_name: textOrNull(readValue(row, "ms_reviewer_name")),
+    notes: textOrNull(readValue(row, "ms_notes")),
+    watermark_mode: textOrNull(readValue(row, "ms_watermark_mode")),
+  });
+
+  if (Object.keys(payload).length === 0) return;
+
+  const { error } = await supabase.from("ms_reports").update(payload).eq("id", msReportId);
+  if (error) throw error;
+}
+
+async function maybeUpdateSdsFromCsv(
+  supabase: SupabaseClient,
+  sdsId: string | null | undefined,
+  row: CsvRow
+) {
+  if (!sdsId) return;
+
+  const payload = compactPayload({
+    document_number: textOrNull(readValue(row, "sds_document_number")),
+    status: textOrNull(readValue(row, "sds_status")),
+    revision: integerOrNull(readValue(row, "sds_revision")) ?? undefined,
+    issue_date: textOrNull(readValue(row, "sds_issue_date")),
+    revision_date: textOrNull(readValue(row, "sds_revision_date")),
+    language: textOrNull(readValue(row, "sds_language")),
+    jurisdiction: textOrNull(readValue(row, "sds_jurisdiction")),
+    signal_word: textOrNull(readValue(row, "sds_signal_word")),
+    prepared_by: textOrNull(readValue(row, "sds_prepared_by")),
+    reviewed_by: textOrNull(readValue(row, "sds_reviewed_by")),
+    approved_by: textOrNull(readValue(row, "sds_approved_by")),
+    section_1_identification: textOrNull(readValue(row, "sds_section_1_identification")),
+    section_2_hazard_identification: textOrNull(readValue(row, "sds_section_2_hazard_identification")),
+    section_3_composition: textOrNull(readValue(row, "sds_section_3_composition")),
+    section_4_first_aid: textOrNull(readValue(row, "sds_section_4_first_aid")),
+    section_5_fire_fighting: textOrNull(readValue(row, "sds_section_5_fire_fighting")),
+    section_6_accidental_release: textOrNull(readValue(row, "sds_section_6_accidental_release")),
+    section_7_handling_storage: textOrNull(readValue(row, "sds_section_7_handling_storage")),
+    section_8_exposure_controls: textOrNull(readValue(row, "sds_section_8_exposure_controls")),
+    section_9_physical_chemical: textOrNull(readValue(row, "sds_section_9_physical_chemical")),
+    section_10_stability_reactivity: textOrNull(readValue(row, "sds_section_10_stability_reactivity")),
+    section_11_toxicological: textOrNull(readValue(row, "sds_section_11_toxicological")),
+    section_12_ecological: textOrNull(readValue(row, "sds_section_12_ecological")),
+    section_13_disposal: textOrNull(readValue(row, "sds_section_13_disposal")),
+    section_14_transport: textOrNull(readValue(row, "sds_section_14_transport")),
+    section_15_regulatory: textOrNull(readValue(row, "sds_section_15_regulatory")),
+    section_16_other: textOrNull(readValue(row, "sds_section_16_other")),
+  });
+
+  if (Object.keys(payload).length === 0) return;
+
+  const { error } = await supabase.from("sds_documents").update(payload).eq("id", sdsId);
+  if (error) throw error;
+}
+
+async function applySupportingDocumentCsvFields(
+  supabase: SupabaseClient,
+  coaVerificationId: string,
+  row: CsvRow,
+  generatedBy: string
+) {
+  if (!autoGenerationRequired(row)) {
+    return false;
+  }
+
+  const generated = await generateSupportingDocsForImportedRecord(
+    supabase,
+    coaVerificationId,
+    generatedBy
+  );
+
+  await Promise.all([
+    maybeUpdateHplcFromCsv(supabase, generated.hplcReportId, row),
+    maybeUpdateMsFromCsv(supabase, generated.msReportId, row),
+    maybeUpdateSdsFromCsv(supabase, generated.sdsId, row),
+  ]);
+
+  if (generated.bundleId) {
+    await refreshDocumentBundleStatusForBundle(supabase, generated.bundleId);
+  }
+
+  return Boolean(generated.bundleId);
+}
+
+function autoGenerationRequired(row: CsvRow) {
+  return hasDetailedSupportingDocumentFields(row);
+}
+
 
 export default function ImportCoaVerificationsPage() {
   return (
@@ -675,13 +1038,37 @@ function ImportCoaVerificationsClient({
             );
             nextResult.updated += 1;
 
-            if (autoGenerateDocs && updatedRow) {
-              await generateSupportingDocsForImportedRecord(
-                supabase,
-                updatedRow.id,
-                updateValues.approved_by || updateValues.reviewed_by || updateValues.created_by || adminEmail
-              );
-              nextResult.generatedBundles += 1;
+            if (updatedRow) {
+              const generatedBy =
+                updateValues.approved_by ||
+                updateValues.reviewed_by ||
+                updateValues.created_by ||
+                adminEmail;
+
+              if (autoGenerateDocs) {
+                await generateSupportingDocsForImportedRecord(
+                  supabase,
+                  updatedRow.id,
+                  generatedBy
+                );
+                if (hasDetailedSupportingDocumentFields(row.raw)) {
+                  await applySupportingDocumentCsvFields(
+                    supabase,
+                    updatedRow.id,
+                    row.raw,
+                    generatedBy
+                  );
+                }
+                nextResult.generatedBundles += 1;
+              } else if (hasDetailedSupportingDocumentFields(row.raw)) {
+                const applied = await applySupportingDocumentCsvFields(
+                  supabase,
+                  updatedRow.id,
+                  row.raw,
+                  generatedBy
+                );
+                if (applied) nextResult.generatedBundles += 1;
+              }
             }
             continue;
           }
@@ -692,13 +1079,37 @@ function ImportCoaVerificationsClient({
           }
           nextResult.created += 1;
 
-          if (autoGenerateDocs) {
-            await generateSupportingDocsForImportedRecord(
-              supabase,
-              createdRow.id,
-              row.values.approved_by || row.values.reviewed_by || row.values.created_by || adminEmail
-            );
-            nextResult.generatedBundles += 1;
+          {
+            const generatedBy =
+              row.values.approved_by ||
+              row.values.reviewed_by ||
+              row.values.created_by ||
+              adminEmail;
+
+            if (autoGenerateDocs) {
+              await generateSupportingDocsForImportedRecord(
+                supabase,
+                createdRow.id,
+                generatedBy
+              );
+              if (hasDetailedSupportingDocumentFields(row.raw)) {
+                await applySupportingDocumentCsvFields(
+                  supabase,
+                  createdRow.id,
+                  row.raw,
+                  generatedBy
+                );
+              }
+              nextResult.generatedBundles += 1;
+            } else if (hasDetailedSupportingDocumentFields(row.raw)) {
+              const applied = await applySupportingDocumentCsvFields(
+                supabase,
+                createdRow.id,
+                row.raw,
+                generatedBy
+              );
+              if (applied) nextResult.generatedBundles += 1;
+            }
           }
         } catch (error) {
           nextResult.failed += 1;

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { BreadcrumbItem } from "@/lib/seo";
+import { refreshDocumentBundleStatusForLinkedDocument } from "@/lib/quality-service";
 
 type SdsFormState = {
   document_number: string;
@@ -212,6 +213,8 @@ function SdsEditForm({ supabase, id }: { supabase: SupabaseClient; id: string })
       setErrorMessage(error.message);
       return;
     }
+    await refreshDocumentBundleStatusForLinkedDocument(supabase, "sds_id", id);
+
     setMessage("SDS saved.");
     router.refresh();
   }

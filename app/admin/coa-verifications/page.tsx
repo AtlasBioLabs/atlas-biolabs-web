@@ -113,9 +113,7 @@ function compareSortableValues(a: string | number, b: string | number) {
   });
 }
 
-type CoaExportKey = keyof CoaVerificationRow;
-
-const coaExportColumns: CoaExportKey[] = [
+const coaExportColumns = [
   "id",
   "coa_number",
   "verification_code",
@@ -184,7 +182,99 @@ const coaExportColumns: CoaExportKey[] = [
   "supporting_documents_generated_at",
   "supporting_documents_generated_by",
   "supporting_documents_error",
-];
+  "quality_batch_number",
+  "quality_lot_number",
+  "quality_batch_status",
+  "quality_batch_release_decision",
+  "quality_batch_manufacturing_date",
+  "quality_batch_expiry_date",
+  "quality_batch_retest_date",
+  "quality_batch_country_of_origin",
+  "quality_batch_manufacturer_name",
+  "quality_coa_number",
+  "quality_coa_status",
+  "quality_coa_issue_date",
+  "quality_coa_revision",
+  "quality_coa_release_decision",
+  "hplc_document_number",
+  "hplc_status",
+  "hplc_issue_date",
+  "hplc_revision",
+  "hplc_method_name",
+  "hplc_method_code",
+  "hplc_instrument_name",
+  "hplc_column_type",
+  "hplc_mobile_phase",
+  "hplc_flow_rate",
+  "hplc_detection_wavelength",
+  "hplc_injection_volume",
+  "hplc_run_time",
+  "hplc_sample_concentration",
+  "hplc_retention_time",
+  "hplc_purity_percent",
+  "hplc_main_peak_area",
+  "hplc_total_peak_area",
+  "hplc_result_summary",
+  "hplc_pass_fail_decision",
+  "hplc_acceptance_criteria",
+  "hplc_analyst_name",
+  "hplc_reviewer_name",
+  "hplc_notes",
+  "hplc_watermark_mode",
+  "ms_document_number",
+  "ms_status",
+  "ms_issue_date",
+  "ms_revision",
+  "ms_method_name",
+  "ms_method_code",
+  "ms_instrument_name",
+  "ms_ionization_mode",
+  "ms_expected_molecular_weight",
+  "ms_observed_mass",
+  "ms_mass_error",
+  "ms_mass_error_ppm",
+  "ms_charge_state",
+  "ms_identity_conclusion",
+  "ms_pass_fail_decision",
+  "ms_acceptance_criteria",
+  "ms_analyst_name",
+  "ms_reviewer_name",
+  "ms_notes",
+  "ms_watermark_mode",
+  "sds_document_number",
+  "sds_status",
+  "sds_revision",
+  "sds_issue_date",
+  "sds_revision_date",
+  "sds_language",
+  "sds_jurisdiction",
+  "sds_signal_word",
+  "sds_prepared_by",
+  "sds_reviewed_by",
+  "sds_approved_by",
+  "sds_section_1_identification",
+  "sds_section_2_hazard_identification",
+  "sds_section_3_composition",
+  "sds_section_4_first_aid",
+  "sds_section_5_fire_fighting",
+  "sds_section_6_accidental_release",
+  "sds_section_7_handling_storage",
+  "sds_section_8_exposure_controls",
+  "sds_section_9_physical_chemical",
+  "sds_section_10_stability_reactivity",
+  "sds_section_11_toxicological",
+  "sds_section_12_ecological",
+  "sds_section_13_disposal",
+  "sds_section_14_transport",
+  "sds_section_15_regulatory",
+  "sds_section_16_other",
+  "bundle_number",
+  "bundle_status",
+  "bundle_released_at",
+] as const;
+
+type CoaExportRow = Record<string, unknown>;
+
 
 function formatCsvCell(value: unknown) {
   if (value === null || value === undefined) {
@@ -195,13 +285,185 @@ function formatCsvCell(value: unknown) {
   return /[",\n\r]/.test(stringValue) ? `"${stringValue}"` : stringValue;
 }
 
-function buildCoaCsv(rowsToExport: CoaVerificationRow[]) {
+function buildCoaCsv(rowsToExport: CoaExportRow[]) {
   const header = coaExportColumns.map(formatCsvCell).join(",");
   const body = rowsToExport.map((row) =>
     coaExportColumns.map((column) => formatCsvCell(row[column])).join(","),
   );
 
   return [header, ...body].join("\r\n");
+}
+
+async function maybeGetRecord(
+  supabase: SupabaseClient,
+  tableName: string,
+  id: string | null | undefined
+): Promise<Record<string, unknown> | null> {
+  if (!id) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from(tableName)
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return (data as Record<string, unknown> | null) ?? null;
+}
+
+function copyRecordFields(
+  target: CoaExportRow,
+  record: Record<string, unknown> | null,
+  prefix: string,
+  fields: string[]
+) {
+  if (!record) {
+    return;
+  }
+
+  for (const field of fields) {
+    target[`${prefix}_${field}`] = record[field];
+  }
+}
+
+async function buildFullExportRows(
+  supabase: SupabaseClient,
+  rowsToExport: CoaVerificationRow[]
+): Promise<CoaExportRow[]> {
+  const fullRows: CoaExportRow[] = [];
+
+  for (const row of rowsToExport) {
+    const exportRow: CoaExportRow = { ...row };
+
+    const [batch, coaDocument, hplc, ms, sds, bundle] = await Promise.all([
+      maybeGetRecord(supabase, "batches", row.quality_batch_id),
+      maybeGetRecord(supabase, "coa_documents", row.quality_coa_document_id),
+      maybeGetRecord(supabase, "hplc_reports", row.hplc_report_id),
+      maybeGetRecord(supabase, "ms_reports", row.ms_report_id),
+      maybeGetRecord(supabase, "sds_documents", row.sds_id),
+      maybeGetRecord(supabase, "document_bundles", row.document_bundle_id),
+    ]);
+
+    copyRecordFields(exportRow, batch, "quality", [
+      "batch_number",
+      "lot_number",
+      "status",
+      "release_decision",
+      "manufacturing_date",
+      "expiry_date",
+      "retest_date",
+      "country_of_origin",
+      "manufacturer_name",
+    ]);
+
+    copyRecordFields(exportRow, coaDocument, "quality_coa", [
+      "coa_number",
+      "document_status",
+      "issue_date",
+      "revision",
+      "release_decision",
+    ]);
+
+    if (coaDocument?.document_status) {
+      exportRow.quality_coa_status = coaDocument.document_status;
+    }
+
+    copyRecordFields(exportRow, hplc, "hplc", [
+      "document_number",
+      "status",
+      "issue_date",
+      "revision",
+      "method_name",
+      "method_code",
+      "instrument_name",
+      "column_type",
+      "mobile_phase",
+      "flow_rate",
+      "detection_wavelength",
+      "injection_volume",
+      "run_time",
+      "sample_concentration",
+      "retention_time",
+      "purity_percent",
+      "main_peak_area",
+      "total_peak_area",
+      "result_summary",
+      "pass_fail_decision",
+      "acceptance_criteria",
+      "analyst_name",
+      "reviewer_name",
+      "notes",
+      "watermark_mode",
+    ]);
+
+    copyRecordFields(exportRow, ms, "ms", [
+      "document_number",
+      "status",
+      "issue_date",
+      "revision",
+      "method_name",
+      "method_code",
+      "instrument_name",
+      "ionization_mode",
+      "expected_molecular_weight",
+      "observed_mass",
+      "mass_error",
+      "mass_error_ppm",
+      "charge_state",
+      "identity_conclusion",
+      "pass_fail_decision",
+      "acceptance_criteria",
+      "analyst_name",
+      "reviewer_name",
+      "notes",
+      "watermark_mode",
+    ]);
+
+    copyRecordFields(exportRow, sds, "sds", [
+      "document_number",
+      "status",
+      "revision",
+      "issue_date",
+      "revision_date",
+      "language",
+      "jurisdiction",
+      "signal_word",
+      "prepared_by",
+      "reviewed_by",
+      "approved_by",
+      "section_1_identification",
+      "section_2_hazard_identification",
+      "section_3_composition",
+      "section_4_first_aid",
+      "section_5_fire_fighting",
+      "section_6_accidental_release",
+      "section_7_handling_storage",
+      "section_8_exposure_controls",
+      "section_9_physical_chemical",
+      "section_10_stability_reactivity",
+      "section_11_toxicological",
+      "section_12_ecological",
+      "section_13_disposal",
+      "section_14_transport",
+      "section_15_regulatory",
+      "section_16_other",
+    ]);
+
+    if (bundle) {
+      exportRow.bundle_number = bundle.bundle_number;
+      exportRow.bundle_status = bundle.status;
+      exportRow.bundle_released_at = bundle.released_at;
+    }
+
+    fullRows.push(exportRow);
+  }
+
+  return fullRows;
 }
 
 function buildExportFileName(scope: string) {
@@ -388,23 +650,35 @@ function AdminCoaVerificationIndex({ supabase }: { supabase: SupabaseClient }) {
     );
   }
 
-  function exportCoaRows(rowsToExport: CoaVerificationRow[], scope: string) {
+  async function exportCoaRows(rowsToExport: CoaVerificationRow[], scope: string) {
     if (rowsToExport.length === 0) {
       setErrorMessage("No COA records are available for export.");
       return;
     }
 
-    const csv = buildCoaCsv(rowsToExport);
-    downloadCsv(buildExportFileName(scope), csv);
-    setCopyMessage(
-      `${rowsToExport.length} COA ${rowsToExport.length === 1 ? "record" : "records"} exported as CSV.`,
-    );
-    window.setTimeout(() => setCopyMessage(null), 2500);
+    setErrorMessage(null);
+    setCopyMessage("Preparing full COA + supporting document export...");
+
+    try {
+      const fullExportRows = await buildFullExportRows(supabase, rowsToExport);
+      const csv = buildCoaCsv(fullExportRows);
+      downloadCsv(buildExportFileName(scope), csv);
+      setCopyMessage(
+        `${rowsToExport.length} COA ${rowsToExport.length === 1 ? "record" : "records"} exported with supporting document fields.`,
+      );
+      window.setTimeout(() => setCopyMessage(null), 2500);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "The COA export could not be prepared.",
+      );
+    }
   }
 
   function exportSelectedRows() {
     const selectedRows = rows.filter((row) => selectedRowIds.includes(row.id));
-    exportCoaRows(selectedRows, "selected");
+    void exportCoaRows(selectedRows, "selected");
   }
 
   type GenerateDocsResult = {
@@ -824,7 +1098,7 @@ function AdminCoaVerificationIndex({ supabase }: { supabase: SupabaseClient }) {
             ) : null}
             <Button
               variant="outline"
-              onClick={() => exportCoaRows(sortedRows, "visible")}
+              onClick={() => void exportCoaRows(sortedRows, "visible")}
               className="h-11 border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
             >
               <DownloadIcon className="mr-1 size-4" />
@@ -832,7 +1106,7 @@ function AdminCoaVerificationIndex({ supabase }: { supabase: SupabaseClient }) {
             </Button>
             <Button
               variant="outline"
-              onClick={() => exportCoaRows(rows, "all")}
+              onClick={() => void exportCoaRows(rows, "all")}
               className="h-11 border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
             >
               <DownloadIcon className="mr-1 size-4" />
@@ -1063,7 +1337,7 @@ function AdminCoaVerificationIndex({ supabase }: { supabase: SupabaseClient }) {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => exportCoaRows([row], "single")}
+                          onClick={() => void exportCoaRows([row], "single")}
                           className="border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
                         >
                           <DownloadIcon className="mr-1 size-3.5" />

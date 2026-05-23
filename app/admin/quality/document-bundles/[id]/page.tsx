@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { BreadcrumbItem } from "@/lib/seo";
+import { computeDocumentBundleStatus, refreshDocumentBundleStatusForBundle } from "@/lib/quality-service";
 import { Trash2Icon } from "lucide-react";
 
 type BundleRecord = {
@@ -249,7 +250,27 @@ function DocumentBundleDetailContent({
 
       if (!isMounted) return;
 
-      setData({ bundle: bundle as BundleRecord, coa, batch, hplc, ms, sds, coaVerification });
+      const computedBundleStatus = computeDocumentBundleStatus({
+        batchStatus: batch?.status,
+        coaStatus: coa?.document_status,
+        hplcStatus: hplc?.status,
+        msStatus: ms?.status,
+        sdsStatus: sds?.status,
+        hasHplc: Boolean(bundle.hplc_report_id),
+        hasMs: Boolean(bundle.ms_report_id),
+        hasSds: Boolean(bundle.sds_id),
+      });
+
+      const normalizedBundle =
+        bundle.status === computedBundleStatus
+          ? (bundle as BundleRecord)
+          : ({ ...bundle, status: computedBundleStatus } as BundleRecord);
+
+      if (bundle.status !== computedBundleStatus) {
+        await refreshDocumentBundleStatusForBundle(supabase, bundle.id);
+      }
+
+      setData({ bundle: normalizedBundle, coa, batch, hplc, ms, sds, coaVerification });
       setIsLoading(false);
     }
 

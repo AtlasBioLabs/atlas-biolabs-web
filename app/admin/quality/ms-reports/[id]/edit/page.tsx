@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { BreadcrumbItem } from "@/lib/seo";
+import { refreshDocumentBundleStatusForLinkedDocument } from "@/lib/quality-service";
 
 type MsFormState = {
   document_number: string;
@@ -176,6 +177,8 @@ function MsEditForm({ supabase, id }: { supabase: SupabaseClient; id: string }) 
       setErrorMessage(error.message);
       return;
     }
+    await refreshDocumentBundleStatusForLinkedDocument(supabase, "ms_report_id", id);
+
     setMessage("MS / LC-MS report saved.");
     router.refresh();
   }
