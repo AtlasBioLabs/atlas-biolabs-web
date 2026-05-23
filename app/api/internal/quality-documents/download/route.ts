@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { getActiveCoaBrandSettings, type CoaBrandSettings } from "@/lib/coa-brand-settings";
-import { renderHtmlToPdfBuffer } from "@/lib/pdf-renderer";
+import { renderHtmlToPdfBuffer, renderUrlToPdfBuffer } from "@/lib/pdf-renderer";
 
 export const runtime = "nodejs";
 
@@ -33,6 +33,61 @@ type BundleRecord = DbRecord & {
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+function getSupabaseStorageKey() {
+  if (!supabaseUrl) return "sb-atlas-auth-token";
+
+  try {
+    const host = new URL(supabaseUrl).hostname;
+    const projectRef = host.split(".")[0];
+    return `sb-${projectRef}-auth-token`;
+  } catch {
+    return "sb-atlas-auth-token";
+  }
+}
+
+async function getBrowserSessionForPuppeteer(
+  supabase: SupabaseClient,
+  accessToken: string
+) {
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error || !data.user) {
+    throw new Error(error?.message || "Admin session could not be prepared for COA PDF rendering.");
+  }
+
+  return {
+    access_token: accessToken,
+    token_type: "bearer",
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    refresh_token: "",
+    user: data.user,
+  };
+}
+
+async function renderPrintableCoaRouteToPdf({
+  supabase,
+  accessToken,
+  origin,
+  coaVerificationId,
+}: {
+  supabase: SupabaseClient;
+  accessToken: string;
+  origin: string;
+  coaVerificationId: string;
+}) {
+  const session = await getBrowserSessionForPuppeteer(supabase, accessToken);
+  const storageKey = getSupabaseStorageKey();
+  const url = `${origin.replace(/\/$/, "")}/admin/coa-verifications/${encodeURIComponent(
+    coaVerificationId
+  )}/print`;
+
+  return renderUrlToPdfBuffer(url, {
+    localStorageItems: [{ key: storageKey, value: session }],
+    waitForSelector: ".coa-print-document",
+  });
+}
 
 function createAuthenticatedSupabaseClient(accessToken: string) {
   if (!supabaseUrl || !supabasePublishableKey) {
@@ -485,317 +540,6 @@ async function getCoaAnalyticalRows(supabase: SupabaseClient, coaVerificationId?
   };
 }
 
-function getRecordValue(record: DbRecord, keys: string[], fallback = "—") {
-  for (const key of keys) {
-    const value = record[key];
-    if (value !== null && value !== undefined && String(value).trim() !== "") {
-      return value;
-    }
-  }
-
-  return fallback;
-}
-
-
-function formattedRevision(value: unknown) {
-  const raw = text(value, "01");
-  if (/^rev\.?\s*/i.test(raw)) return raw;
-  const number = raw.replace(/\D/g, "") || raw;
-  return /^\d+$/.test(number) ? `Rev. ${number.padStart(2, "0")}` : raw;
-}
-
-function getVerificationUrl(record: DbRecord, brandSettings: CoaBrandSettings) {
-  const existing = text(record.verification_url || record.qr_code_value, "");
-  if (existing) return existing;
-
-  const code = text(record.verification_code, "");
-  if (!code) return "";
-
-  return `${getBrandValue(brandSettings, "verification_base_url", "https://atlasbiolabs.co/verify").replace(/\/$/, "")}/${code}`;
-}
-
-function sectionTitle(title: string) {
-  return `<h2 class="coa-section-title">${htmlEscape(title)}</h2>`;
-}
-
-function simpleRows(rows: Array<[string, unknown]>) {
-  return `<table class="coa-table"><tbody>${rows
-    .map(([label, value]) => `<tr><th>${htmlEscape(label)}</th><td>${htmlEscape(value)}</td></tr>`)
-    .join("")}</tbody></table>`;
-}
-
-function getLogoHtml(brandSettings: CoaBrandSettings) {
-  const logoUrl = resolveAssetUrl(getBrandValue(brandSettings, "logo_url", ""));
-  if (!logoUrl) return `<div class="coa-logo-fallback">Atlas</div>`;
-  return `<img class="coa-logo" src="${htmlEscape(logoUrl)}" alt="${htmlEscape(getBrandValue(brandSettings, "company_name", "Atlas Labs"))} logo" />`;
-}
-
-function getSealHtml(brandSettings: CoaBrandSettings) {
-  const sealUrl = resolveAssetUrl(getBrandValue(brandSettings, "seal_url", ""));
-  if (!sealUrl) return `<div class="coa-seal-fallback">${htmlEscape(getBrandValue(brandSettings, "seal_text", "Atlas Labs Seal / Stamp"))}</div>`;
-  return `<img class="coa-seal" src="${htmlEscape(sealUrl)}" alt="${htmlEscape(getBrandValue(brandSettings, "seal_text", "Atlas Labs Seal"))}" />`;
-}
-
-function getQrHtml(record: DbRecord, brandSettings: CoaBrandSettings) {
-  const qrUrl = resolveAssetUrl(text(record.qr_code_url || record.qr_code_value, ""));
-  if (qrUrl && /^(data:|https?:|\/)/i.test(qrUrl)) {
-    return `<img class="coa-qr" src="${htmlEscape(qrUrl)}" alt="COA verification QR code" />`;
-  }
-
-  const verificationUrl = getVerificationUrl(record, brandSettings);
-  if (!verificationUrl) return "";
-
-  return `<div class="coa-qr-fallback">QR</div>`;
-}
-
-function coaDocumentHeader(coaRecord: DbRecord, brandSettings: CoaBrandSettings) {
-  const companyName = getBrandValue(brandSettings, "company_name", "Atlas Labs");
-  const qualityUnitName = getBrandValue(brandSettings, "quality_unit_name", "Quality Documentation Unit");
-  const tagline = getBrandValue(
-    brandSettings,
-    "tagline",
-    "Precision Research Compounds - Batch Documentation - Analytical Traceability"
-  );
-
-  return `<div class="coa-header">
-    <div class="coa-brand-row">
-      ${getLogoHtml(brandSettings)}
-      <div>
-        <div class="coa-brand-name">${htmlEscape(companyName)}</div>
-        <div class="coa-quality-unit">${htmlEscape(qualityUnitName)}</div>
-        <div class="coa-tagline">${htmlEscape(tagline)}</div>
-      </div>
-    </div>
-    <div class="coa-control-box">
-      <div class="coa-control-title">${htmlEscape(getBrandValue(brandSettings, "controlled_document_label", "Controlled Document"))}</div>
-      <div class="coa-control-row"><span>COA Number</span><strong>${htmlEscape(coaRecord.coa_number)}</strong></div>
-      <div class="coa-control-row"><span>Revision</span><strong>${htmlEscape(formattedRevision(coaRecord.revision))}</strong></div>
-      <div class="coa-control-row"><span>Document Class</span><strong>${htmlEscape(getBrandValue(brandSettings, "document_class", "Batch QA record"))}</strong></div>
-    </div>
-  </div>`;
-}
-
-function coaPageShell(content: string, coaRecord: DbRecord, brandSettings: CoaBrandSettings, pageBreak = true) {
-  return `<section class="coa-page${pageBreak ? " coa-page-break" : ""}">
-    ${coaDocumentHeader(coaRecord, brandSettings)}
-    ${content}
-    <div class="coa-footer">${htmlEscape(getBrandValue(brandSettings, "footer_text", "Atlas BioLabs / Atlas Labs - Batch documentation. Final release requires authorized signature and batch-specific analytical records."))}</div>
-  </section>`;
-}
-
-function linkedCoaHtml({
-  coaRecord,
-  analyticalResults,
-  analyticalRecords,
-  brandSettings,
-}: {
-  coaRecord: DbRecord;
-  analyticalResults: DbRecord[];
-  analyticalRecords: DbRecord[];
-  brandSettings: CoaBrandSettings;
-}) {
-  const statusText = text(coaRecord.verification_status || coaRecord.release_decision, "Released / Verified");
-  const verificationUrl = getVerificationUrl(coaRecord, brandSettings);
-
-  const resultRows = analyticalResults.length
-    ? analyticalResults
-        .map(
-          (row) => `<tr>
-            <td>${htmlEscape(getRecordValue(row, ["test_name", "attribute", "name", "parameter", "record_type"]))}</td>
-            <td>${htmlEscape(getRecordValue(row, ["method", "test_method", "method_name"]))}</td>
-            <td>${htmlEscape(getRecordValue(row, ["specification", "acceptance_criteria"]))}</td>
-            <td>${htmlEscape(getRecordValue(row, ["result", "batch_result", "value", "measured_value"]))}</td>
-            <td>${htmlEscape(getRecordValue(row, ["status", "decision", "unit"]))}</td>
-          </tr>`
-        )
-        .join("")
-    : `<tr><td>Appearance</td><td>Visual inspection</td><td>White to off-white powder</td><td>${htmlEscape(coaRecord.appearance || "White to off-white powder")}</td><td>Requires review</td></tr>
-       <tr><td>Identity</td><td>LC-MS / MS</td><td>Consistent with reference MW / sequence</td><td>${htmlEscape(coaRecord.identity_result || "Conforms to reference identity")}</td><td>Conforms</td></tr>
-       <tr><td>Purity</td><td>RP-HPLC</td><td>≥ 98.0% by area normalization</td><td>${htmlEscape(coaRecord.hplc_purity || coaRecord.purity || "—")}</td><td>Requires review</td></tr>`;
-
-  const referencedRows = analyticalRecords.length
-    ? analyticalRecords
-        .map(
-          (row) => `<tr>
-            <td>${htmlEscape(getRecordValue(row, ["record_type", "name", "document_type"]))}</td>
-            <td>${htmlEscape(getRecordValue(row, ["reference_file_name", "file_name", "document_number", "reference"]))}</td>
-            <td>${htmlEscape(getRecordValue(row, ["availability", "status", "notes"]))}</td>
-          </tr>`
-        )
-        .join("")
-    : `<tr><td>HPLC chromatogram</td><td>${htmlEscape(coaRecord.hplc_file_name)}</td><td>${htmlEscape(coaRecord.hplc_file_name ? "Draft generated / available for review" : "Pending upload")}</td></tr>
-       <tr><td>LC-MS identity report</td><td>${htmlEscape(coaRecord.lcms_file_name)}</td><td>${htmlEscape(coaRecord.lcms_file_name ? "Draft generated / available for review" : "Pending upload")}</td></tr>
-       <tr><td>SDS / Safety Data Sheet</td><td>${htmlEscape(coaRecord.sds_file_name)}</td><td>${htmlEscape(coaRecord.sds_file_name ? "Draft generated / available for review" : "On request")}</td></tr>
-       <tr><td>Raw data archive</td><td>${htmlEscape(coaRecord.raw_data_archive_ref || "Controlled access / internal QA record folder")}</td><td>Controlled access</td></tr>`;
-
-  const firstPage = coaPageShell(`
-    <div class="coa-title-row">
-      <div>
-        <h1>${htmlEscape(getBrandValue(brandSettings, "certificate_title", "CERTIFICATE OF ANALYSIS"))}</h1>
-        <p>${htmlEscape(getBrandValue(brandSettings, "certificate_subtitle", "Batch-specific quality documentation for qualified B2B sourcing review"))}</p>
-      </div>
-      <div class="coa-status-box"><span>Status</span><strong>${htmlEscape(statusText)}</strong></div>
-    </div>
-    <div class="coa-note">${htmlEscape(getBrandValue(brandSettings, "document_note", "This COA record is prepared for buyer review and must be matched to the final batch-specific HPLC, MS/LC-MS and QA release records before commercial shipment."))}</div>
-
-    ${sectionTitle("Document Summary")}
-    ${simpleRows([
-      ["COA Number", coaRecord.coa_number],
-      ["Issue Date", coaRecord.issue_date],
-      ["Client / Recipient", coaRecord.client_recipient || "Qualified B2B Buyer"],
-      ["Prepared By", coaRecord.prepared_by || coaRecord.created_by || "Atlas Labs QA Documentation Officer"],
-      ["Document Type", coaRecord.document_type || getBrandValue(brandSettings, "document_type", "Certificate of Analysis")],
-      ["Revision", formattedRevision(coaRecord.revision)],
-    ])}
-
-    ${sectionTitle("Product Identification")}
-    ${simpleRows([
-      ["Product Name", coaRecord.product_name],
-      ["Catalog Code", coaRecord.catalog_code],
-      ["Peptide Sequence", coaRecord.peptide_sequence],
-      ["Batch / Lot No.", coaRecord.batch_lot_no],
-      ["Molecular Weight", coaRecord.molecular_weight],
-      ["Molecular Formula", coaRecord.molecular_formula],
-      ["Physical Form", coaRecord.physical_form],
-      ["Appearance Spec", coaRecord.appearance],
-      ["Grade / Scope", coaRecord.grade_scope || "Research compound / B2B supply documentation"],
-      ["Pack Size", coaRecord.pack_size || "Bulk or private-label pack as ordered"],
-      ["Storage", coaRecord.storage_condition],
-      ["Retest Period", coaRecord.retest_period || coaRecord.retest_expiry_date],
-    ])}
-
-    ${sectionTitle("Batch Summary")}
-    ${simpleRows([
-      ["Manufacture Date", coaRecord.manufacture_date],
-      ["Retest / Expiry", coaRecord.retest_expiry_date || coaRecord.retest_period],
-      ["Batch Quantity", coaRecord.batch_quantity || "100 g"],
-      ["Manufacturing Site", coaRecord.manufacturing_site || "Qualified partner production facility"],
-      ["Country of Origin", coaRecord.country_of_origin],
-      ["Release Site", coaRecord.release_site || "Atlas Labs QA Documentation"],
-      ["Packaging", coaRecord.packaging || "Amber vial / sealed pouch / bulk container"],
-      ["Label Option", coaRecord.label_option || "Neutral label or private label"],
-      ["Shipping Conditions", coaRecord.shipping_conditions || "Ambient or cold-chain as applicable"],
-      ["Document Pack", coaRecord.document_pack || "COA, HPLC, MS/LC-MS, SDS"],
-    ])}
-
-    ${sectionTitle("Release Snapshot")}
-    ${simpleRows([
-      ["Identity", coaRecord.identity_result || "Conforms to reference identity"],
-      ["HPLC Purity", coaRecord.hplc_purity || coaRecord.purity],
-      ["Water Content", coaRecord.water_content || "—"],
-      ["Release Decision", coaRecord.release_decision],
-    ])}
-
-    ${sectionTitle("Intended Use & Documentation Scope")}
-    <div class="coa-box">${htmlEscape(coaRecord.intended_use_scope || "This COA supports qualified B2B sourcing, documentation review, MOQ/bulk supply conversations, and private-label planning. No medical, therapeutic, diagnostic, veterinary, or human-use claims are made. Final release documentation must match the tested batch and analytical records referenced in this document.")}</div>
-  `, coaRecord, brandSettings, true);
-
-  const secondPage = coaPageShell(`
-    <div class="coa-review-box">
-      ${sectionTitle("Analytical Results & Quality Review")}
-      <strong>Analytical Results & Quality Review</strong>
-    </div>
-
-    ${sectionTitle("Analytical Test Results")}
-    <table class="coa-table analytical"><thead><tr><th>Test / Attribute</th><th>Method</th><th>Specification</th><th>Batch Result</th><th>Status</th></tr></thead><tbody>${resultRows}</tbody></table>
-
-    ${sectionTitle("Analytical Records Referenced")}
-    <table class="coa-table"><thead><tr><th>Record Type</th><th>Reference / File Name</th><th>Availability</th></tr></thead><tbody>${referencedRows}</tbody></table>
-
-    ${sectionTitle("Certification Statement")}
-    <div class="coa-box">${htmlEscape(getBrandValue(brandSettings, "certification_statement", "Atlas Labs confirms that the product identity, specifications and release status listed in this document apply only to the batch/lot number referenced above. Final certification requires completed batch-specific analytical records and authorized signature. This document does not provide dosage, treatment, medical, diagnostic, veterinary or human-use instructions."))}</div>
-
-    ${sectionTitle("Authorization")}
-    <div class="coa-auth-grid">
-      ${simpleRows([
-        ["Prepared By", coaRecord.prepared_by || coaRecord.created_by || "Atlas Labs QA Documentation Officer"],
-        ["Prepared Date", coaRecord.prepared_date || coaRecord.created_at],
-        ["Reviewed By", coaRecord.reviewed_by],
-        ["Review Date", coaRecord.review_date],
-        ["Approved By", coaRecord.approved_by],
-        ["Approved Date", coaRecord.approved_at || coaRecord.approved_date],
-        ["Authorized Signature", coaRecord.authorized_signature || getBrandValue(brandSettings, "authorized_signature_text", "Authorized QA release signature required")],
-        ["Company Seal", getBrandValue(brandSettings, "seal_text", "See seal image")],
-      ])}
-      <div class="coa-verification-panel">
-        ${getSealHtml(brandSettings)}
-        <div class="coa-verification-title">Verification URL</div>
-        <div class="coa-verification-url">${htmlEscape(verificationUrl)}</div>
-        ${getQrHtml(coaRecord, brandSettings)}
-      </div>
-    </div>
-  `, coaRecord, brandSettings, false);
-
-  const watermark = String(coaRecord.release_decision || coaRecord.verification_status || "")
-    .toLowerCase()
-    .includes("released")
-    ? ""
-    : `<div class="coa-watermark">DRAFT — DOCUMENT NOT YET APPROVED</div>`;
-
-  return `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${htmlEscape(coaRecord.coa_number || "Certificate of Analysis")}</title>
-  <style>
-    @page { size: Letter; margin: 0.25in; }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: #eaf0f7; color: #0a1a2f; font-family: Arial, Helvetica, sans-serif; line-height: 1.35; }
-    .coa-toolbar { position: sticky; top: 0; z-index: 20; display: flex; justify-content: flex-end; gap: 8px; padding: 10px 16px; background: #0a1a2f; }
-    .coa-toolbar button { border: 1px solid rgba(255,255,255,.35); background: white; color: #0a1a2f; border-radius: 8px; padding: 8px 12px; font-weight: 800; cursor: pointer; }
-    .coa-page { width: 8.5in; min-height: 11in; margin: 0.16in auto; padding: 0.42in; background: #fff; position: relative; overflow: hidden; }
-    .coa-page-break { page-break-after: always; }
-    .coa-header { display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 2px solid #0a1a2f; padding-bottom: 0.16in; margin-bottom: 0.16in; }
-    .coa-brand-row { display:flex; gap: 0.12in; align-items:flex-start; }
-    .coa-logo { width: 0.42in; max-height: 0.42in; object-fit: contain; }
-    .coa-logo-fallback { width: 0.42in; height:0.42in; display:flex; align-items:center; justify-content:center; color:#62708a; font-size:8px; border:1px solid #d8e1ef; }
-    .coa-brand-name { font-weight: 900; font-size: 15px; }
-    .coa-quality-unit { margin-top: 4px; color:#2e6bff; text-transform:uppercase; letter-spacing:.24em; font-size:9px; font-weight:900; }
-    .coa-tagline { margin-top: 3px; color:#56657c; font-size:8.5px; }
-    .coa-control-box { width: 2.05in; border: 1px solid #c9d6e8; padding: 0.12in; font-size:8.5px; }
-    .coa-control-title { color:#2e6bff; text-transform:uppercase; letter-spacing:.16em; font-weight:900; margin-bottom: 0.08in; }
-    .coa-control-row { display:flex; justify-content:space-between; gap:8px; margin: 3px 0; }
-    .coa-control-row span { color:#5d6c83; }
-    .coa-title-row { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin: 0.12in 0 0.16in; }
-    h1 { font-size: 19px; margin: 0; text-transform:uppercase; letter-spacing:.02em; }
-    .coa-title-row p { margin: 6px 0 0; font-size: 9px; color:#56657c; }
-    .coa-status-box { border: 1px solid #80dfc3; min-width: 1.6in; padding: 0.12in; text-align:center; text-transform:uppercase; color:#06815e; font-weight:900; }
-    .coa-status-box span { display:block; color:#268e72; font-size:8px; letter-spacing:.16em; margin-bottom:5px; }
-    .coa-note, .coa-box { border: 1px solid #d8e1ef; background:#fbfdff; padding: 0.1in; font-size:9px; margin: 0.08in 0; }
-    .coa-section-title { margin: 0.16in 0 0.07in; color:#2e6bff; text-transform:uppercase; letter-spacing:.18em; font-size:10px; font-weight:900; border:0; padding:0; }
-    .coa-table { width:100%; border-collapse:collapse; font-size:8.8px; margin: 0 0 0.1in; }
-    .coa-table th, .coa-table td { border:1px solid #cfd9e8; padding: 5px 7px; vertical-align:top; text-align:left; }
-    .coa-table th { width: 28%; color:#0a1a2f; background:#fbfdff; font-weight:900; }
-    .coa-table.analytical th { width:auto; background:#0a1a2f; color:#fff; }
-    .coa-table.analytical td { font-size:8px; }
-    .coa-review-box { border:1px solid #d8e1ef; padding:0.1in; margin:0.12in 0; }
-    .coa-auth-grid { display:grid; grid-template-columns: 1.35fr .95fr; gap:0.14in; align-items:stretch; }
-    .coa-verification-panel { border:1px solid #cfd9e8; padding:0.12in; min-height: 2.2in; }
-    .coa-seal { width:1.05in; height:1.05in; object-fit:contain; display:block; margin: 0 auto 0.1in; }
-    .coa-seal-fallback { width:1.05in; height:1.05in; border:1px solid #cfd9e8; border-radius:50%; display:flex; align-items:center; justify-content:center; text-align:center; font-size:8px; margin:0 auto 0.1in; color:#5d6c83; }
-    .coa-verification-title { color:#2e6bff; text-transform:uppercase; letter-spacing:.14em; font-weight:900; font-size:9px; margin-top:0.08in; }
-    .coa-verification-url { font-size:8px; word-break:break-all; margin:0.05in 0; }
-    .coa-qr { width:1.25in; height:1.25in; object-fit:contain; display:block; margin:0.08in auto 0; }
-    .coa-qr-fallback { width:1.25in; height:1.25in; margin:0.08in auto 0; border:1px solid #cfd9e8; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; }
-    .coa-footer { position:absolute; left:0.42in; right:0.42in; bottom:0.26in; border-top:1px solid #d8e1ef; padding-top:0.08in; color:#56657c; font-size:8px; }
-    .coa-watermark { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-35deg); font-size:48px; font-weight:900; color:#0a1a2f; opacity:.08; z-index:0; pointer-events:none; }
-    @media print {
-      body { background:white; }
-      .coa-toolbar { display:none; }
-      .coa-page { margin:0; box-shadow:none; }
-    }
-  </style>
-</head>
-<body>
-  <div class="coa-toolbar"><button onclick="window.print()">Print / Save as PDF</button><button onclick="window.close()">Close</button></div>
-  ${watermark}
-  ${firstPage}
-  ${secondPage}
-</body>
-</html>`;
-}
-
 function coaHtml(coa: DbRecord, batch: DbRecord | null, brandSettings: CoaBrandSettings) {
   const body = `
     <h2>Document Information</h2>
@@ -980,7 +724,7 @@ function sdsHtml(sds: DbRecord, brandSettings: CoaBrandSettings) {
 }
 
 
-async function bundleZip(supabase: SupabaseClient, bundle: BundleRecord, brandSettings: CoaBrandSettings) {
+async function bundleZip(supabase: SupabaseClient, bundle: BundleRecord, brandSettings: CoaBrandSettings, accessToken: string, origin: string) {
   const [batch, hplc, ms, sds, linkedCoaRecord] = await Promise.all([
     maybeById<DbRecord>(supabase, "batches", bundle.batch_id),
     maybeById<DbRecord>(supabase, "hplc_reports", bundle.hplc_report_id),
@@ -1000,16 +744,13 @@ async function bundleZip(supabase: SupabaseClient, bundle: BundleRecord, brandSe
     throw new Error(`The full pack cannot be prepared because these documents are missing: ${missingDocuments.join(", ")}.`);
   }
 
-  const { results, records } = await getCoaAnalyticalRows(supabase, linkedCoaRecord?.id);
-  const linkedCoaDocument = linkedCoaHtml({
-    coaRecord: linkedCoaRecord as DbRecord,
-    analyticalResults: results,
-    analyticalRecords: records,
-    brandSettings,
-  });
-
   const [coaPdf, hplcPdf, msPdf, sdsPdf] = await Promise.all([
-    renderHtmlToPdfBuffer(linkedCoaDocument),
+    renderPrintableCoaRouteToPdf({
+      supabase,
+      accessToken,
+      origin,
+      coaVerificationId: String(linkedCoaRecord?.id),
+    }),
     renderHtmlToPdfBuffer(hplcHtml(hplc as DbRecord, batch, brandSettings)),
     renderHtmlToPdfBuffer(msHtml(ms as DbRecord, batch, brandSettings)),
     renderHtmlToPdfBuffer(sdsHtml(sds as DbRecord, brandSettings)),
@@ -1084,12 +825,16 @@ async function createResponse({
   documentType,
   documentId,
   brandSettings,
+  accessToken,
+  origin,
   format,
 }: {
   supabase: SupabaseClient;
   documentType: DocumentType;
   documentId: string;
   brandSettings: CoaBrandSettings;
+  accessToken: string;
+  origin: string;
   format?: "html" | "pdf" | "zip";
 }) {
   let html = "";
@@ -1099,7 +844,7 @@ async function createResponse({
     const bundle = await getById<BundleRecord>(supabase, "document_bundles", documentId);
 
     if (format === "zip") {
-      const zipBuffer = await bundleZip(supabase, bundle, brandSettings);
+      const zipBuffer = await bundleZip(supabase, bundle, brandSettings, accessToken, origin);
       filename = `Atlas-Documentation-Bundle-${fileSafe(bundle.bundle_number || bundle.id)}.zip`;
 
       return new Response(zipBuffer, {
@@ -1121,22 +866,25 @@ async function createResponse({
       coaDocument
     );
 
-    if (linkedCoaRecord) {
-      const { results, records } = await getCoaAnalyticalRows(supabase, linkedCoaRecord.id);
-      html = linkedCoaHtml({
-        coaRecord: linkedCoaRecord,
-        analyticalResults: results,
-        analyticalRecords: records,
-        brandSettings,
-      });
-      filename = `COA-${fileSafe(linkedCoaRecord.coa_number || linkedCoaRecord.id)}.html`;
-    } else if (coaDocument) {
-      const batch = await maybeById<DbRecord>(supabase, "batches", text(coaDocument.batch_id, ""));
-      html = coaHtml(coaDocument, batch, brandSettings);
-      filename = `COA-${fileSafe(coaDocument.coa_number || coaDocument.id)}.html`;
-    } else {
-      throw new Error("Linked COA record was not found.");
+    if (!linkedCoaRecord) {
+      throw new Error("Linked COA record was not found. COA downloads only use the source COA verification record.");
     }
+
+    const pdfFilename = `COA-${fileSafe(linkedCoaRecord.coa_number || linkedCoaRecord.id)}.pdf`;
+    const pdfBuffer = await renderPrintableCoaRouteToPdf({
+      supabase,
+      accessToken,
+      origin,
+      coaVerificationId: String(linkedCoaRecord.id),
+    });
+
+    return new Response(pdfBuffer, {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${pdfFilename}"`,
+        "X-Document-Filename": pdfFilename,
+      },
+    });
   } else if (documentType === "hplc") {
     const hplc = await getById<DbRecord>(supabase, "hplc_reports", documentId);
     const batch = await maybeById<DbRecord>(supabase, "batches", text(hplc.batch_id, ""));
@@ -1191,7 +939,7 @@ export async function POST(request: NextRequest) {
     const supabase = createAuthenticatedSupabaseClient(accessToken);
     const brandSettings = await getActiveCoaBrandSettings(supabase);
 
-    return await createResponse({ supabase, documentType, documentId, brandSettings, format });
+    return await createResponse({ supabase, documentType, documentId, brandSettings, accessToken, origin: request.nextUrl.origin, format });
   } catch (error) {
     const message = getErrorMessage(error);
     console.error("Document download error:", error);
