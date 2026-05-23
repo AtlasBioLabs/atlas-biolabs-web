@@ -32,40 +32,56 @@ export async function createHplcReportDraft(
   const documentNumber = generateDocumentNumber("HPLC");
   const now = new Date().toISOString().split("T")[0];
 
+  const { data: existingHplc, error: existingHplcError } = await supabase
+    .from("hplc_reports")
+    .select("*")
+    .eq("batch_id", batch.id)
+    .eq("coa_id", coaDocument.id)
+    .maybeSingle();
+
+  if (existingHplcError) {
+    console.error("Failed to check existing HPLC report:", existingHplcError);
+    throw existingHplcError;
+  }
+
+  if (existingHplc) {
+    return existingHplc as HplcReport;
+  }
+
   const hplcData = {
-  product_id: product.slug,
-  batch_id: batch.id,
-  coa_id: coaDocument.id,
-  document_number: documentNumber,
-  issue_date: now,
-  revision: 1,
-  status: "draft",
-  method_name: "HPLC - Purity Determination",
-  method_code: "HPLC-001",
-  instrument_name: "Analytical HPLC System",
-  column_type: "C18 Reverse Phase",
-  mobile_phase: "To be determined based on product",
-  flow_rate: 1.0,
-  detection_wavelength: 215,
-  injection_volume: 10,
-  run_time: 30,
-  sample_concentration: null,
-  retention_time: null,
-  purity_percent: 0,
-  main_peak_area: 0,
-  total_peak_area: 0,
-  impurities_json: null,
-  peak_table_json: null,
-  chromatogram_file_url: null,
-  raw_data_file_url: null,
-  analyst_name: createdBy,
-  reviewer_name: null,
-  result_summary: "Pending analytical execution",
-  pass_fail_decision: "conditional",
-  acceptance_criteria: `Purity ≥ 95% for ${product.name}`,
-  notes: null,
-  watermark_mode: "draft",
-};
+    product_id: product.slug,
+    batch_id: batch.id,
+    coa_id: coaDocument.id,
+    document_number: documentNumber,
+    issue_date: now,
+    revision: 1,
+    status: "draft",
+    method_name: "HPLC - Purity Determination",
+    method_code: "HPLC-001",
+    instrument_name: "Analytical HPLC System",
+    column_type: "C18 Reverse Phase",
+    mobile_phase: "To be determined based on product",
+    flow_rate: 1.0,
+    detection_wavelength: 215,
+    injection_volume: 10,
+    run_time: 30,
+    sample_concentration: null,
+    retention_time: null,
+    purity_percent: 0,
+    main_peak_area: 0,
+    total_peak_area: 0,
+    impurities_json: null,
+    peak_table_json: null,
+    chromatogram_file_url: null,
+    raw_data_file_url: null,
+    analyst_name: createdBy,
+    reviewer_name: null,
+    result_summary: "Pending analytical execution",
+    pass_fail_decision: "conditional",
+    acceptance_criteria: `Purity ≥ 95% for ${product.name}`,
+    notes: null,
+    watermark_mode: "draft",
+  };
 
   const { data, error } = await supabase
     .from("hplc_reports")
@@ -106,7 +122,23 @@ export async function createMsReportDraft(
   const documentNumber = generateDocumentNumber("MS");
   const now = new Date().toISOString().split("T")[0];
 
-     const msData = {
+  const { data: existingMs, error: existingMsError } = await supabase
+    .from("ms_reports")
+    .select("*")
+    .eq("batch_id", batch.id)
+    .eq("coa_id", coaDocument.id)
+    .maybeSingle();
+
+  if (existingMsError) {
+    console.error("Failed to check existing MS report:", existingMsError);
+    throw existingMsError;
+  }
+
+  if (existingMs) {
+    return existingMs as MsReport;
+  }
+
+  const msData = {
         product_id: product.slug,
         batch_id: batch.id,
         coa_id: coaDocument.id,
@@ -252,19 +284,40 @@ export async function getOrCreateActiveSds(
   product: Product,
   createdBy: string
 ): Promise<SDS> {
-  // Check if active SDS exists
-  const { data: existingSds } = await supabase
+  const { data: existingSds, error: existingSdsError } = await supabase
     .from("sds_documents")
     .select("*")
     .eq("product_id", product.slug)
     .eq("status", "active")
-    .single();
+    .maybeSingle();
+
+  if (existingSdsError) {
+    console.error("Failed to check active SDS:", existingSdsError);
+    throw existingSdsError;
+  }
 
   if (existingSds) {
     return existingSds as SDS;
   }
 
-  // Create new SDS draft
+  const { data: existingDraftSds, error: existingDraftSdsError } = await supabase
+    .from("sds_documents")
+    .select("*")
+    .eq("product_id", product.slug)
+    .eq("status", "draft")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existingDraftSdsError) {
+    console.error("Failed to check draft SDS:", existingDraftSdsError);
+    throw existingDraftSdsError;
+  }
+
+  if (existingDraftSds) {
+    return existingDraftSds as SDS;
+  }
+
   return createSdsDraft(supabase, product, createdBy);
 }
 
@@ -284,12 +337,17 @@ export async function createOrUpdateDocumentBundle(
   const bundleNumber = generateBundleNumber();
 
   // Check if bundle exists for this batch
-  const { data: existingBundle } = await supabase
+  const { data: existingBundle, error: existingBundleError } = await supabase
     .from("document_bundles")
     .select("*")
     .eq("batch_id", batchId)
     .eq("coa_id", coaId)
-    .single();
+    .maybeSingle();
+
+  if (existingBundleError) {
+    console.error("Failed to check document bundle:", existingBundleError);
+    throw existingBundleError;
+  }
 
   const bundleData = {
     product_id: productId,

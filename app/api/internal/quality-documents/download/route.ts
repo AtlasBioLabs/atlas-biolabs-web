@@ -1,111 +1,755 @@
-/**
- * Document Download API
- * Handles PDF generation and downloads for all quality documents
- */
+import { NextRequest, NextResponse } from "next/server";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-import { createServerSupabaseClient } from "@/lib/supabase";
-import { generateCoaPdfHtml, generateHplcPdfHtml } from "@/lib/quality-pdf-templates";
-import { getActiveCoaBrandSettings } from "@/lib/coa-brand-settings";
-import { notFound } from "next/navigation";
+import { getActiveCoaBrandSettings, type CoaBrandSettings } from "@/lib/coa-brand-settings";
 
 export const runtime = "nodejs";
 
-interface DownloadRequest {
-  documentType: "coa" | "hplc" | "ms" | "sds";
-  documentId: string;
-  format?: "html" | "pdf";
+type DocumentType = "coa" | "hplc" | "ms" | "sds" | "bundle";
+
+type DownloadRequest = {
+  documentType?: DocumentType;
+  documentId?: string;
+  format?: "html" | "pdf" | "zip";
+};
+
+type DbRecord = Record<string, unknown>;
+
+type BundleRecord = DbRecord & {
+  id: string;
+  product_id: string;
+  batch_id: string;
+  coa_id: string;
+  hplc_report_id?: string | null;
+  ms_report_id?: string | null;
+  sds_id?: string | null;
+  bundle_number?: string | null;
+  status?: string | null;
+};
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+function createAuthenticatedSupabaseClient(accessToken: string) {
+  if (!supabaseUrl || !supabasePublishableKey) {
+    throw new Error("Supabase environment variables are missing.");
+  }
+
+  return createClient(supabaseUrl, supabasePublishableKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+    global: {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      fetch,
+    },
+  });
 }
 
-/**
- * POST /api/internal/quality-documents/download
- * Generate and return document in requested format
- */
-export async function POST(request: Request) {
-  try {
-    const body: DownloadRequest = await request.json();
-    const { documentType, documentId, format = "html" } = body;
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
 
-    const supabase = createServerSupabaseClient();
+  if (typeof error === "object" && error !== null && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim()) return message;
+  }
+
+  return "Document could not be generated.";
+}
+
+function text(value: unknown, fallback = "—") {
+  if (value === null || value === undefined || value === "") return fallback;
+  return String(value);
+}
+
+function htmlEscape(value: unknown) {
+  return text(value, "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function fileSafe(value: unknown) {
+  return text(value, "document")
+    .replace(/[^a-z0-9-_]+/gi, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+const crcTable = (() => {
+  const table = new Uint32Array(256);
+  for (let index = 0; index < 256; index += 1) {
+    let current = index;
+    for (let bit = 0; bit < 8; bit += 1) {
+      current = current & 1 ? 0xedb88320 ^ (current >>> 1) : current >>> 1;
+    }
+    table[index] = current >>> 0;
+  }
+  return table;
+})();
+
+function crc32(buffer: Buffer) {
+  let crc = 0xffffffff;
+  for (const byte of buffer) {
+    crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function dosDateTime(date = new Date()) {
+  const dosTime =
+    (date.getHours() << 11) |
+    (date.getMinutes() << 5) |
+    Math.floor(date.getSeconds() / 2);
+  const dosDate =
+    ((date.getFullYear() - 1980) << 9) |
+    ((date.getMonth() + 1) << 5) |
+    date.getDate();
+  return { dosDate, dosTime };
+}
+
+function writeUInt16(value: number) {
+  const buffer = Buffer.alloc(2);
+  buffer.writeUInt16LE(value, 0);
+  return buffer;
+}
+
+function writeUInt32(value: number) {
+  const buffer = Buffer.alloc(4);
+  buffer.writeUInt32LE(value >>> 0, 0);
+  return buffer;
+}
+
+function createZipBuffer(files: Array<{ name: string; content: string }>) {
+  const localParts: Buffer[] = [];
+  const centralParts: Buffer[] = [];
+  let offset = 0;
+  const { dosDate, dosTime } = dosDateTime();
+
+  for (const file of files) {
+    const safeName = file.name.replace(/^\/+/, "");
+    const nameBuffer = Buffer.from(safeName, "utf8");
+    const contentBuffer = Buffer.from(file.content, "utf8");
+    const checksum = crc32(contentBuffer);
+
+    const localHeader = Buffer.concat([
+      writeUInt32(0x04034b50),
+      writeUInt16(20),
+      writeUInt16(0),
+      writeUInt16(0),
+      writeUInt16(dosTime),
+      writeUInt16(dosDate),
+      writeUInt32(checksum),
+      writeUInt32(contentBuffer.length),
+      writeUInt32(contentBuffer.length),
+      writeUInt16(nameBuffer.length),
+      writeUInt16(0),
+      nameBuffer,
+    ]);
+
+    localParts.push(localHeader, contentBuffer);
+
+    const centralHeader = Buffer.concat([
+      writeUInt32(0x02014b50),
+      writeUInt16(20),
+      writeUInt16(20),
+      writeUInt16(0),
+      writeUInt16(0),
+      writeUInt16(dosTime),
+      writeUInt16(dosDate),
+      writeUInt32(checksum),
+      writeUInt32(contentBuffer.length),
+      writeUInt32(contentBuffer.length),
+      writeUInt16(nameBuffer.length),
+      writeUInt16(0),
+      writeUInt16(0),
+      writeUInt16(0),
+      writeUInt16(0),
+      writeUInt32(0),
+      writeUInt32(offset),
+      nameBuffer,
+    ]);
+
+    centralParts.push(centralHeader);
+    offset += localHeader.length + contentBuffer.length;
+  }
+
+  const centralDirectory = Buffer.concat(centralParts);
+  const endRecord = Buffer.concat([
+    writeUInt32(0x06054b50),
+    writeUInt16(0),
+    writeUInt16(0),
+    writeUInt16(files.length),
+    writeUInt16(files.length),
+    writeUInt32(centralDirectory.length),
+    writeUInt32(offset),
+    writeUInt16(0),
+  ]);
+
+  return Buffer.concat([...localParts, centralDirectory, endRecord]);
+}
+
+async function getById<T extends DbRecord>(
+  supabase: SupabaseClient,
+  tableName: string,
+  id: string
+) {
+  const { data, error } = await supabase
+    .from(tableName)
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error(`${tableName} record was not found.`);
+
+  return data as T;
+}
+
+async function maybeById<T extends DbRecord>(
+  supabase: SupabaseClient,
+  tableName: string,
+  id?: string | null
+) {
+  if (!id) return null;
+
+  const { data, error } = await supabase
+    .from(tableName)
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return (data as T | null) || null;
+}
+
+function getBrandValue(brandSettings: CoaBrandSettings, key: keyof CoaBrandSettings, fallback: string) {
+  const value = brandSettings[key];
+  return typeof value === "string" && value.trim() ? value : fallback;
+}
+
+function resolveAssetUrl(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (/^(https?:|data:|blob:)/i.test(trimmed)) return trimmed;
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  if (trimmed.startsWith("/")) return `${baseUrl.replace(/\/$/, "")}${trimmed}`;
+  return trimmed;
+}
+
+function baseHtml({
+  title,
+  subtitle,
+  brandSettings,
+  watermarkMode,
+  body,
+  autoPrint = false,
+}: {
+  title: string;
+  subtitle?: string;
+  brandSettings: CoaBrandSettings;
+  watermarkMode?: string | null;
+  body: string;
+  autoPrint?: boolean;
+}) {
+  const companyName = getBrandValue(brandSettings, "company_name", "Atlas BioLabs");
+  const qualityUnitName = getBrandValue(brandSettings, "quality_unit_name", "Quality Documentation Unit");
+  const tagline = getBrandValue(brandSettings, "tagline", "Precision Research Compounds - Batch Documentation - Analytical Traceability");
+  const logoUrl = resolveAssetUrl(getBrandValue(brandSettings, "logo_url", ""));
+  const footerText = getBrandValue(
+    brandSettings,
+    "footer_text",
+    "Atlas BioLabs documentation is provided for qualified commercial sourcing, research, documentation, and formulation context only. No medical, dosing, or human-use claims are made."
+  );
+  const watermarkText =
+    watermarkMode === "sample"
+      ? "SAMPLE / DEMO — NOT FOR RELEASE OR CUSTOMER USE"
+      : watermarkMode === "draft"
+        ? "DRAFT — DOCUMENT NOT YET APPROVED"
+        : "";
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${htmlEscape(title)}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f7fb; color: #0a1a2f; font-family: Arial, Helvetica, sans-serif; line-height: 1.45; }
+    .toolbar { position: sticky; top: 0; z-index: 10; display: flex; gap: 10px; align-items: center; justify-content: flex-end; padding: 12px 18px; background: #0a1a2f; color: white; }
+    .toolbar button { border: 1px solid rgba(255,255,255,.35); background: white; color: #0a1a2f; border-radius: 8px; padding: 8px 12px; font-weight: 700; cursor: pointer; }
+    .page { width: min(8.5in, calc(100% - 28px)); min-height: 11in; margin: 18px auto; padding: .55in; background: white; border: 1px solid #d8e1ef; border-radius: 14px; box-shadow: 0 16px 40px rgba(10, 26, 47, .08); position: relative; overflow: hidden; }
+    .page-break { page-break-before: always; }
+    .header { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; border-bottom: 3px solid #0a1a2f; padding-bottom: 16px; margin-bottom: 22px; }
+    .brand-block { display: flex; gap: 12px; align-items: flex-start; min-width: 0; }
+    .logo { max-height: 54px; max-width: 150px; object-fit: contain; display: block; }
+    .logo-fallback { width: 54px; height: 54px; display:flex; align-items:center; justify-content:center; border:1px solid #d8e1ef; background:#f7faff; color:#0a1a2f; font-size:8px; line-height:1.1; text-align:center; font-weight:800; padding:4px; }
+    .brand { letter-spacing: .18em; text-transform: uppercase; font-size: 11px; color: #2e6bff; font-weight: 800; }
+    .quality-unit { margin-top: 3px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #4d5d75; font-weight: 700; }
+    .tagline { margin-top: 5px; max-width: 5in; color: #5c6b82; font-size: 10px; }
+    h1 { margin: 6px 0 0; font-size: 24px; }
+    h2 { margin: 24px 0 10px; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: #2e6bff; border-bottom: 1px solid #d8e1ef; padding-bottom: 6px; }
+    h3 { margin: 16px 0 8px; font-size: 13px; color: #0a1a2f; }
+    .subtitle { margin-top: 4px; color: #5c6b82; font-size: 13px; }
+    .meta { text-align: right; font-size: 11px; color: #4d5d75; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .item { border: 1px solid #d8e1ef; border-radius: 10px; padding: 9px 10px; background: #fbfdff; }
+    .label { display: block; color: #62708a; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+    .value { font-size: 12px; font-weight: 700; color: #0a1a2f; white-space: pre-wrap; }
+    .box { border: 1px solid #d8e1ef; border-radius: 12px; padding: 12px; background: #fbfdff; font-size: 12px; white-space: pre-wrap; }
+    .result { border: 2px solid #2e6bff; background: #f4f8ff; border-radius: 12px; padding: 14px; margin: 12px 0; }
+    .result strong { font-size: 20px; color: #2e6bff; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 11px; }
+    th, td { border: 1px solid #d8e1ef; text-align: left; padding: 8px; vertical-align: top; }
+    th { background: #f4f7fb; color: #0a1a2f; }
+    .footer { margin-top: 28px; border-top: 1px solid #d8e1ef; padding-top: 12px; font-size: 10px; color: #5c6b82; }
+    .signature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 24px; }
+    .signature { text-align: center; font-size: 11px; }
+    .line { height: 44px; border-bottom: 1px solid #0a1a2f; margin-bottom: 8px; }
+    .watermark { position: fixed; top: 46%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); opacity: .08; font-size: 54px; font-weight: 900; letter-spacing: .06em; color: #0a1a2f; width: 130%; text-align: center; z-index: 0; pointer-events: none; }
+    .content { position: relative; z-index: 1; }
+    @media print {
+      body { background: white; }
+      .toolbar { display: none; }
+      .page { width: 100%; min-height: auto; margin: 0; border: 0; border-radius: 0; box-shadow: none; page-break-after: always; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar"><button onclick="window.print()">Print / Save as PDF</button><button onclick="window.close()">Close</button></div>
+  <main class="page">
+    ${watermarkText ? `<div class="watermark">${htmlEscape(watermarkText)}</div>` : ""}
+    <div class="content">
+      <div class="header">
+        <div class="brand-block">
+          ${logoUrl ? `<img class="logo" src="${htmlEscape(logoUrl)}" alt="${htmlEscape(companyName)} logo" />` : `<div class="logo-fallback">${htmlEscape(companyName)}</div>`}
+          <div>
+            <div class="brand">${htmlEscape(companyName)}</div>
+            <div class="quality-unit">${htmlEscape(qualityUnitName)}</div>
+            <div class="tagline">${htmlEscape(tagline)}</div>
+            <h1>${htmlEscape(title)}</h1>
+            ${subtitle ? `<p class="subtitle">${htmlEscape(subtitle)}</p>` : ""}
+          </div>
+        </div>
+        <div class="meta">Generated ${htmlEscape(new Date().toISOString().split("T")[0])}<br/>${htmlEscape(getBrandValue(brandSettings, "verification_base_url", "https://www.atlasbiolabs.co/verify"))}</div>
+      </div>
+      ${body}
+      <div class="footer">${htmlEscape(footerText)}</div>
+    </div>
+  </main>
+  ${autoPrint ? "<script>window.addEventListener('load', () => setTimeout(() => window.print(), 250));</script>" : ""}
+</body>
+</html>`;
+}
+
+function kv(label: string, value: unknown) {
+  return `<div class="item"><span class="label">${htmlEscape(label)}</span><div class="value">${htmlEscape(value)}</div></div>`;
+}
+
+function signatures(names: Array<{ label: string; name?: unknown }>) {
+  return `<div class="signature-grid">${names
+    .map(
+      (entry) => `<div class="signature"><div class="line"></div><strong>${htmlEscape(entry.name)}</strong><br/><span>${htmlEscape(entry.label)}</span></div>`
+    )
+    .join("")}</div>`;
+}
+
+function coaHtml(coa: DbRecord, batch: DbRecord | null, brandSettings: CoaBrandSettings) {
+  const body = `
+    <h2>Document Information</h2>
+    <div class="grid">
+      ${kv("COA Number", coa.coa_number)}
+      ${kv("Issue Date", coa.issue_date)}
+      ${kv("Revision", coa.revision)}
+      ${kv("Document Status", coa.document_status)}
+      ${kv("Release Decision", coa.release_decision)}
+      ${kv("Verification Code", coa.verification_code)}
+    </div>
+    <h2>Product and Batch</h2>
+    <div class="grid">
+      ${kv("Product ID", coa.product_id)}
+      ${kv("Batch Number", batch?.batch_number)}
+      ${kv("Lot Number", batch?.lot_number)}
+      ${kv("Manufacturing Date", batch?.manufacturing_date)}
+      ${kv("Expiry / Retest Date", batch?.expiry_date)}
+      ${kv("Country of Origin", batch?.country_of_origin)}
+    </div>
+    <h2>Supporting Documentation</h2>
+    <div class="grid">
+      ${kv("HPLC Report ID", coa.hplc_report_id)}
+      ${kv("MS / LC-MS Report ID", coa.ms_report_id)}
+      ${kv("SDS ID", coa.sds_id)}
+      ${kv("Client / Recipient", coa.client_recipient)}
+    </div>
+    <h2>Notes</h2>
+    <div class="box">${htmlEscape(coa.notes)}</div>
+    ${signatures([
+      { label: "Prepared By", name: coa.prepared_by },
+      { label: "Reviewed By", name: coa.reviewed_by },
+      { label: "Approved By", name: coa.approved_by },
+    ])}`;
+
+  return baseHtml({
+    title: "Certificate of Analysis",
+    subtitle: text(coa.coa_number),
+    brandSettings,
+    watermarkMode: text(coa.watermark_mode, "none"),
+    body,
+  });
+}
+
+function hplcHtml(hplc: DbRecord, batch: DbRecord | null, brandSettings: CoaBrandSettings) {
+  const purity = Number(hplc.purity_percent ?? 0).toFixed(2);
+  const body = `
+    <h2>Product and Batch Information</h2>
+    <div class="grid">
+      ${kv("Product ID", hplc.product_id)}
+      ${kv("Batch Number", batch?.batch_number || hplc.batch_id)}
+      ${kv("Document Number", hplc.document_number)}
+      ${kv("Issue Date", hplc.issue_date)}
+      ${kv("Revision", hplc.revision)}
+      ${kv("Status", hplc.status)}
+    </div>
+    <h2>Method Summary</h2>
+    <div class="grid">
+      ${kv("Method", hplc.method_name)}
+      ${kv("Method Code", hplc.method_code)}
+      ${kv("Instrument", hplc.instrument_name)}
+      ${kv("Column", hplc.column_type)}
+      ${kv("Mobile Phase", hplc.mobile_phase)}
+      ${kv("Flow Rate", `${text(hplc.flow_rate)} mL/min`)}
+      ${kv("Detection Wavelength", `${text(hplc.detection_wavelength)} nm`)}
+      ${kv("Injection Volume", `${text(hplc.injection_volume)} µL`)}
+      ${kv("Run Time", `${text(hplc.run_time)} min`)}
+      ${kv("Retention Time", hplc.retention_time)}
+    </div>
+    <h2>Results</h2>
+    <div class="result"><span class="label">Purity Result</span><strong>${htmlEscape(purity)}%</strong><br/><span>${htmlEscape(hplc.acceptance_criteria)}</span></div>
+    <div class="grid">
+      ${kv("Main Peak Area", hplc.main_peak_area)}
+      ${kv("Total Peak Area", hplc.total_peak_area)}
+      ${kv("Decision", hplc.pass_fail_decision)}
+    </div>
+    <h3>Result Summary</h3><div class="box">${htmlEscape(hplc.result_summary)}</div>
+    ${signatures([
+      { label: "Analyst", name: hplc.analyst_name },
+      { label: "Reviewer", name: hplc.reviewer_name },
+    ])}`;
+
+  return baseHtml({
+    title: "HPLC Purity Report",
+    subtitle: text(hplc.document_number),
+    brandSettings,
+    watermarkMode: text(hplc.watermark_mode, "draft"),
+    body,
+  });
+}
+
+function msHtml(ms: DbRecord, batch: DbRecord | null, brandSettings: CoaBrandSettings) {
+  const body = `
+    <h2>Product and Batch Information</h2>
+    <div class="grid">
+      ${kv("Product ID", ms.product_id)}
+      ${kv("Batch Number", batch?.batch_number || ms.batch_id)}
+      ${kv("Document Number", ms.document_number)}
+      ${kv("Issue Date", ms.issue_date)}
+      ${kv("Revision", ms.revision)}
+      ${kv("Status", ms.status)}
+    </div>
+    <h2>Method Summary</h2>
+    <div class="grid">
+      ${kv("Method", ms.method_name)}
+      ${kv("Method Code", ms.method_code)}
+      ${kv("Instrument", ms.instrument_name)}
+      ${kv("Ionization Mode", ms.ionization_mode)}
+      ${kv("Charge State", ms.charge_state)}
+    </div>
+    <h2>Identity Results</h2>
+    <div class="grid">
+      ${kv("Expected Molecular Weight", ms.expected_molecular_weight)}
+      ${kv("Observed Mass", ms.observed_mass)}
+      ${kv("Mass Error", ms.mass_error)}
+      ${kv("Mass Error PPM", ms.mass_error_ppm)}
+      ${kv("Decision", ms.pass_fail_decision)}
+      ${kv("Acceptance Criteria", ms.acceptance_criteria)}
+    </div>
+    <h3>Identity Conclusion</h3><div class="box">${htmlEscape(ms.identity_conclusion)}</div>
+    ${signatures([
+      { label: "Analyst", name: ms.analyst_name },
+      { label: "Reviewer", name: ms.reviewer_name },
+    ])}`;
+
+  return baseHtml({
+    title: "MS / LC-MS Identity Report",
+    subtitle: text(ms.document_number),
+    brandSettings,
+    watermarkMode: text(ms.watermark_mode, "draft"),
+    body,
+  });
+}
+
+function sdsHtml(sds: DbRecord, brandSettings: CoaBrandSettings) {
+  const sections = [
+    ["1. Identification", sds.section_1_identification],
+    ["2. Hazard(s) Identification", sds.section_2_hazard_identification],
+    ["3. Composition / Information on Ingredients", sds.section_3_composition],
+    ["4. First-Aid Measures", sds.section_4_first_aid],
+    ["5. Fire-Fighting Measures", sds.section_5_fire_fighting],
+    ["6. Accidental Release Measures", sds.section_6_accidental_release],
+    ["7. Handling and Storage", sds.section_7_handling_storage],
+    ["8. Exposure Controls / Personal Protection", sds.section_8_exposure_controls],
+    ["9. Physical and Chemical Properties", sds.section_9_physical_chemical],
+    ["10. Stability and Reactivity", sds.section_10_stability_reactivity],
+    ["11. Toxicological Information", sds.section_11_toxicological],
+    ["12. Ecological Information", sds.section_12_ecological],
+    ["13. Disposal Considerations", sds.section_13_disposal],
+    ["14. Transport Information", sds.section_14_transport],
+    ["15. Regulatory Information", sds.section_15_regulatory],
+    ["16. Other Information", sds.section_16_other],
+  ];
+
+  const body = `
+    <h2>Document Information</h2>
+    <div class="grid">
+      ${kv("Product ID", sds.product_id)}
+      ${kv("Document Number", sds.document_number)}
+      ${kv("Revision", sds.revision)}
+      ${kv("Issue Date", sds.issue_date)}
+      ${kv("Revision Date", sds.revision_date)}
+      ${kv("Status", sds.status)}
+      ${kv("Language", sds.language)}
+      ${kv("Jurisdiction", sds.jurisdiction)}
+      ${kv("Signal Word", sds.signal_word)}
+    </div>
+    ${sections.map(([title, value]) => `<h2>${htmlEscape(title)}</h2><div class="box">${htmlEscape(value)}</div>`).join("")}
+    ${signatures([
+      { label: "Prepared By", name: sds.prepared_by },
+      { label: "Reviewed By", name: sds.reviewed_by },
+      { label: "Approved By", name: sds.approved_by },
+    ])}`;
+
+  return baseHtml({
+    title: "Safety Data Sheet / SDS",
+    subtitle: text(sds.document_number),
+    brandSettings,
+    watermarkMode: sds.status === "active" ? "none" : "draft",
+    body,
+  });
+}
+
+
+async function bundleZip(supabase: SupabaseClient, bundle: BundleRecord, brandSettings: CoaBrandSettings) {
+  const [coa, batch, hplc, ms, sds] = await Promise.all([
+    maybeById<DbRecord>(supabase, "coa_documents", bundle.coa_id),
+    maybeById<DbRecord>(supabase, "batches", bundle.batch_id),
+    maybeById<DbRecord>(supabase, "hplc_reports", bundle.hplc_report_id),
+    maybeById<DbRecord>(supabase, "ms_reports", bundle.ms_report_id),
+    maybeById<DbRecord>(supabase, "sds_documents", bundle.sds_id),
+  ]);
+
+  const baseName = fileSafe(bundle.bundle_number || bundle.id);
+  const files: Array<{ name: string; content: string }> = [];
+
+  if (coa) {
+    files.push({
+      name: `${baseName}/01-COA-${fileSafe(coa.coa_number || coa.id)}.html`,
+      content: coaHtml(coa, batch, brandSettings),
+    });
+  }
+
+  if (hplc) {
+    files.push({
+      name: `${baseName}/02-HPLC-${fileSafe(hplc.document_number || hplc.id)}.html`,
+      content: hplcHtml(hplc, batch, brandSettings),
+    });
+  }
+
+  if (ms) {
+    files.push({
+      name: `${baseName}/03-MS-LCMS-${fileSafe(ms.document_number || ms.id)}.html`,
+      content: msHtml(ms, batch, brandSettings),
+    });
+  }
+
+  if (sds) {
+    files.push({
+      name: `${baseName}/04-SDS-${fileSafe(sds.document_number || sds.id)}.html`,
+      content: sdsHtml(sds, brandSettings),
+    });
+  }
+
+  const indexHtml = baseHtml({
+    title: "Quality Documentation Pack Index",
+    subtitle: text(bundle.bundle_number),
+    brandSettings,
+    watermarkMode: bundle.status === "released" ? "none" : "draft",
+    body: `
+      <h2>Included Documents</h2>
+      <table>
+        <thead><tr><th>Document</th><th>Reference</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Certificate of Analysis</td><td>${htmlEscape(coa?.coa_number || bundle.coa_id)}</td><td>${htmlEscape(coa?.document_status || "Linked")}</td></tr>
+          <tr><td>HPLC Purity Report</td><td>${htmlEscape(hplc?.document_number || bundle.hplc_report_id || "Missing")}</td><td>${htmlEscape(hplc?.status || "Missing")}</td></tr>
+          <tr><td>MS / LC-MS Identity Report</td><td>${htmlEscape(ms?.document_number || bundle.ms_report_id || "Missing")}</td><td>${htmlEscape(ms?.status || "Missing")}</td></tr>
+          <tr><td>Safety Data Sheet / SDS</td><td>${htmlEscape(sds?.document_number || bundle.sds_id || "Missing")}</td><td>${htmlEscape(sds?.status || "Missing")}</td></tr>
+        </tbody>
+      </table>
+      <p class="box">Open each HTML file in a browser to print or save as PDF. The files use the same Atlas BioLabs branding settings as the COA document.</p>
+    `,
+  });
+
+  return createZipBuffer([
+    { name: `${baseName}/00-README-INDEX.html`, content: indexHtml },
+    ...files,
+  ]);
+}
+
+async function bundleHtml(supabase: SupabaseClient, bundle: BundleRecord, brandSettings: CoaBrandSettings) {
+  const [coa, batch, hplc, ms, sds] = await Promise.all([
+    maybeById<DbRecord>(supabase, "coa_documents", bundle.coa_id),
+    maybeById<DbRecord>(supabase, "batches", bundle.batch_id),
+    maybeById<DbRecord>(supabase, "hplc_reports", bundle.hplc_report_id),
+    maybeById<DbRecord>(supabase, "ms_reports", bundle.ms_report_id),
+    maybeById<DbRecord>(supabase, "sds_documents", bundle.sds_id),
+  ]);
+
+  const summary = `
+    <h2>Bundle Summary</h2>
+    <div class="grid">
+      ${kv("Bundle Number", bundle.bundle_number)}
+      ${kv("Status", bundle.status)}
+      ${kv("Product ID", bundle.product_id)}
+      ${kv("Batch Number", batch?.batch_number || bundle.batch_id)}
+      ${kv("COA", coa?.coa_number || bundle.coa_id)}
+      ${kv("HPLC", hplc?.document_number || bundle.hplc_report_id)}
+      ${kv("MS / LC-MS", ms?.document_number || bundle.ms_report_id)}
+      ${kv("SDS", sds?.document_number || bundle.sds_id)}
+    </div>
+  `;
+
+  const documents = [
+    summary,
+    coa ? coaHtml(coa, batch, brandSettings).match(/<main class="page">([\s\S]*)<\/main>/)?.[1] : "",
+    hplc ? hplcHtml(hplc, batch, brandSettings).match(/<main class="page">([\s\S]*)<\/main>/)?.[1] : "",
+    ms ? msHtml(ms, batch, brandSettings).match(/<main class="page">([\s\S]*)<\/main>/)?.[1] : "",
+    sds ? sdsHtml(sds, brandSettings).match(/<main class="page">([\s\S]*)<\/main>/)?.[1] : "",
+  ].filter(Boolean);
+
+  const body = documents
+    .map((doc, index) => `<section class="${index === 0 ? "" : "page-break"}">${doc}</section>`)
+    .join("\n");
+
+  return baseHtml({
+    title: "Quality Documentation Bundle",
+    subtitle: text(bundle.bundle_number),
+    brandSettings,
+    watermarkMode: bundle.status === "released" ? "none" : "draft",
+    body,
+  });
+}
+
+async function createResponse({
+  supabase,
+  documentType,
+  documentId,
+  brandSettings,
+  format,
+}: {
+  supabase: SupabaseClient;
+  documentType: DocumentType;
+  documentId: string;
+  brandSettings: CoaBrandSettings;
+  format?: "html" | "pdf" | "zip";
+}) {
+  let html = "";
+  let filename = "quality-document.html";
+
+  if (documentType === "bundle") {
+    const bundle = await getById<BundleRecord>(supabase, "document_bundles", documentId);
+
+    if (format === "zip") {
+      const zipBuffer = await bundleZip(supabase, bundle, brandSettings);
+      filename = `Atlas-Documentation-Bundle-${fileSafe(bundle.bundle_number || bundle.id)}.zip`;
+
+      return new Response(zipBuffer, {
+        headers: {
+          "Content-Type": "application/zip",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+          "X-Document-Filename": filename,
+        },
+      });
+    }
+
+    html = await bundleHtml(supabase, bundle, brandSettings);
+    filename = `Atlas-Documentation-Bundle-${fileSafe(bundle.bundle_number || bundle.id)}.html`;
+  } else if (documentType === "coa") {
+    const coa = await getById<DbRecord>(supabase, "coa_documents", documentId);
+    const batch = await maybeById<DbRecord>(supabase, "batches", text(coa.batch_id, ""));
+    html = coaHtml(coa, batch, brandSettings);
+    filename = `COA-${fileSafe(coa.coa_number || coa.id)}.html`;
+  } else if (documentType === "hplc") {
+    const hplc = await getById<DbRecord>(supabase, "hplc_reports", documentId);
+    const batch = await maybeById<DbRecord>(supabase, "batches", text(hplc.batch_id, ""));
+    html = hplcHtml(hplc, batch, brandSettings);
+    filename = `HPLC-${fileSafe(hplc.document_number || hplc.id)}.html`;
+  } else if (documentType === "ms") {
+    const ms = await getById<DbRecord>(supabase, "ms_reports", documentId);
+    const batch = await maybeById<DbRecord>(supabase, "batches", text(ms.batch_id, ""));
+    html = msHtml(ms, batch, brandSettings);
+    filename = `MS-LCMS-${fileSafe(ms.document_number || ms.id)}.html`;
+  } else if (documentType === "sds") {
+    const sds = await getById<DbRecord>(supabase, "sds_documents", documentId);
+    html = sdsHtml(sds, brandSettings);
+    filename = `SDS-${fileSafe(sds.document_number || sds.id)}.html`;
+  }
+
+  return new Response(html, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "X-Document-Filename": filename,
+    },
+  });
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const authorization = request.headers.get("authorization") ?? "";
+    const accessToken = authorization.replace(/^Bearer\s+/i, "").trim();
+
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: "Admin session is required to download quality documents." },
+        { status: 401 }
+      );
+    }
+
+    const body = (await request.json()) as DownloadRequest;
+    const { documentType, documentId, format } = body;
+
+    if (!documentType || !["coa", "hplc", "ms", "sds", "bundle"].includes(documentType)) {
+      return NextResponse.json({ error: "Unsupported or missing document type." }, { status: 400 });
+    }
+
+    if (!documentId) {
+      return NextResponse.json({ error: "documentId is required." }, { status: 400 });
+    }
+
+    const supabase = createAuthenticatedSupabaseClient(accessToken);
     const brandSettings = await getActiveCoaBrandSettings(supabase);
 
-    if (documentType === "coa") {
-      const { data: coa } = await supabase
-        .from("coa_documents")
-        .select("*")
-        .eq("id", documentId)
-        .single();
-
-      if (!coa) return notFound();
-
-      const { data: batch } = await supabase
-        .from("batches")
-        .select("*")
-        .eq("id", coa.batch_id)
-        .single();
-
-      if (!batch) return notFound();
-
-      // Generate HTML
-      const html = generateCoaPdfHtml(coa, coa.product_id, batch, {
-        brandSettings,
-        watermarkMode: coa.watermark_mode,
-        includeQrCode: true,
-      });
-
-      if (format === "html") {
-        return new Response(html, {
-          headers: {
-            "Content-Type": "text/html; charset=utf-8",
-            "Content-Disposition": `attachment; filename="COA-${coa.coa_number}.html"`,
-          },
-        });
-      }
-
-      // For PDF, return HTML and let browser handle printing
-      return new Response(html, {
-        headers: {
-          "Content-Type": "text/html; charset=utf-8",
-        },
-      });
-    }
-
-    if (documentType === "hplc") {
-      const { data: hplc } = await supabase
-        .from("hplc_reports")
-        .select("*")
-        .eq("id", documentId)
-        .single();
-
-      if (!hplc) return notFound();
-
-      const html = generateHplcPdfHtml(hplc, hplc.product_id, {
-        brandSettings,
-        watermarkMode: hplc.watermark_mode,
-        includeCharts: true,
-      });
-
-      return new Response(html, {
-        headers: {
-          "Content-Type": "text/html; charset=utf-8",
-          "Content-Disposition": `attachment; filename="HPLC-${hplc.document_number}.html"`,
-        },
-      });
-    }
-
-    return new Response(JSON.stringify({ error: "Unsupported document type" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return await createResponse({ supabase, documentType, documentId, brandSettings, format });
   } catch (error) {
+    const message = getErrorMessage(error);
     console.error("Document download error:", error);
-    return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : "Unknown error",
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

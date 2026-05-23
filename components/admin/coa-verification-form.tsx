@@ -6,6 +6,7 @@ import {
   CopyPlusIcon,
   ExternalLinkIcon,
   EyeIcon,
+  FileTextIcon,
   RefreshCcwIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -92,6 +93,32 @@ type FormSection = {
   title: string;
   description: string;
   fields: FieldConfig[];
+};
+
+type SupportingDocumentsState = {
+  bundleId: string | null;
+  batchId: string | null;
+  coaDocumentId: string | null;
+  hplcReportId: string | null;
+  msReportId: string | null;
+  sdsId: string | null;
+  status: string | null;
+  generatedAt: string | null;
+  generatedBy: string | null;
+  error: string | null;
+};
+
+const emptySupportingDocumentsState: SupportingDocumentsState = {
+  bundleId: null,
+  batchId: null,
+  coaDocumentId: null,
+  hplcReportId: null,
+  msReportId: null,
+  sdsId: null,
+  status: null,
+  generatedAt: null,
+  generatedBy: null,
+  error: null,
 };
 
 const inputClassName =
@@ -286,7 +313,11 @@ export function CoaVerificationForm({
   const [isLoading, setIsLoading] = useState(mode === "edit");
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [isGeneratingDocs, setIsGeneratingDocs] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState(false);
+  const [supportingDocs, setSupportingDocs] = useState<SupportingDocumentsState>(
+    emptySupportingDocumentsState
+  );
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
@@ -338,6 +369,18 @@ export function CoaVerificationForm({
         setValues(nextValues);
         setAnalyticalResults(editorData.analyticalResults);
         setAnalyticalRecords(editorData.analyticalRecords);
+        setSupportingDocs({
+          bundleId: editorData.row.document_bundle_id ?? null,
+          batchId: editorData.row.quality_batch_id ?? null,
+          coaDocumentId: editorData.row.quality_coa_document_id ?? null,
+          hplcReportId: editorData.row.hplc_report_id ?? null,
+          msReportId: editorData.row.ms_report_id ?? null,
+          sdsId: editorData.row.sds_id ?? null,
+          status: editorData.row.supporting_documents_status ?? null,
+          generatedAt: editorData.row.supporting_documents_generated_at ?? null,
+          generatedBy: editorData.row.supporting_documents_generated_by ?? null,
+          error: editorData.row.supporting_documents_error ?? null,
+        });
       } catch (error) {
         if (!isMounted) {
           return;
@@ -689,6 +732,169 @@ export function CoaVerificationForm({
     }
   }
 
+  function updateGeneratedAnalyticalRecordRows({
+    hplcDocumentNumber,
+    msDocumentNumber,
+    sdsDocumentNumber,
+  }: {
+    hplcDocumentNumber?: string;
+    msDocumentNumber?: string;
+    sdsDocumentNumber?: string;
+  }) {
+    const nextRecords = analyticalRecords.map((row) => {
+      if (row.row_key === "hplc_chromatogram") {
+        return {
+          ...row,
+          reference_file_name: hplcDocumentNumber || row.reference_file_name,
+          availability: hplcDocumentNumber
+            ? "Draft generated / available for review"
+            : row.availability,
+        };
+      }
+
+      if (row.row_key === "lcms_identity_report") {
+        return {
+          ...row,
+          reference_file_name: msDocumentNumber || row.reference_file_name,
+          availability: msDocumentNumber
+            ? "Draft generated / available for review"
+            : row.availability,
+        };
+      }
+
+      if (row.row_key === "sds_safety_data_sheet") {
+        return {
+          ...row,
+          reference_file_name: sdsDocumentNumber || row.reference_file_name,
+          availability: sdsDocumentNumber
+            ? "Draft generated / available for review"
+            : row.availability,
+        };
+      }
+
+      if (row.row_key === "raw_data_archive") {
+        return {
+          ...row,
+          reference_file_name: row.reference_file_name || "Internal QA record folder",
+          availability: "Controlled access",
+        };
+      }
+
+      return row;
+    });
+
+    commitAnalyticalState(analyticalResults, nextRecords);
+  }
+
+  async function handleGenerateSupportingDocuments() {
+    if (!recordId) {
+      return;
+    }
+
+    if (supportingDocs.bundleId) {
+      router.push(`/admin/quality/document-bundles/${supportingDocs.bundleId}`);
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Generate HPLC, MS / LC-MS, SDS, and document bundle for ${values.coa_number}?`
+      )
+    ) {
+      return;
+    }
+
+    setIsGeneratingDocs(true);
+    setFormError(null);
+    setFormSuccess(null);
+
+    try {
+      const generatedBy =
+        values.approved_by ||
+        values.reviewed_by ||
+        values.created_by ||
+        "Atlas Labs QA Documentation Officer";
+
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.access_token) {
+        throw new Error("Admin session expired. Please log in again before generating documents.");
+      }
+
+      const response = await fetch("/api/internal/quality-documents/generate-from-coa", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          coaVerificationId: recordId,
+          generatedBy,
+        }),
+      });
+
+      const result = (await response.json()) as {
+        batchId?: string;
+        coaDocumentId?: string;
+        hplcReportId?: string;
+        msReportId?: string;
+        sdsId?: string;
+        bundleId?: string;
+        hplcDocumentNumber?: string;
+        msDocumentNumber?: string;
+        sdsDocumentNumber?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !result.bundleId) {
+        throw new Error(result.error || "Supporting documents could not be generated.");
+      }
+
+      setSupportingDocs({
+        bundleId: result.bundleId ?? null,
+        batchId: result.batchId ?? null,
+        coaDocumentId: result.coaDocumentId ?? null,
+        hplcReportId: result.hplcReportId ?? null,
+        msReportId: result.msReportId ?? null,
+        sdsId: result.sdsId ?? null,
+        status: "generated",
+        generatedAt: new Date().toISOString(),
+        generatedBy,
+        error: null,
+      });
+
+      setValues((currentValues) => ({
+        ...currentValues,
+        document_pack: "COA, HPLC, MS/LC-MS, SDS",
+        hplc_file_name: result.hplcDocumentNumber || currentValues.hplc_file_name,
+        lcms_file_name: result.msDocumentNumber || currentValues.lcms_file_name,
+        sds_file_name: result.sdsDocumentNumber || currentValues.sds_file_name,
+        raw_data_archive_ref:
+          currentValues.raw_data_archive_ref || "Internal QA record folder",
+      }));
+
+      updateGeneratedAnalyticalRecordRows({
+        hplcDocumentNumber: result.hplcDocumentNumber,
+        msDocumentNumber: result.msDocumentNumber,
+        sdsDocumentNumber: result.sdsDocumentNumber,
+      });
+
+      setFormSuccess("Supporting HPLC, MS / LC-MS, SDS, and bundle documents were generated.");
+      router.refresh();
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "Supporting documents could not be generated."
+      );
+    } finally {
+      setIsGeneratingDocs(false);
+    }
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
@@ -886,6 +1092,22 @@ export function CoaVerificationForm({
                   {isDuplicating ? "Duplicating..." : "Duplicate / Copy as New"}
                 </Button>
               ) : null}
+              {recordId ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+                  onClick={handleGenerateSupportingDocuments}
+                  disabled={isGeneratingDocs}
+                >
+                  <FileTextIcon className="mr-1 size-4" />
+                  {supportingDocs.bundleId
+                    ? "View Docs"
+                    : isGeneratingDocs
+                      ? "Generating Docs..."
+                      : "Generate Docs"}
+                </Button>
+              ) : null}
               {printRoute ? (
                 <Button
                   asChild
@@ -947,6 +1169,21 @@ export function CoaVerificationForm({
           {copyMessage ? (
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
               {copyMessage}
+            </div>
+          ) : null}
+          {supportingDocs.bundleId ? (
+            <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+              Supporting document bundle generated. HPLC, MS / LC-MS, and SDS references are linked to this COA.
+              <Link
+                href={`/admin/quality/document-bundles/${supportingDocs.bundleId}`}
+                className="ml-2 font-semibold underline underline-offset-4"
+              >
+                View bundle
+              </Link>
+            </div>
+          ) : supportingDocs.error ? (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+              Supporting document generation failed: {supportingDocs.error}
             </div>
           ) : null}
           {warnings.length > 0 ? (

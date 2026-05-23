@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { products } from "@/lib/site-content";
+import { products, type Product } from "@/lib/site-content";
 import type { CoaVerificationRow } from "@/lib/coa-verification";
 import { generateSupportingDocuments } from "@/lib/quality-document-generator";
 
@@ -101,17 +101,133 @@ function mapCoaDocumentStatus(
   return "under_review";
 }
 
-function findProductForCoa(row: CoaVerificationRow) {
-  const catalogCode = normalize(row.catalog_code);
-  const productName = normalize(row.product_name);
+function isUsefulMatchValue(value: string) {
+  return value.length >= 5;
+}
 
-  return (
-    products.find((product) => normalize(product.catalogCode) === catalogCode) ||
-    products.find((product) => normalize(product.sku) === catalogCode) ||
-    products.find((product) => normalize(product.name) === productName) ||
-    products.find((product) => productName.includes(normalize(product.name))) ||
-    null
+function compactProductAlias(value: string | null | undefined) {
+  return normalize(value)
+    .replace(/^atl/, "")
+    .replace(/withdac/g, "")
+    .replace(/withoutdac/g, "")
+    .replace(/acetate/g, "")
+    .replace(/hydrochloride/g, "")
+    .replace(/hcl/g, "")
+    .replace(/peptide/g, "")
+    .replace(/fragment/g, "");
+}
+
+function productMatchValues(product: (typeof products)[number]) {
+  return Array.from(
+    new Set(
+      [
+        normalize(product.catalogCode),
+        normalize(product.sku),
+        normalize(product.name),
+        compactProductAlias(product.catalogCode),
+        compactProductAlias(product.sku),
+        compactProductAlias(product.name),
+        ...product.name
+          .split(/[(/,]/)
+          .map((part) => compactProductAlias(part)),
+      ].filter(isUsefulMatchValue)
+    )
   );
+}
+
+function createFallbackProductFromCoa(row: CoaVerificationRow): Product {
+  const fallbackSlug =
+    normalize(row.catalog_code) || normalize(row.product_name) || "coa-product";
+  const displayName = row.product_name || row.catalog_code || "COA Product";
+  const catalogCode = row.catalog_code || `ATL-${fallbackSlug.toUpperCase()}`;
+
+  return {
+    slug: fallbackSlug,
+    name: displayName,
+    sku: catalogCode,
+    catalogCode,
+    category: "growth-repair-peptides",
+    categorySlug: "growth-repair-peptides",
+    status: "Standard",
+    image: `/products/${fallbackSlug}.svg`,
+    imageAlt: `${displayName} documentation product image for Atlas BioLabs`,
+    shortDescription: `${displayName} documentation record generated from an Atlas BioLabs COA verification record.`,
+    summary: "White to off-white lyophilized powder or product-specific physical form to be confirmed.",
+    overview: `${displayName} supporting documentation generated from COA record ${row.coa_number}.`,
+    longDescription: `${displayName} supporting documentation generated from COA record ${row.coa_number}.`,
+    seoTitle: `${displayName} Documentation | Atlas BioLabs`,
+    metaDescription: `${displayName} documentation support record generated from Atlas BioLabs COA data.`,
+    canonicalUrl: "",
+    functionalRole: [],
+    mechanismInsight: "Product-specific context is maintained in the source COA record.",
+    commonApplications: [],
+    keyCharacteristics: [],
+    associatedUses: [],
+    packSizes: ["Batch-specific documentation"],
+    moq: 1,
+    startingPrice: 0,
+    priceFrom: 0,
+    priceCurrency: "USD",
+    priceRangeText: "Quote-based",
+    priceRange: "Quote-based",
+    availability: "Documentation record",
+    documentation: "COA, HPLC, MS / LC-MS, and SDS support documents",
+    purityDocumentation: [],
+    contentBenefits: [],
+    storageHandling: ["Use product-specific storage conditions from the COA or SDS."],
+    leadTime: "Documentation generated from COA record",
+    relatedProductSlugs: [],
+    relatedArticleSlugs: [],
+    complianceNote:
+      "Atlas BioLabs documentation is provided for qualified commercial sourcing, research, formulation, and documentation review contexts only. No medical, dosing, diagnostic, therapeutic, veterinary, or human-use claims are made.",
+    intendedBuyerType: ["Qualified B2B buyers"],
+    trustSupport: ["Batch-level documentation", "COA-linked supporting records"],
+  };
+}
+
+function findProductForCoa(row: CoaVerificationRow): Product {
+  const coaValues = Array.from(
+    new Set(
+      [
+        normalize(row.catalog_code),
+        normalize(row.product_name),
+        compactProductAlias(row.catalog_code),
+        compactProductAlias(row.product_name),
+      ].filter(isUsefulMatchValue)
+    )
+  );
+
+  const exactMatch = products.find((product) => {
+    const candidates = productMatchValues(product);
+    return coaValues.some((value) => candidates.includes(value));
+  });
+
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const partialMatch = products.find((product) => {
+    const candidates = productMatchValues(product);
+    return coaValues.some((value) =>
+      candidates.some(
+        (candidate) =>
+          candidate.length >= 5 &&
+          value.length >= 5 &&
+          (candidate.includes(value) || value.includes(candidate))
+      )
+    );
+  });
+
+  if (partialMatch) {
+    return partialMatch;
+  }
+
+  // Do not block supporting-document generation just because the product is
+  // not currently in the public website catalog. COA records can exist for
+  // private/custom items such as Sermorelin. Build a safe fallback Product
+  // object from the COA fields so HPLC, MS, SDS, and bundles can still be
+  // generated and prefilled from the COA.
+  return createFallbackProductFromCoa(row);
 }
 
 function getDocumentNumber(document: unknown) {
@@ -123,6 +239,176 @@ function getDocumentNumber(document: unknown) {
   return record.document_number || record.documentNumber || "";
 }
 
+
+function parsePercent(value: string | null | undefined) {
+  const match = String(value ?? "").match(/(\d+(?:\.\d+)?)/);
+  return match ? Number.parseFloat(match[1]) : null;
+}
+
+function generatedAvailability(status: string | null | undefined) {
+  const normalized = String(status ?? "").toLowerCase();
+
+  if (normalized.includes("released")) {
+    return "Released / available for review";
+  }
+
+  if (normalized.includes("approved")) {
+    return "Approved / available for review";
+  }
+
+  if (normalized.includes("active")) {
+    return "Active / available for review";
+  }
+
+  return "Draft generated / available for review";
+}
+
+function isMissingOptionalAnalyticalRecordsTable(error: { message?: string } | null) {
+  return Boolean(
+    error?.message &&
+      /Could not find the table|relation .* does not exist|PGRST205|column .* does not exist/i.test(
+        error.message
+      )
+  );
+}
+
+async function updateGeneratedAnalyticalReferences(
+  supabase: SupabaseClient,
+  coaVerificationId: string,
+  references: {
+    hplcDocumentNumber: string;
+    msDocumentNumber: string;
+    sdsDocumentNumber: string;
+    hplcStatus?: string | null;
+    msStatus?: string | null;
+    sdsStatus?: string | null;
+    rawDataArchiveRef?: string | null;
+  }
+) {
+  const rows = [
+    {
+      coa_verification_id: coaVerificationId,
+      row_key: "hplc_chromatogram",
+      position: 1,
+      record_type: "HPLC chromatogram",
+      reference_file_name: references.hplcDocumentNumber || null,
+      availability: references.hplcDocumentNumber
+        ? generatedAvailability(references.hplcStatus)
+        : "Pending upload",
+    },
+    {
+      coa_verification_id: coaVerificationId,
+      row_key: "lcms_identity_report",
+      position: 2,
+      record_type: "LC-MS identity report",
+      reference_file_name: references.msDocumentNumber || null,
+      availability: references.msDocumentNumber
+        ? generatedAvailability(references.msStatus)
+        : "Pending upload",
+    },
+    {
+      coa_verification_id: coaVerificationId,
+      row_key: "sds_safety_data_sheet",
+      position: 3,
+      record_type: "SDS / Safety Data Sheet",
+      reference_file_name: references.sdsDocumentNumber || null,
+      availability: references.sdsDocumentNumber
+        ? generatedAvailability(references.sdsStatus)
+        : "On request",
+    },
+    {
+      coa_verification_id: coaVerificationId,
+      row_key: "raw_data_archive",
+      position: 4,
+      record_type: "Raw data archive",
+      reference_file_name: references.rawDataArchiveRef || "Internal QA record folder",
+      availability: "Controlled access",
+    },
+  ];
+
+  // Avoid relying on an ON CONFLICT constraint that may not exist yet in the
+  // customer's database. Update existing fixed rows first, then insert only
+  // missing rows.
+  for (const row of rows) {
+    const { data: updatedRow, error: updateError } = await supabase
+      .from("coa_analytical_records")
+      .update({
+        position: row.position,
+        record_type: row.record_type,
+        reference_file_name: row.reference_file_name,
+        availability: row.availability,
+      })
+      .eq("coa_verification_id", coaVerificationId)
+      .eq("row_key", row.row_key)
+      .select("id")
+      .maybeSingle();
+
+    if (isMissingOptionalAnalyticalRecordsTable(updateError)) {
+      return;
+    }
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    if (!updatedRow) {
+      const { error: insertError } = await supabase
+        .from("coa_analytical_records")
+        .insert(row);
+
+      if (isMissingOptionalAnalyticalRecordsTable(insertError)) {
+        return;
+      }
+
+      if (insertError) {
+        throw insertError;
+      }
+    }
+  }
+}
+
+async function prefillGeneratedReportSummaries(
+  supabase: SupabaseClient,
+  coaRow: CoaVerificationRow,
+  hplcReportId: string,
+  msReportId: string
+) {
+  const purityPercent =
+    parsePercent(coaRow.purity_result) ?? parsePercent(coaRow.hplc_purity);
+
+  if (purityPercent !== null) {
+    await supabase
+      .from("hplc_reports")
+      .update({
+        purity_percent: purityPercent,
+        result_summary:
+          coaRow.purity_result ||
+          coaRow.hplc_purity ||
+          `Draft HPLC purity report generated from COA ${coaRow.coa_number}`,
+      })
+      .eq("id", hplcReportId);
+  } else {
+    await supabase
+      .from("hplc_reports")
+      .update({
+        result_summary:
+          coaRow.purity_result ||
+          coaRow.hplc_purity ||
+          `Draft HPLC purity report generated from COA ${coaRow.coa_number}`,
+      })
+      .eq("id", hplcReportId);
+  }
+
+  await supabase
+    .from("ms_reports")
+    .update({
+      identity_conclusion:
+        coaRow.identity_result ||
+        `Draft LC-MS identity report generated from COA ${coaRow.coa_number}`,
+    })
+    .eq("id", msReportId);
+}
+
 export type GenerateSupportingDocumentsFromCoaResult = {
   coaVerificationId: string;
   batchId: string;
@@ -131,6 +417,9 @@ export type GenerateSupportingDocumentsFromCoaResult = {
   msReportId: string;
   sdsId: string;
   bundleId: string;
+  hplcDocumentNumber: string;
+  msDocumentNumber: string;
+  sdsDocumentNumber: string;
 };
 
 export async function generateSupportingDocumentsFromCoaVerification(
@@ -175,24 +464,13 @@ export async function generateSupportingDocumentsFromCoaVerification(
       msReportId: coaRow.ms_report_id,
       sdsId: coaRow.sds_id,
       bundleId: coaRow.document_bundle_id,
+      hplcDocumentNumber: coaRow.hplc_file_name ?? "",
+      msDocumentNumber: coaRow.lcms_file_name ?? "",
+      sdsDocumentNumber: coaRow.sds_file_name ?? "",
     };
   }
 
   const product = findProductForCoa(coaRow);
-
-  if (!product) {
-    await supabase
-      .from("coa_verifications")
-      .update({
-        supporting_documents_status: "failed",
-        supporting_documents_error: `No matching product found for catalog code "${coaRow.catalog_code}" and product "${coaRow.product_name}".`,
-      })
-      .eq("id", coaVerificationId);
-
-    throw new Error(
-      `No matching product found for catalog code "${coaRow.catalog_code}" and product "${coaRow.product_name}".`
-    );
-  }
 
   await supabase
     .from("coa_verifications")
@@ -309,6 +587,27 @@ export async function generateSupportingDocumentsFromCoaVerification(
       generatedBy
     );
 
+    const hplcDocumentNumber = getDocumentNumber(result.hplc);
+    const msDocumentNumber = getDocumentNumber(result.ms);
+    const sdsDocumentNumber = getDocumentNumber(result.sds);
+
+    await prefillGeneratedReportSummaries(
+      supabase,
+      coaRow,
+      result.hplc.id,
+      result.ms.id
+    );
+
+    await updateGeneratedAnalyticalReferences(supabase, coaVerificationId, {
+      hplcDocumentNumber,
+      msDocumentNumber,
+      sdsDocumentNumber,
+      hplcStatus: (result.hplc as { status?: string | null }).status,
+      msStatus: (result.ms as { status?: string | null }).status,
+      sdsStatus: (result.sds as { status?: string | null }).status,
+      rawDataArchiveRef: coaRow.raw_data_archive_ref,
+    });
+
     await supabase
       .from("coa_verifications")
       .update({
@@ -323,9 +622,9 @@ export async function generateSupportingDocumentsFromCoaVerification(
         supporting_documents_generated_by: generatedBy,
         supporting_documents_error: null,
         document_pack: "COA, HPLC, MS/LC-MS, SDS",
-        hplc_file_name: getDocumentNumber(result.hplc),
-        lcms_file_name: getDocumentNumber(result.ms),
-        sds_file_name: getDocumentNumber(result.sds),
+        hplc_file_name: hplcDocumentNumber,
+        lcms_file_name: msDocumentNumber,
+        sds_file_name: sdsDocumentNumber,
       })
       .eq("id", coaVerificationId);
 
@@ -337,6 +636,9 @@ export async function generateSupportingDocumentsFromCoaVerification(
       msReportId: result.ms.id,
       sdsId: result.sds.id,
       bundleId: result.bundle.id,
+      hplcDocumentNumber,
+      msDocumentNumber,
+      sdsDocumentNumber,
     };
   } catch (error) {
     const message =

@@ -10,12 +10,11 @@ import {
   SearchIcon,
   Settings2Icon,
   FileTextIcon,
+  Trash2Icon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { generateSupportingDocumentsFromCoaVerification } from "@/lib/quality-coa-bridge";
-
 import { AdminGuard } from "@/components/admin/admin-guard";
 import { CoaStatusBadge } from "@/components/admin/coa-status-badge";
 import { Button } from "@/components/ui/button";
@@ -74,6 +73,8 @@ function AdminCoaVerificationIndex({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
   const [generatingRowId, setGeneratingRowId] = useState<string | null>(null);
+  const [deletingRowId, setDeletingRowId] = useState<string | null>(null);
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState<CoaVerificationStatus | "All">("All");
 
@@ -133,6 +134,33 @@ function AdminCoaVerificationIndex({
     });
   }, [rows, searchValue, statusFilter]);
 
+  const filteredRowIds = useMemo(
+    () => filteredRows.map((row) => row.id),
+    [filteredRows]
+  );
+
+  const allFilteredRowsSelected =
+    filteredRowIds.length > 0 &&
+    filteredRowIds.every((id) => selectedRowIds.includes(id));
+
+  function toggleRowSelection(rowId: string) {
+    setSelectedRowIds((currentIds) =>
+      currentIds.includes(rowId)
+        ? currentIds.filter((id) => id !== rowId)
+        : [...currentIds, rowId]
+    );
+  }
+
+  function toggleSelectAllFilteredRows() {
+    setSelectedRowIds((currentIds) => {
+      if (allFilteredRowsSelected) {
+        return currentIds.filter((id) => !filteredRowIds.includes(id));
+      }
+
+      return Array.from(new Set([...currentIds, ...filteredRowIds]));
+    });
+  }
+
   async function handleCopyVerificationUrl(row: CoaVerificationRow) {
     const verificationUrl =
       row.verification_url ||
@@ -174,75 +202,171 @@ function AdminCoaVerificationIndex({
   }
 
   async function handleGenerateSupportingDocuments(row: CoaVerificationRow) {
-  const alreadyGenerated =
-    row.document_bundle_id &&
-    row.hplc_report_id &&
-    row.ms_report_id &&
-    row.sds_id;
+    const alreadyGenerated =
+      row.document_bundle_id && row.hplc_report_id && row.ms_report_id && row.sds_id;
 
-  if (alreadyGenerated) {
-    router.push(`/admin/quality/document-bundles/${row.document_bundle_id}`);
-    return;
-  }
+    if (alreadyGenerated) {
+      router.push(`/admin/quality/document-bundles/${row.document_bundle_id}`);
+      return;
+    }
 
-  if (
-    !window.confirm(
-      `Generate HPLC, MS / LC-MS, SDS, and document bundle for ${row.coa_number}?`
-    )
-  ) {
-    return;
-  }
-
-  setGeneratingRowId(row.id);
-  setErrorMessage(null);
-  setCopyMessage(null);
-
-  try {
-    const generatedBy =
-      row.approved_by ||
-      row.reviewed_by ||
-      row.created_by ||
-      "Atlas Labs QA Documentation Officer";
-
-    const result = await generateSupportingDocumentsFromCoaVerification(
-      supabase,
-      row.id,
-      generatedBy
-    );
-
-    setRows((currentRows) =>
-      currentRows.map((currentRow) =>
-        currentRow.id === row.id
-          ? {
-              ...currentRow,
-              quality_batch_id: result.batchId,
-              quality_coa_document_id: result.coaDocumentId,
-              document_bundle_id: result.bundleId,
-              hplc_report_id: result.hplcReportId,
-              ms_report_id: result.msReportId,
-              sds_id: result.sdsId,
-              supporting_documents_status: "generated",
-              supporting_documents_generated_at: new Date().toISOString(),
-              supporting_documents_generated_by: generatedBy,
-              supporting_documents_error: null,
-              document_pack: "COA, HPLC, MS/LC-MS, SDS",
-            }
-          : currentRow
+    if (
+      !window.confirm(
+        `Generate HPLC, MS / LC-MS, SDS, and document bundle for ${row.coa_number}?`
       )
-    );
+    ) {
+      return;
+    }
 
-    router.push(`/admin/quality/document-bundles/${result.bundleId}`);
-    router.refresh();
-  } catch (error) {
-    setErrorMessage(
-      error instanceof Error
-        ? error.message
-        : "Supporting documents could not be generated."
-    );
-  } finally {
-    setGeneratingRowId(null);
+    setGeneratingRowId(row.id);
+    setErrorMessage(null);
+    setCopyMessage(null);
+
+    try {
+      const generatedBy =
+        row.approved_by ||
+        row.reviewed_by ||
+        row.created_by ||
+        "Atlas Labs QA Documentation Officer";
+
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.access_token) {
+        throw new Error("Admin session expired. Please log in again before generating documents.");
+      }
+
+      const response = await fetch("/api/internal/quality-documents/generate-from-coa", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          coaVerificationId: row.id,
+          generatedBy,
+        }),
+      });
+
+      const result = (await response.json()) as {
+        batchId?: string;
+        coaDocumentId?: string;
+        hplcReportId?: string;
+        msReportId?: string;
+        sdsId?: string;
+        bundleId?: string;
+        hplcDocumentNumber?: string;
+        msDocumentNumber?: string;
+        sdsDocumentNumber?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !result.bundleId) {
+        throw new Error(result.error || "Supporting documents could not be generated.");
+      }
+
+      setRows((currentRows) =>
+        currentRows.map((currentRow) =>
+          currentRow.id === row.id
+            ? {
+                ...currentRow,
+                quality_batch_id: result.batchId ?? null,
+                quality_coa_document_id: result.coaDocumentId ?? null,
+                document_bundle_id: result.bundleId ?? null,
+                hplc_report_id: result.hplcReportId ?? null,
+                ms_report_id: result.msReportId ?? null,
+                sds_id: result.sdsId ?? null,
+                supporting_documents_status: "generated",
+                supporting_documents_generated_at: new Date().toISOString(),
+                supporting_documents_generated_by: generatedBy,
+                supporting_documents_error: null,
+                document_pack: "COA, HPLC, MS/LC-MS, SDS",
+                hplc_file_name: result.hplcDocumentNumber ?? currentRow.hplc_file_name,
+                lcms_file_name: result.msDocumentNumber ?? currentRow.lcms_file_name,
+                sds_file_name: result.sdsDocumentNumber ?? currentRow.sds_file_name,
+              }
+            : currentRow
+        )
+      );
+
+      router.push(`/admin/quality/document-bundles/${result.bundleId}`);
+      router.refresh();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Supporting documents could not be generated."
+      );
+    } finally {
+      setGeneratingRowId(null);
+    }
   }
-}
+
+
+
+  async function deleteCoaRecords(ids: string[]) {
+    if (ids.length === 0) return;
+
+    if (
+      !window.confirm(
+        ids.length === 1
+          ? "Delete this COA verification record? This cannot be undone."
+          : `Delete ${ids.length} selected COA verification records? This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    setDeletingRowId(ids.length === 1 ? ids[0] ?? null : "bulk");
+    setErrorMessage(null);
+    setCopyMessage(null);
+
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.access_token) {
+        throw new Error("Admin session expired. Please log in again before deleting records.");
+      }
+
+      const response = await fetch("/api/internal/quality-documents/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ recordType: "coa_verification", ids }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        deletedCount?: number;
+      } | null;
+
+      if (!response.ok) {
+        throw new Error(payload?.error || "Selected COA records could not be deleted.");
+      }
+
+      setRows((currentRows) => currentRows.filter((row) => !ids.includes(row.id)));
+      setSelectedRowIds((currentIds) => currentIds.filter((id) => !ids.includes(id)));
+      setCopyMessage(
+        ids.length === 1
+          ? "COA verification record deleted."
+          : `${payload?.deletedCount ?? ids.length} COA verification records deleted.`
+      );
+      window.setTimeout(() => setCopyMessage(null), 2500);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Selected COA records could not be deleted."
+      );
+    } finally {
+      setDeletingRowId(null);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -274,6 +398,19 @@ function AdminCoaVerificationIndex({
             </select>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            {selectedRowIds.length > 0 ? (
+              <Button
+                variant="outline"
+                disabled={deletingRowId === "bulk"}
+                onClick={() => deleteCoaRecords(selectedRowIds)}
+                className="h-11 border-rose-200 bg-white text-rose-700 hover:border-rose-400 hover:text-rose-800"
+              >
+                <Trash2Icon className="mr-1 size-4" />
+                {deletingRowId === "bulk"
+                  ? "Deleting..."
+                  : `Delete selected (${selectedRowIds.length})`}
+              </Button>
+            ) : null}
             <Button
               asChild
               variant="outline"
@@ -320,6 +457,14 @@ function AdminCoaVerificationIndex({
             <table className="min-w-full divide-y divide-border/70 text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                  <th className="px-4 py-4 font-semibold">
+                    <input
+                      type="checkbox"
+                      checked={allFilteredRowsSelected}
+                      onChange={toggleSelectAllFilteredRows}
+                      aria-label="Select all visible COA records"
+                    />
+                  </th>
                   <th className="px-4 py-4 font-semibold">COA Number</th>
                   <th className="px-4 py-4 font-semibold">Verification Code</th>
                   <th className="px-4 py-4 font-semibold">Product Name</th>
@@ -335,6 +480,14 @@ function AdminCoaVerificationIndex({
               <tbody className="divide-y divide-border/60">
                 {filteredRows.map((row) => (
                   <tr key={row.id} className="align-top">
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedRowIds.includes(row.id)}
+                        onChange={() => toggleRowSelection(row.id)}
+                        aria-label={`Select ${row.coa_number}`}
+                      />
+                    </td>
                     <td className="px-4 py-4 font-medium text-[var(--brand-navy)]">
                       {row.coa_number}
                     </td>
@@ -404,6 +557,16 @@ function AdminCoaVerificationIndex({
                         >
                           <CopyPlusIcon className="mr-1 size-3.5" />
                           Duplicate / Copy as New
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={deletingRowId === row.id}
+                          onClick={() => deleteCoaRecords([row.id])}
+                          className="border-rose-200 bg-white text-rose-700 hover:border-rose-400 hover:text-rose-800"
+                        >
+                          <Trash2Icon className="mr-1 size-3.5" />
+                          {deletingRowId === row.id ? "Deleting..." : "Delete"}
                         </Button>
                       </div>
                     </td>
