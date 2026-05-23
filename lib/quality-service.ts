@@ -443,6 +443,240 @@ export async function createAuditLog(
   }
 }
 
+export type BundleStatusInput = {
+  batchStatus?: string | null;
+  coaStatus?: string | null;
+  hplcStatus?: string | null;
+  msStatus?: string | null;
+  sdsStatus?: string | null;
+  hasHplc?: boolean;
+  hasMs?: boolean;
+  hasSds?: boolean;
+};
+
+export type BundleLinkedDocumentColumn =
+  | "hplc_report_id"
+  | "ms_report_id"
+  | "sds_id"
+  | "coa_id"
+  | "batch_id";
+
+function normalizeBundleStatus(value: string | null | undefined) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+/**
+ * Computes the document bundle status from linked COA/HPLC/MS/SDS statuses.
+ */
+export function computeDocumentBundleStatus({
+  batchStatus,
+  coaStatus,
+  hplcStatus,
+  msStatus,
+  sdsStatus,
+  hasHplc,
+  hasMs,
+  hasSds,
+}: BundleStatusInput):
+  | "draft"
+  | "incomplete"
+  | "under_review"
+  | "approved"
+  | "released"
+  | "void" {
+  if (!hasHplc || !hasMs || !hasSds) {
+    return "incomplete";
+  }
+
+  const normalizedBatch = normalizeBundleStatus(batchStatus);
+  const normalizedCoa = normalizeBundleStatus(coaStatus);
+  const normalizedHplc = normalizeBundleStatus(hplcStatus);
+  const normalizedMs = normalizeBundleStatus(msStatus);
+  const normalizedSds = normalizeBundleStatus(sdsStatus);
+
+  if (
+    [normalizedBatch, normalizedCoa, normalizedHplc, normalizedMs, normalizedSds].some(
+      (status) =>
+        status === "void" ||
+        status === "superseded" ||
+        status === "revoked"
+    )
+  ) {
+    return "void";
+  }
+
+  const hplcReady = normalizedHplc === "approved" || normalizedHplc === "released";
+  const msReady = normalizedMs === "approved" || normalizedMs === "released";
+  const sdsReady = normalizedSds === "active";
+  const coaReady = normalizedCoa === "approved" || normalizedCoa === "released";
+  const batchReady =
+    normalizedBatch === "released" ||
+    normalizedBatch === "approved" ||
+    normalizedBatch.length === 0;
+
+  if (
+    normalizedCoa === "released" &&
+    normalizedHplc === "released" &&
+    normalizedMs === "released" &&
+    sdsReady &&
+    batchReady
+  ) {
+    return "released";
+  }
+
+  if (coaReady && hplcReady && msReady && sdsReady && batchReady) {
+    return "approved";
+  }
+
+  if (
+    [normalizedBatch, normalizedCoa, normalizedHplc, normalizedMs, normalizedSds].some(
+      (status) => status === "under_review" || status === "correction_required"
+    )
+  ) {
+    return "under_review";
+  }
+
+  return "draft";
+}
+
+type StatusQueryResult<T extends Record<string, unknown>> = {
+  data: T | null;
+  error: { message: string } | null;
+};
+
+/**
+ * Recalculate and persist a bundle status using the current statuses of the linked
+ * COA, batch, HPLC, MS/LC-MS, and SDS records.
+ */
+export async function refreshDocumentBundleStatusForBundle(
+  supabase: SupabaseClient,
+  bundleId: string
+): Promise<string | null> {
+  const { data: bundle, error: bundleError } = await supabase
+    .from("document_bundles")
+    .select("*")
+    .eq("id", bundleId)
+    .maybeSingle();
+
+  if (bundleError) {
+    throw bundleError;
+  }
+
+  if (!bundle) {
+    return null;
+  }
+
+  const bundleRecord = bundle as Record<string, string | null>;
+
+  const [batchResult, coaResult, hplcResult, msResult, sdsResult] =
+    (await Promise.all([
+      bundleRecord.batch_id
+        ? supabase
+            .from("batches")
+            .select("status")
+            .eq("id", bundleRecord.batch_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      bundleRecord.coa_id
+        ? supabase
+            .from("coa_documents")
+            .select("document_status")
+            .eq("id", bundleRecord.coa_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      bundleRecord.hplc_report_id
+        ? supabase
+            .from("hplc_reports")
+            .select("status")
+            .eq("id", bundleRecord.hplc_report_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      bundleRecord.ms_report_id
+        ? supabase
+            .from("ms_reports")
+            .select("status")
+            .eq("id", bundleRecord.ms_report_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      bundleRecord.sds_id
+        ? supabase
+            .from("sds_documents")
+            .select("status")
+            .eq("id", bundleRecord.sds_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+    ])) as [
+      StatusQueryResult<{ status?: string }>,
+      StatusQueryResult<{ document_status?: string }>,
+      StatusQueryResult<{ status?: string }>,
+      StatusQueryResult<{ status?: string }>,
+      StatusQueryResult<{ status?: string }>
+    ];
+
+  const firstError =
+    batchResult.error ||
+    coaResult.error ||
+    hplcResult.error ||
+    msResult.error ||
+    sdsResult.error;
+
+  if (firstError) {
+    throw firstError;
+  }
+
+  const nextStatus = computeDocumentBundleStatus({
+    batchStatus: batchResult.data?.status,
+    coaStatus: coaResult.data?.document_status,
+    hplcStatus: hplcResult.data?.status,
+    msStatus: msResult.data?.status,
+    sdsStatus: sdsResult.data?.status,
+    hasHplc: Boolean(bundleRecord.hplc_report_id),
+    hasMs: Boolean(bundleRecord.ms_report_id),
+    hasSds: Boolean(bundleRecord.sds_id),
+  });
+
+  if (bundleRecord.status !== nextStatus) {
+    const updatePayload: Record<string, unknown> = { status: nextStatus };
+
+    if (nextStatus === "released") {
+      updatePayload.released_at = bundleRecord.released_at || new Date().toISOString();
+    }
+
+    const { error: updateError } = await supabase
+      .from("document_bundles")
+      .update(updatePayload)
+      .eq("id", bundleId);
+
+    if (updateError) {
+      throw updateError;
+    }
+  }
+
+  return nextStatus;
+}
+
+/**
+ * Recalculate every bundle that references a changed linked document.
+ */
+export async function refreshDocumentBundleStatusForLinkedDocument(
+  supabase: SupabaseClient,
+  column: BundleLinkedDocumentColumn,
+  linkedDocumentId: string
+): Promise<void> {
+  const { data: bundles, error } = await supabase
+    .from("document_bundles")
+    .select("id")
+    .eq(column, linkedDocumentId);
+
+  if (error) {
+    throw error;
+  }
+
+  for (const bundle of (bundles ?? []) as Array<{ id: string }>) {
+    await refreshDocumentBundleStatusForBundle(supabase, bundle.id);
+  }
+}
+
 /**
  * Gets the blocking error message for COA release
  */

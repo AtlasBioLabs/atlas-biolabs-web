@@ -43,6 +43,8 @@ type BatchRecord = {
   lot_number?: string | null;
   manufacturing_date?: string | null;
   expiry_date?: string | null;
+  status?: string | null;
+  release_decision?: string | null;
 };
 
 type HplcReportRecord = {
