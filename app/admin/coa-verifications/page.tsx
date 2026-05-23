@@ -243,6 +243,7 @@ function AdminCoaVerificationIndex({ supabase }: { supabase: SupabaseClient }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
   const [generatingRowId, setGeneratingRowId] = useState<string | null>(null);
+  const [isBulkGenerating, setIsBulkGenerating] = useState(false);
   const [deletingRowId, setDeletingRowId] = useState<string | null>(null);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState("");
@@ -406,6 +407,179 @@ function AdminCoaVerificationIndex({ supabase }: { supabase: SupabaseClient }) {
     exportCoaRows(selectedRows, "selected");
   }
 
+  type GenerateDocsResult = {
+    batchId?: string;
+    coaDocumentId?: string;
+    hplcReportId?: string;
+    msReportId?: string;
+    sdsId?: string;
+    bundleId?: string;
+    hplcDocumentNumber?: string;
+    msDocumentNumber?: string;
+    sdsDocumentNumber?: string;
+    error?: string;
+  };
+
+  function applyGeneratedDocsToRow(
+    rowId: string,
+    result: GenerateDocsResult,
+    generatedBy: string,
+  ) {
+    setRows((currentRows) =>
+      currentRows.map((currentRow) =>
+        currentRow.id === rowId
+          ? {
+              ...currentRow,
+              quality_batch_id: result.batchId ?? currentRow.quality_batch_id,
+              quality_coa_document_id:
+                result.coaDocumentId ?? currentRow.quality_coa_document_id,
+              document_bundle_id:
+                result.bundleId ?? currentRow.document_bundle_id,
+              hplc_report_id: result.hplcReportId ?? currentRow.hplc_report_id,
+              ms_report_id: result.msReportId ?? currentRow.ms_report_id,
+              sds_id: result.sdsId ?? currentRow.sds_id,
+              supporting_documents_status: "generated",
+              supporting_documents_generated_at: new Date().toISOString(),
+              supporting_documents_generated_by: generatedBy,
+              supporting_documents_error: null,
+              document_pack: "COA, HPLC, MS/LC-MS, SDS",
+              hplc_file_name:
+                result.hplcDocumentNumber ?? currentRow.hplc_file_name,
+              lcms_file_name:
+                result.msDocumentNumber ?? currentRow.lcms_file_name,
+              sds_file_name: result.sdsDocumentNumber ?? currentRow.sds_file_name,
+            }
+          : currentRow,
+      ),
+    );
+  }
+
+  async function generateDocsForRow(
+    row: CoaVerificationRow,
+    accessToken: string,
+  ): Promise<GenerateDocsResult> {
+    const generatedBy =
+      row.approved_by ||
+      row.reviewed_by ||
+      row.created_by ||
+      "Atlas Labs QA Documentation Officer";
+
+    const response = await fetch(
+      "/api/internal/quality-documents/generate-from-coa",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          coaVerificationId: row.id,
+          generatedBy,
+        }),
+      },
+    );
+
+    const result = (await response.json()) as GenerateDocsResult;
+
+    if (!response.ok || !result.bundleId) {
+      throw new Error(
+        result.error ||
+          `Supporting documents could not be generated for ${row.coa_number}.`,
+      );
+    }
+
+    applyGeneratedDocsToRow(row.id, result, generatedBy);
+    return result;
+  }
+
+  async function handleBulkGenerateSupportingDocuments() {
+    const selectedRows = rows.filter((row) => selectedRowIds.includes(row.id));
+    const rowsToGenerate = selectedRows.filter(
+      (row) =>
+        !(
+          row.document_bundle_id &&
+          row.hplc_report_id &&
+          row.ms_report_id &&
+          row.sds_id
+        ),
+    );
+
+    if (selectedRows.length === 0) {
+      setErrorMessage("Select at least one COA record before generating documents.");
+      return;
+    }
+
+    if (rowsToGenerate.length === 0) {
+      setCopyMessage(
+        "All selected COA records already have supporting documents.",
+      );
+      window.setTimeout(() => setCopyMessage(null), 2500);
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Generate HPLC, MS / LC-MS, SDS, and document bundles for ${rowsToGenerate.length} selected COA ${rowsToGenerate.length === 1 ? "record" : "records"}? Already-generated records will be skipped.`,
+      )
+    ) {
+      return;
+    }
+
+    setIsBulkGenerating(true);
+    setErrorMessage(null);
+    setCopyMessage(null);
+
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.access_token) {
+        throw new Error(
+          "Admin session expired. Please log in again before generating documents.",
+        );
+      }
+
+      const failures: string[] = [];
+      let generatedCount = 0;
+
+      for (const row of rowsToGenerate) {
+        setGeneratingRowId(row.id);
+
+        try {
+          await generateDocsForRow(row, session.access_token);
+          generatedCount += 1;
+        } catch (error) {
+          failures.push(
+            `${row.coa_number}: ${
+              error instanceof Error
+                ? error.message
+                : "Supporting documents could not be generated."
+            }`,
+          );
+        }
+      }
+
+      if (failures.length > 0) {
+        setErrorMessage(
+          `${generatedCount} ${generatedCount === 1 ? "record was" : "records were"} generated. ${failures.length} failed:\n${failures.join("\n")}`,
+        );
+      } else {
+        setSelectedRowIds([]);
+        setCopyMessage(
+          `${generatedCount} COA ${generatedCount === 1 ? "record" : "records"} generated successfully.`,
+        );
+        window.setTimeout(() => setCopyMessage(null), 3000);
+      }
+
+      router.refresh();
+    } finally {
+      setGeneratingRowId(null);
+      setIsBulkGenerating(false);
+    }
+  }
+
   async function handleCopyVerificationUrl(row: CoaVerificationRow) {
     const verificationUrl =
       row.verification_url ||
@@ -495,66 +669,7 @@ function AdminCoaVerificationIndex({ supabase }: { supabase: SupabaseClient }) {
         );
       }
 
-      const response = await fetch(
-        "/api/internal/quality-documents/generate-from-coa",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            coaVerificationId: row.id,
-            generatedBy,
-          }),
-        },
-      );
-
-      const result = (await response.json()) as {
-        batchId?: string;
-        coaDocumentId?: string;
-        hplcReportId?: string;
-        msReportId?: string;
-        sdsId?: string;
-        bundleId?: string;
-        hplcDocumentNumber?: string;
-        msDocumentNumber?: string;
-        sdsDocumentNumber?: string;
-        error?: string;
-      };
-
-      if (!response.ok || !result.bundleId) {
-        throw new Error(
-          result.error || "Supporting documents could not be generated.",
-        );
-      }
-
-      setRows((currentRows) =>
-        currentRows.map((currentRow) =>
-          currentRow.id === row.id
-            ? {
-                ...currentRow,
-                quality_batch_id: result.batchId ?? null,
-                quality_coa_document_id: result.coaDocumentId ?? null,
-                document_bundle_id: result.bundleId ?? null,
-                hplc_report_id: result.hplcReportId ?? null,
-                ms_report_id: result.msReportId ?? null,
-                sds_id: result.sdsId ?? null,
-                supporting_documents_status: "generated",
-                supporting_documents_generated_at: new Date().toISOString(),
-                supporting_documents_generated_by: generatedBy,
-                supporting_documents_error: null,
-                document_pack: "COA, HPLC, MS/LC-MS, SDS",
-                hplc_file_name:
-                  result.hplcDocumentNumber ?? currentRow.hplc_file_name,
-                lcms_file_name:
-                  result.msDocumentNumber ?? currentRow.lcms_file_name,
-                sds_file_name:
-                  result.sdsDocumentNumber ?? currentRow.sds_file_name,
-              }
-            : currentRow,
-        ),
-      );
+      const result = await generateDocsForRow(row, session.access_token);
 
       router.push(`/admin/quality/document-bundles/${result.bundleId}`);
       router.refresh();
@@ -682,6 +797,17 @@ function AdminCoaVerificationIndex({ supabase }: { supabase: SupabaseClient }) {
                 >
                   <DownloadIcon className="mr-1 size-4" />
                   Export selected ({selectedRowIds.length})
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={isBulkGenerating}
+                  onClick={handleBulkGenerateSupportingDocuments}
+                  className="h-11 border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+                >
+                  <FileTextIcon className="mr-1 size-4" />
+                  {isBulkGenerating
+                    ? "Generating docs..."
+                    : `Generate docs (${selectedRowIds.length})`}
                 </Button>
                 <Button
                   variant="outline"
