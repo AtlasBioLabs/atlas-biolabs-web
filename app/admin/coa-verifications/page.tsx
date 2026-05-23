@@ -11,6 +11,7 @@ import {
   Settings2Icon,
   FileTextIcon,
   Trash2Icon,
+  UploadIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -529,6 +530,16 @@ function AdminCoaVerificationIndex({
               <Link href="/admin/settings/coa-branding">
                 <Settings2Icon className="mr-1 size-4" />
                 COA Branding
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="h-11 border-[#d5def0] bg-white text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:text-[var(--brand-blue)]"
+            >
+              <Link href="/admin/coa-verifications/import">
+                <UploadIcon className="mr-1 size-4" />
+                Import COA CSV
               </Link>
             </Button>
             <Button asChild className="h-11 bg-[var(--brand-navy)] text-white hover:bg-[var(--brand-blue)]">
