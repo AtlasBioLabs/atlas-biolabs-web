@@ -32,35 +32,40 @@ export async function createHplcReportDraft(
   const documentNumber = generateDocumentNumber("HPLC");
   const now = new Date().toISOString().split("T")[0];
 
-  const hplcData: Omit<HplcReport, "id" | "createdAt" | "updatedAt"> = {
-    productId: product.slug,
-    batchId: batch.id,
-    coaId: coaDocument.id,
-    documentNumber,
-    issueDate: now,
-    revision: 1,
-    status: "draft",
-    methodName: "HPLC - Purity Determination",
-    methodCode: "HPLC-001",
-    instrumentName: "Analytical HPLC System",
-    columnType: "C18 Reverse Phase",
-    mobilePhase: "To be determined based on product",
-    flowRate: 1.0,
-    detectionWavelength: 215,
-    injectionVolume: 10,
-    runTime: 30,
-    sampleConcentration: undefined,
-    retentionTime: undefined,
-    purityPercent: 0,
-    mainPeakArea: 0,
-    totalPeakArea: 0,
-    analystName: createdBy,
-    reviewerName: undefined,
-    resultSummary: "Pending analytical execution",
-    passFailDecision: "conditional",
-    acceptanceCriteria: `Purity ≥ 95% for ${product.name}`,
-    watermarkMode: "draft",
-  };
+  const hplcData = {
+  product_id: product.slug,
+  batch_id: batch.id,
+  coa_id: coaDocument.id,
+  document_number: documentNumber,
+  issue_date: now,
+  revision: 1,
+  status: "draft",
+  method_name: "HPLC - Purity Determination",
+  method_code: "HPLC-001",
+  instrument_name: "Analytical HPLC System",
+  column_type: "C18 Reverse Phase",
+  mobile_phase: "To be determined based on product",
+  flow_rate: 1.0,
+  detection_wavelength: 215,
+  injection_volume: 10,
+  run_time: 30,
+  sample_concentration: null,
+  retention_time: null,
+  purity_percent: 0,
+  main_peak_area: 0,
+  total_peak_area: 0,
+  impurities_json: null,
+  peak_table_json: null,
+  chromatogram_file_url: null,
+  raw_data_file_url: null,
+  analyst_name: createdBy,
+  reviewer_name: null,
+  result_summary: "Pending analytical execution",
+  pass_fail_decision: "conditional",
+  acceptance_criteria: `Purity ≥ 95% for ${product.name}`,
+  notes: null,
+  watermark_mode: "draft",
+};
 
   const { data, error } = await supabase
     .from("hplc_reports")
@@ -101,30 +106,33 @@ export async function createMsReportDraft(
   const documentNumber = generateDocumentNumber("MS");
   const now = new Date().toISOString().split("T")[0];
 
-  const msData: Omit<MsReport, "id" | "createdAt" | "updatedAt"> = {
-    productId: product.slug,
-    batchId: batch.id,
-    coaId: coaDocument.id,
-    documentNumber,
-    issueDate: now,
-    revision: 1,
-    status: "draft",
-    methodName: "LC-MS/MS - Identity Confirmation",
-    methodCode: "LCMS-001",
-    instrumentName: "LC-MS/MS System",
-    ionizationMode: "ESI+ or ESI-",
-    expectedMolecularWeight: molecularWeight,
-    observedMass: 0,
-    massError: 0,
-    massErrorPpm: undefined,
-    chargeState: undefined,
-    identityConclusion: "Pending mass spectrometry analysis",
-    passFailDecision: "conditional",
-    acceptanceCriteria: `Observed mass [M+H]+ or [M-H]- within ±5 ppm of theoretical ${molecularWeight}`,
-    analystName: createdBy,
-    reviewerName: undefined,
-    watermarkMode: "draft",
-  };
+     const msData = {
+        product_id: product.slug,
+        batch_id: batch.id,
+        coa_id: coaDocument.id,
+        document_number: documentNumber,
+        issue_date: now,
+        revision: 1,
+        status: "draft",
+        method_name: "LC-MS/MS - Identity Confirmation",
+        method_code: "LCMS-001",
+        instrument_name: "LC-MS/MS System",
+        ionization_mode: "ESI+ or ESI-",
+        expected_molecular_weight: molecularWeight,
+        observed_mass: 0,
+        mass_error: 0,
+        mass_error_ppm: null,
+        charge_state: null,
+        spectrum_file_url: null,
+        raw_data_file_url: null,
+        identity_conclusion: "Pending mass spectrometry analysis",
+        pass_fail_decision: "conditional",
+        acceptance_criteria: `Observed mass [M+H]+ or [M-H]- within ±5 ppm of theoretical ${molecularWeight}`,
+        analyst_name: createdBy,
+        reviewer_name: null,
+        notes: null,
+        watermark_mode: "draft",
+        };
 
   const { data, error } = await supabase
     .from("ms_reports")
@@ -162,42 +170,54 @@ export async function createSdsDraft(
   const documentNumber = generateDocumentNumber("SDS");
   const now = new Date().toISOString().split("T")[0];
 
-  const sdsData: Omit<SDS, "id" | "createdAt" | "updatedAt"> = {
-    productId: product.slug,
-    documentNumber,
-    revision: 1,
-    issueDate: now,
-    revisionDate: now,
-    status: "draft",
-    language: "en",
-    jurisdiction: "US",
-    preparedBy: createdBy,
-    section1Identification: `Product: ${product.name}\nCatalog Code: ${product.catalogCode}\nManufacturer: Atlas BioLabs`,
-    section2HazardIdentification:
-      "Classification and label information to be determined",
-    section3Composition: `Active substance: ${product.name}\nPurity: To be specified\nMolecular Weight: To be confirmed`,
-    section4FirstAid:
-      "In case of eye contact, rinse with water. In case of inhalation, move to fresh air.",
-    section5FireFighting:
-      "Use appropriate extinguishing media. No specific fire-fighting measures known.",
-    section6AccidentalRelease:
-      "Avoid dust formation. Sweep up and collect in appropriate container.",
-    section7HandlingStorage:
-      `Handle with care. Store in cool, dry place at temperature specified on product label. Keep container tightly closed.\n\nHandling: ${product.storageHandling?.join(", ") || "Store in cool, dry conditions"}`,
-    section8ExposureControls:
-      "Use appropriate personal protective equipment (lab coat, gloves, eye protection)",
-    section9PhysicalChemical:
-      `Physical form: ${product.status || "Solid"}\nAppearance: ${product.summary || "White to off-white solid"}`,
-    section10StabilityReactivity:
-      "Stable under normal storage conditions. Avoid heat, light, and moisture.",
-    section11Toxicological: "Toxicological data to be provided upon request.",
-    section12Ecological: "Ecological data to be provided upon request.",
-    section13Disposal: "Dispose of according to local regulations.",
-    section14Transport: "Transport in accordance with regulations.",
-    section15Regulatory:
-      "Product is intended for research use. Not for human consumption or medical use.",
-    section16Other: "For research use only. Not for human consumption.",
-  };
+  const sdsData = {
+        product_id: product.slug,
+        document_number: documentNumber,
+        revision: 1,
+        issue_date: now,
+        revision_date: now,
+        status: "draft",
+        language: "en",
+        jurisdiction: "US",
+        ghs_classification: null,
+        signal_word: null,
+        pictograms_json: null,
+        hazard_statements_json: null,
+        precautionary_statements_json: null,
+        prepared_by: createdBy,
+        reviewed_by: null,
+        approved_by: null,
+        section_1_identification: `Product: ${product.name}\nCatalog Code: ${product.catalogCode}\nManufacturer: Atlas BioLabs`,
+        section_2_hazard_identification:
+            "Classification and label information to be determined.",
+        section_3_composition: `Active substance: ${product.name}\nPurity: To be specified\nMolecular Weight: To be confirmed`,
+        section_4_first_aid:
+            "In case of eye contact, rinse with water. In case of inhalation, move to fresh air. Seek professional assistance if irritation persists.",
+        section_5_fire_fighting:
+            "Use appropriate extinguishing media. No specific fire-fighting measures known.",
+        section_6_accidental_release:
+            "Avoid dust formation. Sweep up and collect in an appropriate container.",
+        section_7_handling_storage:
+            `Handle with care. Store in a cool, dry place at the temperature specified on the product label. Keep container tightly closed.\n\nHandling: ${product.storageHandling?.join(", ") || "Store in cool, dry conditions"}`,
+        section_8_exposure_controls:
+            "Use appropriate personal protective equipment such as lab coat, gloves, and eye protection.",
+        section_9_physical_chemical:
+            `Physical form: ${product.status || "Solid"}\nAppearance: ${product.summary || "White to off-white solid"}`,
+        section_10_stability_reactivity:
+            "Stable under normal storage conditions. Avoid heat, light, and moisture.",
+        section_11_toxicological:
+            "Toxicological data to be provided upon request.",
+        section_12_ecological:
+            "Ecological data to be provided upon request.",
+        section_13_disposal:
+            "Dispose of according to applicable local, regional, and national regulations.",
+        section_14_transport:
+            "Transport in accordance with applicable regulations.",
+        section_15_regulatory:
+            "Product is intended for qualified commercial, documentation, research, or formulation context only. No medical, dosing, or human-use claims are made.",
+        section_16_other:
+            "Prepared for Atlas BioLabs documentation support. No medical, dosing, therapeutic, diagnostic, or human-use claims are made.",
+        };
 
   const { data, error } = await supabase
     .from("sds_documents")
