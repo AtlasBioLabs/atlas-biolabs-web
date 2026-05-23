@@ -65,8 +65,22 @@ export async function renderHtmlToPdfBuffer(html: string) {
     const page = await browser.newPage();
 
     await page.setContent(html, {
-      waitUntil: ["domcontentloaded", "networkidle0"],
+      waitUntil: "domcontentloaded",
       timeout: 60_000,
+    });
+
+    await page.evaluate(async () => {
+      const images = Array.from(document.images);
+      await Promise.all(
+        images.map((image) =>
+          image.complete
+            ? Promise.resolve()
+            : new Promise<void>((resolve) => {
+                image.addEventListener("load", () => resolve(), { once: true });
+                image.addEventListener("error", () => resolve(), { once: true });
+              })
+        )
+      );
     });
 
     await page.emulateMediaType("print");
