@@ -146,7 +146,7 @@ function DocumentBundlesIndex({ supabase }: { supabase: SupabaseClient }) {
           throw new Error(bundlesError.message);
         }
 
-        const bundleRows = ((bundles || []) as BundleRecord[]).map((bundle) => ({
+        const bundleRows: BundleRow[] = ((bundles || []) as BundleRecord[]).map((bundle) => ({
           ...bundle,
           linkedCoa: null,
         }));
