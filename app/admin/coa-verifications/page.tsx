@@ -50,6 +50,62 @@ function formatDateTime(value: string | null) {
       });
 }
 
+type SortKey =
+  | "coa_number"
+  | "verification_code"
+  | "product_name"
+  | "catalog_code"
+  | "batch_lot_no"
+  | "verification_status"
+  | "release_decision"
+  | "issue_date"
+  | "updated_at";
+
+type SortDirection = "asc" | "desc";
+
+function getSortableValue(row: CoaVerificationRow, sortKey: SortKey) {
+  if (sortKey === "issue_date" || sortKey === "updated_at") {
+    const rawValue = sortKey === "issue_date" ? row.issue_date : row.updated_at;
+    const parsedDate = new Date(String(rawValue ?? ""));
+
+    if (!Number.isNaN(parsedDate.valueOf())) {
+      return parsedDate.valueOf();
+    }
+
+    return String(rawValue ?? "").trim().toLowerCase();
+  }
+
+  switch (sortKey) {
+    case "coa_number":
+      return row.coa_number.trim().toLowerCase();
+    case "verification_code":
+      return row.verification_code.trim().toLowerCase();
+    case "product_name":
+      return row.product_name.trim().toLowerCase();
+    case "catalog_code":
+      return row.catalog_code.trim().toLowerCase();
+    case "batch_lot_no":
+      return row.batch_lot_no.trim().toLowerCase();
+    case "verification_status":
+      return row.verification_status.trim().toLowerCase();
+    case "release_decision":
+      return row.release_decision.trim().toLowerCase();
+    default:
+      return "";
+  }
+}
+
+function compareSortableValues(a: string | number, b: string | number) {
+  if (typeof a === "number" && typeof b === "number") {
+    return a - b;
+  }
+
+  return String(a).localeCompare(String(b), undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+}
+
 export default function AdminCoaVerificationsPage() {
   return (
     <AdminGuard
@@ -77,6 +133,8 @@ function AdminCoaVerificationIndex({
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState<CoaVerificationStatus | "All">("All");
+  const [sortKey, setSortKey] = useState<SortKey>("updated_at");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   useEffect(() => {
     let isMounted = true;
@@ -134,6 +192,16 @@ function AdminCoaVerificationIndex({
     });
   }, [rows, searchValue, statusFilter]);
 
+  const sortedRows = useMemo(() => {
+    return [...filteredRows].sort((firstRow, secondRow) => {
+      const firstValue = getSortableValue(firstRow, sortKey);
+      const secondValue = getSortableValue(secondRow, sortKey);
+      const result = compareSortableValues(firstValue, secondValue);
+
+      return sortDirection === "asc" ? result : -result;
+    });
+  }, [filteredRows, sortDirection, sortKey]);
+
   const filteredRowIds = useMemo(
     () => filteredRows.map((row) => row.id),
     [filteredRows]
@@ -159,6 +227,48 @@ function AdminCoaVerificationIndex({
 
       return Array.from(new Set([...currentIds, ...filteredRowIds]));
     });
+  }
+
+  function handleSort(nextSortKey: SortKey) {
+    if (sortKey === nextSortKey) {
+      setSortDirection((currentDirection) =>
+        currentDirection === "asc" ? "desc" : "asc"
+      );
+      return;
+    }
+
+    setSortKey(nextSortKey);
+    setSortDirection("asc");
+  }
+
+  function getSortIndicator(nextSortKey: SortKey) {
+    if (sortKey !== nextSortKey) {
+      return "↕";
+    }
+
+    return sortDirection === "asc" ? "↑" : "↓";
+  }
+
+  function renderSortableHeader(nextSortKey: SortKey, label: string) {
+    const isActive = sortKey === nextSortKey;
+
+    return (
+      <button
+        type="button"
+        onClick={() => handleSort(nextSortKey)}
+        className={`inline-flex items-center gap-1 rounded-md text-left font-semibold uppercase tracking-[0.14em] transition-colors hover:text-[var(--brand-blue)] ${
+          isActive ? "text-[var(--brand-navy)]" : "text-muted-foreground"
+        }`}
+        aria-label={`Sort by ${label} ${
+          isActive && sortDirection === "asc" ? "descending" : "ascending"
+        }`}
+      >
+        <span>{label}</span>
+        <span className="text-[0.7rem] leading-none" aria-hidden="true">
+          {getSortIndicator(nextSortKey)}
+        </span>
+      </button>
+    );
   }
 
   async function handleCopyVerificationUrl(row: CoaVerificationRow) {
@@ -465,20 +575,38 @@ function AdminCoaVerificationIndex({
                       aria-label="Select all visible COA records"
                     />
                   </th>
-                  <th className="px-4 py-4 font-semibold">COA Number</th>
-                  <th className="px-4 py-4 font-semibold">Verification Code</th>
-                  <th className="px-4 py-4 font-semibold">Product Name</th>
-                  <th className="px-4 py-4 font-semibold">Catalog Code</th>
-                  <th className="px-4 py-4 font-semibold">Batch / Lot No.</th>
-                  <th className="px-4 py-4 font-semibold">Verification Status</th>
-                  <th className="px-4 py-4 font-semibold">Release Decision</th>
-                  <th className="px-4 py-4 font-semibold">Issue Date</th>
-                  <th className="px-4 py-4 font-semibold">Updated At</th>
+                  <th className="px-4 py-4 font-semibold">
+                    {renderSortableHeader("coa_number", "COA Number")}
+                  </th>
+                  <th className="px-4 py-4 font-semibold">
+                    {renderSortableHeader("verification_code", "Verification Code")}
+                  </th>
+                  <th className="px-4 py-4 font-semibold">
+                    {renderSortableHeader("product_name", "Product Name")}
+                  </th>
+                  <th className="px-4 py-4 font-semibold">
+                    {renderSortableHeader("catalog_code", "Catalog Code")}
+                  </th>
+                  <th className="px-4 py-4 font-semibold">
+                    {renderSortableHeader("batch_lot_no", "Batch / Lot No.")}
+                  </th>
+                  <th className="px-4 py-4 font-semibold">
+                    {renderSortableHeader("verification_status", "Verification Status")}
+                  </th>
+                  <th className="px-4 py-4 font-semibold">
+                    {renderSortableHeader("release_decision", "Release Decision")}
+                  </th>
+                  <th className="px-4 py-4 font-semibold">
+                    {renderSortableHeader("issue_date", "Issue Date")}
+                  </th>
+                  <th className="px-4 py-4 font-semibold">
+                    {renderSortableHeader("updated_at", "Updated At")}
+                  </th>
                   <th className="px-4 py-4 font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
-                {filteredRows.map((row) => (
+                {sortedRows.map((row) => (
                   <tr key={row.id} className="align-top">
                     <td className="px-4 py-4">
                       <input
