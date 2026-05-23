@@ -772,17 +772,17 @@ async function getBundlePdfFiles({
     );
   }
 
-  const [coaPdf, hplcPdf, msPdf, sdsPdf] = await Promise.all([
-    renderPrintableCoaRouteToPdf({
-      supabase,
-      accessToken,
-      origin,
-      coaVerificationId: String(linkedCoaRecord?.id),
-    }),
-    renderHtmlToPdfBuffer(hplcHtml(hplc as DbRecord, batch, brandSettings)),
-    renderHtmlToPdfBuffer(msHtml(ms as DbRecord, batch, brandSettings)),
-    renderHtmlToPdfBuffer(sdsHtml(sds as DbRecord, brandSettings)),
-  ]);
+  const coaPdf = await renderPrintableCoaRouteToPdf({
+    supabase,
+    accessToken,
+    origin,
+    coaVerificationId: String(linkedCoaRecord?.id),
+  });
+  const hplcPdf = await renderHtmlToPdfBuffer(
+    hplcHtml(hplc as DbRecord, batch, brandSettings)
+  );
+  const msPdf = await renderHtmlToPdfBuffer(msHtml(ms as DbRecord, batch, brandSettings));
+  const sdsPdf = await renderHtmlToPdfBuffer(sdsHtml(sds as DbRecord, brandSettings));
 
   const prefix = folderPrefix ? `${folderPrefix.replace(/\/?$/, "/")}` : "";
 

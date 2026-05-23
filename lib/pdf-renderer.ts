@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import chromium from "@sparticuz/chromium";
-import puppeteer, { type Page } from "puppeteer-core";
+import puppeteer, { type Browser, type Page } from "puppeteer-core";
 
 const chromeExecutableCandidates = [
   process.env.PUPPETEER_EXECUTABLE_PATH,
@@ -19,6 +19,17 @@ type BrowserStorageItem = {
   key: string;
   value: unknown;
 };
+
+let sharedBrowserPromise: Promise<Browser> | null = null;
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isTextFileBusyError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return message.includes("ETXTBSY") || message.toLowerCase().includes("text file busy");
+}
 
 function getLocalChromeExecutablePath() {
   for (const executablePath of chromeExecutableCandidates) {
@@ -46,19 +57,66 @@ async function launchBrowser() {
     (candidate) => candidate && executablePath === candidate
   );
 
-  return puppeteer.launch({
-    args: isLocalChrome
-      ? ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
-      : chromium.args,
-    defaultViewport: {
-      width: 1280,
-      height: 1600,
-      deviceScaleFactor: 1,
-    },
-    executablePath,
-    headless: true,
-  });
+  const args = isLocalChrome
+    ? ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+    : chromium.args;
+
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= 6; attempt += 1) {
+    try {
+      return await puppeteer.launch({
+        args,
+        defaultViewport: {
+          width: 1280,
+          height: 1600,
+          deviceScaleFactor: 1,
+        },
+        executablePath,
+        headless: true,
+      });
+    } catch (error) {
+      lastError = error;
+
+      if (!isTextFileBusyError(error) || attempt === 6) {
+        break;
+      }
+
+      await sleep(400 * attempt);
+    }
+  }
+
+  throw lastError;
 }
+
+async function getSharedBrowser() {
+  if (sharedBrowserPromise) {
+    try {
+      const browser = await sharedBrowserPromise;
+      if (browser.isConnected()) {
+        return browser;
+      }
+    } catch {
+      // Recreate below.
+    }
+  }
+
+  sharedBrowserPromise = launchBrowser();
+  return sharedBrowserPromise;
+}
+
+async function getFreshPage() {
+  const browser = await getSharedBrowser();
+
+  try {
+    return await browser.newPage();
+  } catch (error) {
+    sharedBrowserPromise = null;
+    const recoveredBrowser = await getSharedBrowser();
+    return recoveredBrowser.newPage();
+  }
+}
+
 
 async function waitForImages(page: Page) {
   await page.evaluate(async () => {
@@ -81,11 +139,9 @@ async function waitForImages(page: Page) {
  * Converts a print-ready HTML document into a PDF buffer.
  */
 export async function renderHtmlToPdfBuffer(html: string) {
-  const browser = await launchBrowser();
+  const page = await getFreshPage();
 
   try {
-    const page = await browser.newPage();
-
     await page.setContent(html, {
       waitUntil: "domcontentloaded",
       timeout: 60_000,
@@ -108,8 +164,8 @@ export async function renderHtmlToPdfBuffer(html: string) {
 
     return Buffer.from(pdf);
   } finally {
-    await browser.close().catch(() => {
-      // Ignore browser shutdown errors so the route can return the original PDF/render error.
+    await page.close().catch(() => {
+      // Ignore page shutdown errors so the route can return the original PDF/render error.
     });
   }
 }
@@ -126,11 +182,9 @@ export async function renderUrlToPdfBuffer(
     waitForSelector?: string;
   }
 ) {
-  const browser = await launchBrowser();
+  const page = await getFreshPage();
 
   try {
-    const page = await browser.newPage();
-
     if (options?.localStorageItems?.length) {
       await page.evaluateOnNewDocument((items: BrowserStorageItem[]) => {
         for (const item of items) {
@@ -165,8 +219,8 @@ export async function renderUrlToPdfBuffer(
 
     return Buffer.from(pdf);
   } finally {
-    await browser.close().catch(() => {
-      // Ignore browser shutdown errors so the route can return the original PDF/render error.
+    await page.close().catch(() => {
+      // Ignore page shutdown errors so the route can return the original PDF/render error.
     });
   }
 }
